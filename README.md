@@ -1,9 +1,9 @@
 <h2>Microsoft 365 Extractor Suite</h2>
 This suite of scripts contains three different scripts that can be used to acquire the Microsoft 365 Unified Audit Log
 
-1.	Microsoft365_Extractor.ps1, the original script stems from the Office 365 Extractor and provides all features and complete customization. Choose this if you're not sure what to use. 
-2.	Microsoft365_Extractor_light.ps1, lightweight version of the Microsoft365_Extractor that requires minimal configuration and grabs all available logging for the complete period. 
-3.	Microsoft365_Extractor_app.ps1, special variant of the script that can be run unattened by using a certificate. This requires advanced configuration and a Microsoft App needs to be registered. This is for advanced users only!
+1.	_Microsoft365_Extractor_, the original script stems from the Office 365 Extractor and provides all features and complete customization. Choose this if you're not sure what to use. 
+2.	_Microsoft365_Extractor_light_, lightweight version of the Microsoft365_Extractor that requires minimal configuration and grabs all available logging for the complete period. 
+3.	_Microsoft365_Extractor_app_, special variant of the script that can be run unattened by using an application with certificate based authentication. This requires advanced configuration and a Microsoft App needs to be registered. This is for advanced users only!
 	
 	
 <h3>Microsoft 365 Extractor</h3>
