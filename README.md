@@ -1,5 +1,10 @@
 <h2>Microsoft 365 Extractor Suite</h2>
 This suite of scripts contains three different scripts that can be used to acquire the Microsoft 365 Unified Audit Log
+<br>
+<br>
+
+
+
 
 1.	_Microsoft365_Extractor_, the original script stems from the Office 365 Extractor and provides all features and complete customization. Choose this if you're not sure what to use. 
 2.	_Microsoft365_Extractor_light_, lightweight version of the Microsoft365_Extractor that requires minimal configuration and grabs all available logging for the complete period. 
