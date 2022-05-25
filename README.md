@@ -1,4 +1,4 @@
-<h2>Microsoft 365 Extractor Suite<h2>
+<h2>Microsoft 365 Extractor Suite</h2>
 This suite of scripts contains three different scripts that can be used to acquire the Microsoft 365 Unified Audit Log
 	1. Microsoft365_Extractor.ps1
 	2. Microsoft365_Extractor_light.ps1
