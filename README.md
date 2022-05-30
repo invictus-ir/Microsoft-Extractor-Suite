@@ -212,7 +212,7 @@ One example can be found here: https://gallery.technet.microsoft.com/scriptcente
 
 <h3>Known errors</h3>
 <b>StartDate is later than EndDate</b><br>
-This error occurs sometimes at the final step of the script if you have not defined an endDate. Doublecheck if you have all the logs using Option 1 to validate if you have all logs. <br> <br>
+This error occurs sometimes at the final step of the script if you have not defined an endDate. Doublecheck if you have all the logs using Option 1 to validate if you have all logs. Alternative: Define an endDate <br> <br>
 
 <b>Import-PSSession : No command proxies have been created, because all of the requested remote....</b><br>
 This error is caused when the script did not close correctly and an active session will be running in the background.
