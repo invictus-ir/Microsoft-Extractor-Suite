@@ -8,11 +8,11 @@ This suite of scripts contains three different scripts that can be used to acqui
 
 1.	_Microsoft365_Extractor_, the original script stems from the Office 365 Extractor and provides all features and complete customization. Choose this if you're not sure what to use. 
 2.	_Microsoft365_Extractor_light_, lightweight version of the Microsoft365_Extractor that requires minimal configuration and grabs all available logging for the complete period. 
-3.	_Microsoft365_Extractor_app_, special variant of the script that can be run unattened by using an application with certificate based authentication. This requires advanced configuration and a Microsoft App needs to be registered. This is for advanced users only!
+
 	
 	
 <h3>Microsoft 365 Extractor</h3>
-This script makes it possible to extract log data out of a Microsoft 365 environment. The script created by us consist out of four main options, which enable the investigator to easily extract logging out of an Microsoft 365 environment. 
+This script makes it possible to extract log data out of a Microsoft 365 environment. The script has four options, which enable the investigator to easily extract logging out of an Microsoft 365 environment. 
 
 1.	Show available log sources and amount of logging
 2.	Extract all audit logging
@@ -35,20 +35,24 @@ be configured with the required Record Types. A full list of recordtypes can be 
 The output files will be writen in a directory called 'Log_Directory" and will be given the name of their recordtype e.g. (ExchangeItem_AuditRecords.csv) <br>
 
 <h3>Prerequisites</h3>
-	-PowerShell<br>
-	-Microsoft 365 account with privileges to access/extract audit logging<br>
-	-As long as the operating system supports Powershell you should be good. There are some issues with PowerShell on MacOS/Linux related to WinRM so you're best option is to use Windows. 
+	- PowerShell<br>
+	- Microsoft 365 account with privileges to access/extract audit logging<br>
+	- An OS that supports Powershell you should be good. There are some issues with PowerShell on MacOS/Linux related to WinRM so your best option is to use Windows. 
 <br>
 
-You have to be assigned the View-Only Audit Logs or Audit Logs role in Exchange Online to search the Office 365 audit log.
-By default, these roles are assigned to the Compliance Management and Organization Management role groups on the Permissions page in the Exchange admin center. To give a user the ability to search the Office 365 audit log with the minimum level of privileges, you can create a custom role group in Exchange Online, add the View-Only Audit Logs or Audit Logs role, and then add the user as a member of the new role group. For more information, see Manage role groups in Exchange Online.
-https://docs.microsoft.com/en-us/office365/securitycompliance/search-the-audit-log-in-security-and-compliance)<br>
+<h3>Permissions</h3>
 
-<h3>How to use the script</h3>
-1.	Download Office365_Extractor.ps1<br>
-2.	Right click on the script and press "Run with PowerShell".<br>
-3.	Now pick any of the options in the menu.<br>
-4.  The logs will be written to the 'logdirectory' in the folder where the script is located.<br>
+You have to be assigned the View-Only Audit Logs or Audit Logs role in Exchange Online to search the Microsoft 365 audit log.
+By default, these roles are assigned to the Compliance Management and Organization Management role groups on the Permissions page in the Exchange admin center. To give a user the ability to search the Office 365 audit log with the minimum level of privileges, you can create a custom role group in Exchange Online, add the View-Only Audit Logs or Audit Logs role, and then add the user as a member of the new role group. For more information, see Manage role groups in Exchange Online.<br>
+(https://docs.microsoft.com/en-us/office365/securitycompliance/search-the-audit-log-in-security-and-compliance)<br>
+
+<h3>How to use Microsoft365_extractor</h3>
+1.	Download Microsoft365_Extractor.ps1<br>
+2.	Open PowerShell navigate to the script and run it or right click on the script and press "Run with PowerShell".<br>
+3.	Select your prefered option.<br>
+4.  The logs will be written to 'Log_Directory' in the folder where the script is located.<br><br>
+
+See example video below: <br>
 
 <h3>Output</h3>
 <b>Amount_Of_Audit_Logs.csv:</b><br>
@@ -62,7 +66,7 @@ When extracting specific RecordTypes, logs are sorted on RecordType and written 
 The name of this file is the RecordType + _AuditRecords.<br>
 
 <h3>Available RecordTypes</h3>
-<h3>Source:https://docs.microsoft.com/en-us/office/office-365-management-api/office-365-management-activity-api-schema#auditlogrecordtype</h3>
+
 ExchangeAdmin<br>
 ExchangeItem<br>
 ExchangeItemGroup<br>
@@ -167,6 +171,7 @@ MipExactDataMatch<br>
 MS365DCustomDetection<br>
 CoreReportingSettings<br>
 ComplianceConnector<br>
+Source:https://docs.microsoft.com/en-us/office/office-365-management-api/office-365-management-activity-api-schema#auditlogrecordtype <br>
 
 <h3>Frequently Asked Questions</h3>
 <b>If I enable mailbox auditing now can I see historical records?</b><br>
@@ -215,5 +220,7 @@ The start date should be earlier then the end date.
 <b>New-PSSession: [outlook.office365.com] Connecting to remove server outlook.office365.com failed with the following error message: Access is denied.</b><br>
 The password/username combination are incorrect or the user has not enough privileges to extract the audit logging.<br>
 <br>
+<b>On MacOS you can get an error regarding a variable that's not an int (integer)</b> <br>
+You can ignore these errors the script will work fine and continue. 
 <br>
 
