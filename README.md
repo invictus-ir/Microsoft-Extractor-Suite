@@ -201,12 +201,19 @@ Office 365 E3 - Audit records are retained for 90 days. That means you can searc
 Office 365 E5 - Audit records are retained for 365 days (one year). That means you can search the audit log for activities that were performed within the last year. Retaining audit records for one year is also available for users that are assigned an E3/Exchange Online Plan 1 license and have an Office 365 Advanced Compliance add-on license.
 <br>
 
+<b>What if I have E5 or other license that has more than 90 days?</b><br>
+Just define a manual startdate instead of the 'maximum' because the variable maximum is set to 90 days, which is the default for almost everyone.
+<br>
+
 <b>Can this script also acquire Message Trace Logs?</b><br>
 At the moment it cannot, but there are several open-source scripts available that can help you with getting the MTL
 One example can be found here: https://gallery.technet.microsoft.com/scriptcenter/Export-Mail-logs-to-CSV-d5b6c2d6
 <br>
 
 <h3>Known errors</h3>
+<b>StartDate is later than EndDate</b><br>
+This error occurs sometimes at the final step of the script if you have not defined an endDate. Doublecheck if you have all the logs using Option 1 to validate if you have all logs. <br> <br>
+
 <b>Import-PSSession : No command proxies have been created, because all of the requested remote....</b><br>
 This error is caused when the script did not close correctly and an active session will be running in the background.
 The script tries to import/load all modules again, but this is not necessary since it is already loaded. This error message has no impact on the script and will be gone when the open session gets closed. This can be done by restarting the PowerShell Windows or entering the following command: Get-PSSession | Remove-PSSession <br>
