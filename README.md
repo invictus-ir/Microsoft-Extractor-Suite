@@ -227,7 +227,7 @@ The start date should be earlier then the end date.
 <b>New-PSSession: [outlook.office365.com] Connecting to remove server outlook.office365.com failed with the following error message: Access is denied.</b><br>
 The password/username combination are incorrect or the user has not enough privileges to extract the audit logging.<br>
 <br>
-<b>On MacOS you can get an error regarding a variable that's not an int (integer)</b> <br>
-You can ignore these errors the script will work fine and continue. 
+<b>Invalid Argument "Cannot convert value" to type "System.Int32"</b> <br>
+Safe to ignore, only observed this on PowerShell on macOS, the script will work fine and continue. 
 <br>
 
