@@ -10,6 +10,8 @@ $menupart1=@"
                                                                                                                                 
 Copyright (c) 2022 Invictus Incident Response
 New version of the Office 365 Extractor script, originally created by Joey Rentenaar & Korstiaan Stam formerly PwC Incident Response Netherlands.
+Documentation available on https://github.com/invictus-ir/Microsoft-365-Extractor-Suite
+
 
 "@
 
@@ -79,7 +81,7 @@ function Main{
 	Function Write-LogFile ([String]$Message){
 		$final = [DateTime]::Now.ToString() + ":" + $Message
 		$final | Out-File $LogFile -Append} 
-
+    
 	Switch ($script:input){
 	#Show available log sources and amount of logs
 	"1" {
@@ -89,12 +91,10 @@ function Main{
 		$StartDate = Get-StartDate
 		$EndDate = Get-EndDate
 		
-		#$UserCredential = Get-Credential
 		Connect-ExchangeOnline 
-		#-Credential $UserCredential
 		
-		$RecordTypes = "ExchangeAdmin","ExchangeItem","ExchangeItemGroup","SharePoint","SyntheticProbe","SharePointFileOperation","OneDrive","AzureActiveDirectory","AzureActiveDirectoryAccountLogon","DataCenterSecurityCmdlet","ComplianceDLPSharePoint","Sway","ComplianceDLPExchange","SharePointSharingOperation","AzureActiveDirectoryStsLogon","SkypeForBusinessPSTNUsage","SkypeForBusinessUsersBlocked","SecurityComplianceCenterEOPCmdlet","ExchangeAggregatedOperation","PowerBIAudit","CRM","Yammer","SkypeForBusinessCmdlets","Discovery","MicrosoftTeams","ThreatIntelligence","MailSubmission","MicrosoftFlow","AeD","MicrosoftStream","ComplianceDLPSharePointClassification","ThreatFinder","Project","SharePointListOperation","SharePointCommentOperation","DataGovernance","Kaizala","SecurityComplianceAlerts","ThreatIntelligenceUrl","SecurityComplianceInsights","MIPLabel","WorkplaceAnalytics","PowerAppsApp","PowerAppsPlan","ThreatIntelligenceAtpContent","LabelContentExplorer","TeamsHealthcare","ExchangeItemAggregated","HygieneEvent","DataInsightsRestApiAudit","InformationBarrierPolicyApplication","SharePointListItemOperation","SharePointContentTypeOperation","SharePointFieldOperation","MicrosoftTeamsAdmin","HRSignal
-","MicrosoftTeamsDevice","MicrosoftTeamsAnalytics","InformationWorkerProtection","Campaign","DLPEndpoint","AirInvestigation","Quarantine","MicrosoftForms","ApplicationAudit","ComplianceSupervisionExchange","CustomerKeyServiceEncryption","OfficeNative","MipAutoLabelSharePointItem","MipAutoLabelSharePointPolicyLocation","MicrosoftTeamsShifts","MipAutoLabelExchangeItem","CortanaBriefing","Search","WDATPAlerts","MDATPAudit","LabelContentExplorer","SensitivityLabelPolicyMatch","SensitivityLabelAction","SensitivityLabeledFileAction","AttackSim","AirManualInvestigation","SecurityComplianceRBAC","UserTraining","AirAdminActionInvestigation","MSTIC","PhysicalBadgingSignal","AipDiscover","AipSensitivityLabelAction","AipProtectionAction","AipFileDeleted","AipHeartBeat","MCASAlerts","OnPremisesFileShareScannerDlp","OnPremisesSharePointScannerDlp","ExchangeSearch","SharePointSearch","MyAnalyticsSettings","SecurityComplianceUserChange","ComplianceDLPExchangeClassification","MipExactDataMatch","MS365DCustomDetection","CoreReportingSettings","ComplianceConnector","PrivacyInsights"
+		
+		$RecordTypes = "ExchangeAdmin","ExchangeItem","ExchangeItemGroup","SharePoint","SyntheticProbe","SharePointFileOperation","OneDrive","AzureActiveDirectory","AzureActiveDirectoryAccountLogon","DataCenterSecurityCmdlet","ComplianceDLPSharePoint","Sway","ComplianceDLPExchange","SharePointSharingOperation","AzureActiveDirectoryStsLogon","SkypeForBusinessPSTNUsage","SkypeForBusinessUsersBlocked","SecurityComplianceCenterEOPCmdlet","ExchangeAggregatedOperation","PowerBIAudit","CRM","Yammer","SkypeForBusinessCmdlets","Discovery","MicrosoftTeams","ThreatIntelligence","MailSubmission","MicrosoftFlow","AeD","MicrosoftStream","ComplianceDLPSharePointClassification","ThreatFinder","Project","SharePointListOperation","SharePointCommentOperation","DataGovernance","Kaizala","SecurityComplianceAlerts","ThreatIntelligenceUrl","SecurityComplianceInsights","MIPLabel","WorkplaceAnalytics","PowerAppsApp","PowerAppsPlan","ThreatIntelligenceAtpContent","LabelContentExplorer","TeamsHealthcare","ExchangeItemAggregated","HygieneEvent","DataInsightsRestApiAudit","InformationBarrierPolicyApplication","SharePointListItemOperation","SharePointContentTypeOperation","SharePointFieldOperation","MicrosoftTeamsAdmin","HRSignal","MicrosoftTeamsDevice","MicrosoftTeamsAnalytics","InformationWorkerProtection","Campaign","DLPEndpoint","AirInvestigation","Quarantine","MicrosoftForms","ApplicationAudit","ComplianceSupervisionExchange","CustomerKeyServiceEncryption","OfficeNative","MipAutoLabelSharePointItem","MipAutoLabelSharePointPolicyLocation","MicrosoftTeamsShifts","MipAutoLabelExchangeItem","CortanaBriefing","Search","WDATPAlerts","MDATPAudit","LabelContentExplorer","SensitivityLabelPolicyMatch","SensitivityLabelAction","SensitivityLabeledFileAction","AttackSim","AirManualInvestigation","SecurityComplianceRBAC","UserTraining","AirAdminActionInvestigation","MSTIC","PhysicalBadgingSignal","AipDiscover","AipSensitivityLabelAction","AipProtectionAction","AipFileDeleted","AipHeartBeat","MCASAlerts","OnPremisesFileShareScannerDlp","OnPremisesSharePointScannerDlp","ExchangeSearch","SharePointSearch","MyAnalyticsSettings","SecurityComplianceUserChange","ComplianceDLPExchangeClassification","MipExactDataMatch","MS365DCustomDetection","CoreReportingSettings","ComplianceConnector"
 		
 		If(!(test-path $OutputDirectory)){
 			Write-host "Creating the following file:" $OutputDirectory}
@@ -110,9 +110,9 @@ function Main{
 		Write-Host "---------------------------------------------------------------------------" 
 		echo ""
 		Write-Host "Calculating the number of audit logs" -ForegroundColor Green
-		$TotalCount = Search-UnifiedAuditLog -UserIds $script:Userstoextract -StartDate $StartDate -EndDate $EndDate -ResultSize 1 | out-string -Stream | select-string ResultCount
+		$TotalCount = Search-UnifiedAuditLog -UserIds $script:Userstoextract -StartDate $StartDate -EndDate $EndDate -ResultSize 1 |  Format-List -Property ResultCount| out-string -Stream | select-string ResultCount
 		Foreach ($record in $RecordTypes){	
-			$SpecificResult = Search-UnifiedAuditLog -UserIds $script:Userstoextract -StartDate $StartDate -EndDate $EndDate -RecordType $record -ResultSize 1 | out-string -Stream | select-string ResultCount
+			$SpecificResult = Search-UnifiedAuditLog -UserIds $script:Userstoextract -StartDate $StartDate -EndDate $EndDate -RecordType $record -ResultSize 1 | Format-List -Property ResultCount| out-string -Stream | select-string ResultCount
 			if($SpecificResult){
 				$number = $SpecificResult.tostring().split(":")[1]
 				Write-Output $record":"$number
@@ -124,7 +124,7 @@ function Main{
 			Write-Host "Total count:"$numbertotal
 			Write-host "Count complete file is written to $outputDirectory"
 			$StringTotalCount = "Total Count:"
-			Write-Output "$StringTotalCount $numbertotal" | Out-File $outputDirectory -Append}
+			Write-Output "$StringTotalCount : $numbertotal" | Out-File $outputDirectory -Append}
 		else{
 			Write-host "No records found."}
 			
@@ -147,16 +147,14 @@ function Main{
 		[DateTime]$StartDate = Get-StartDate
 		[DateTime]$EndDate = Get-EndDate
 		
-		echo ""
-		write-host "Recommended interval: 60"
-		Write-host "Lower the time interval for environments with a high log volume"
-		echo ""
+		# Interval in minutes determines the timeframe the script will use to search for a set of logs. The reason is that there's a maximum of 5000 records per session. 
+        # The script will automatically lower this value if there are more than 5000 records for the given interval. If the value is low the scripts takes a lot of time to run.
+        $IntervalMinutes = read-host "Please enter a time interval or ENTER for the default value 480"
+	    if ([string]::IsNullOrWhiteSpace($IntervalMinutes)) { $IntervalMinutes = "480" 
+	    $ResetInterval = $IntervalMinutes
+	
 		
 		
-		$IntervalMinutes = read-host "Please enter a time interval or ENTER for 60"
-		if ([string]::IsNullOrWhiteSpace($IntervalMinutes)) { $IntervalMinutes = "60" }
-		
-		$ResetInterval = $IntervalMinutes
 		
 		Write-LogFile "Start date provided by user: $StartDate"
 		Write-LogFile "End date provided by user: $EndDate"
@@ -164,8 +162,8 @@ function Main{
 		[DateTime]$CurrentStart = $StartDate
 		[DateTime]$CurrentEnd = $EndDate
 		
-		$UserCredential = Get-Credential
-		Connect-ExchangeOnline -Credential $UserCredential
+		#Establish connection to the client environment
+		Connect-ExchangeOnline 
 		
 		echo ""
 		Write-Host "------------------------------------------------------------------------------------------"
@@ -177,13 +175,13 @@ function Main{
 		while ($true){
 			$CurrentEnd = $CurrentStart.AddMinutes($IntervalMinutes)
 			
-			$AmountResults = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -UserIds $script:Userstoextract -ResultSize 1 | out-string -Stream | select-string ResultCount
+			$AmountResults = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -UserIds $script:Userstoextract -ResultSize 1 |  out-string -Stream | select-string ResultCount
 			if($AmountResults){
 				$number = $AmountResults.tostring().split(":")[1]
 				$script:integer = [int]$number
 				
 				while ($script:integer -gt 5000){
-					$AmountResults = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -UserIds $script:Userstoextract -ResultSize 1 | out-string -Stream | select-string ResultCount
+					$AmountResults = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -UserIds $script:Userstoextract -ResultSize 1 |out-string -Stream | select-string ResultCount
 					if($AmountResults){
 						$number = $AmountResults.tostring().split(":")[1]
 						$script:integer = [int]$number
@@ -204,7 +202,7 @@ function Main{
 						$Intervalmin = $IntervalMinutes
 						$CurrentStart = $CurrentStart.AddMinutes($Intervalmin)
 						$CurrentEnd = $CurrentStart.AddMinutes($Intervalmin)
-						$AmountResults = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -UserIds $script:Userstoextract -ResultSize 1 | out-string -Stream | select-string ResultCount
+						$AmountResults = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -UserIds $script:Userstoextract -ResultSize 1 |out-string -Stream | select-string ResultCount
 						if($AmountResults){
 							$number = $AmountResults.tostring().split(":")[1]
 							$script:integer = [int]$number}}}
@@ -237,7 +235,7 @@ function Main{
 				if($results){
 					$results | epcsv $OutputFile -NoTypeInformation -Append
 				}
-				write-host "Quiting.." -ForegroundColor Red
+				write-host "Acquisition complete, check the Log Directory for your files.." -ForegroundColor Red
 				break
 				Menu
 			}
@@ -279,7 +277,7 @@ function Main{
 		$HASHValues = Join-Path $PSScriptRoot "\Log_Directory\Hashes.csv"
 		Get-ChildItem $LogDirectoryPath -Filter *AuditRecords.csv | Get-FileHash -Algorithm SHA256 | epcsv $HASHValues
 		echo ""
-		Menu}
+		Menu}}
 	 
 	#3Extract group of logs
 	"3" {
@@ -302,7 +300,7 @@ function Main{
 			$RecordTypes = "ComplianceDLPSharePoint","SharePoint","SharePointFileOperation","SharePointSharingOperation","SharepointListOperation", "ComplianceDLPSharePointClassification","SharePointCommentOperation", "SharePointListItemOperation", "SharePointContentTypeOperation", "SharePointFieldOperation","MipAutoLabelSharePointItem","MipAutoLabelSharePointPolicyLocation"
 			$RecordFile = "AllSharepoint"}
 		ELSEIF($inputgroup -eq "4"){
-			$RecordTypes = "SkypeForBusinessCmd","SkypeForBusinessPSTNUsage","SkypeForBusinessUsersBlocked"
+			$RecordTypes = "SkypeForBusinessCmdlets","SkypeForBusinessPSTNUsage","SkypeForBusinessUsersBlocked"
 			$RecordFile = "AllSkype"}
 		ELSE{
 			Menu}
@@ -315,12 +313,12 @@ function Main{
 		[DateTime]$EndDate = Get-EndDate
 		
 		echo ""
-		write-host "Recommended interval is 60"
+		write-host "Recommended interval is 480"
 		Write-host "Lower the time interval for environments with a high log volume"
 		echo ""
 		
-		$IntervalMinutes = read-host "Please enter a time interval or ENTER for 60"
-		if ([string]::IsNullOrWhiteSpace($IntervalMinutes)) { $IntervalMinutes = "60" }
+		$IntervalMinutes = read-host "Please enter a time interval or ENTER for 480"
+		if ([string]::IsNullOrWhiteSpace($IntervalMinutes)) { $IntervalMinutes = "480" }
 		
 		$ResetInterval = $IntervalMinutes
 		
@@ -328,8 +326,8 @@ function Main{
 		Write-LogFile "End date provided by user: $EndDate"
 		Write-Logfile "Time interval provided by user: $IntervalMinutes"
 		
-		$UserCredential = Get-Credential
-		Connect-ExchangeOnline -Credential $UserCredential
+		
+		Connect-ExchangeOnline 
 		
 		echo ""
 		Write-Host "----------------------------------------------------------------------------"
@@ -342,7 +340,7 @@ function Main{
 		echo ""
 		
 		Foreach ($record in $RecordTypes){
-			$SpecificResult = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -RecordType $record -UserIds $script:Userstoextract -ResultSize 1 | out-string -Stream | select-string ResultCount
+			$SpecificResult = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -RecordType $record -UserIds $script:Userstoextract -ResultSize 1|out-string -Stream | select-string ResultCount
 	
 			if($SpecificResult){
 				$NumberOfLogs = $SpecificResult.tostring().split(":")[1]
@@ -417,7 +415,7 @@ function Main{
 							if($results){
 								$results | epcsv $OutputFile -NoTypeInformation -Append
 							}
-							write-host "Quiting.." -ForegroundColor Red
+							write-host "Acquisition complete, check the Log Directory for your files.." -ForegroundColor Red
 							break
 							Menu
 						}
@@ -469,8 +467,7 @@ function Main{
 	"4" {		
 		#All RecordTypes can be found at:
 		#https://docs.microsoft.com/en-us/office/office-365-management-api/office-365-management-activity-api-schema#enum-auditlogrecordtype---type-edmint32
-		#https://docs.microsoft.com/en-us/powershell/module/exchange/policy-and-compliance-audit/search-unifiedauditlog?view=exchange-ps
-		#Known RecordTypes please check the above links as these types get updated: "SharePointFieldOperation","TeamsHealthcare","LabelExplorer","PowerAppsPlan","HygieneEvent","PowerAppsApp","ExchangeItemAggregated","SecurityComplianceInsights","WorkplaceAnalytics","DataGovernance","ThreatFinder","AeD","ThreatIntelligenceAtpContent","ThreatIntelligenceUrl","MicrosoftStream","Project","SharepointListOperation","SecurityComplianceAlerts","ThreatIntelligenceUrl","AzureActiveDirectory","AzureActiveDirectoryAccountLogon","AzureActiveDirectoryStsLogon","ComplianceDLPExchange","ComplianceDLPSharePoint","CRM","DataCenterSecurityCmdlet","Discovery","ExchangeAdmin","ExchangeAggregatedOperation","ExchangeItem","ExchangeItemGroup","MicrosoftTeamsAddOns","MicrosoftTeams","MicrosoftTeamsSettingsOperation","OneDrive","PowerBIAudit","SecurityComplianceCenterEOPCmdlet","SharePoint", "SharePointFileOperation","SharePointSharingOperation","SkypeForBusinessCmdlets","SkypeForBusinessPSTNUsage","SkypeForBusinessUsersBlocked","Sway","ThreatIntelligence","Yammer"
+		#https://docs.microsoft.com/en-us/powershell/module/exchange/policy-and-compliance-audit/search-unifiedauditlog?view=exchange-ps		
 		write-host "Enter the RecordType(s) that need to be extracted, multiple recordtypes can be entered using comma separated values" -ForegroundColor Green
 		write-host "The different RecordTypes can be found on our Github page (https://github.com/PwC-IR/Office-365-Extractor)"
 		write-host "Example: SecurityComplianceCenterEOPCmdlet,SecurityComplianceAlerts,SharepointListOperation"
@@ -481,20 +478,21 @@ function Main{
 		[DateTime]$EndDate = Get-EndDate
 		
 		echo ""
-		write-host "Recommended interval is 60"
+		write-host "Recommended interval is 480"
 		Write-host "Lower the time interval for environments with a high log volume"
 		echo ""
 		
-		$IntervalMinutes = read-host "Please enter a time interval or ENTER for 60"
-		if ([string]::IsNullOrWhiteSpace($IntervalMinutes)) { $IntervalMinutes = "60" }
+		$IntervalMinutes = read-host "Please enter a time interval or ENTER for 480"
+		if ([string]::IsNullOrWhiteSpace($IntervalMinutes)) { $IntervalMinutes = "480" }
 		
 		$ResetInterval = $IntervalMinutes
 		
 		Write-LogFile "Start date provided by user: $StartDate"
 		Write-LogFile "End date provided by user: $EndDate"
 		Write-Logfile "Time Interval provided by user: $IntervalMinutes"
-		$UserCredential = Get-Credential
-		Connect-ExchangeOnline -Credential $UserCredential
+		
+
+		Connect-ExchangeOnline
 		echo ""
 		Write-Host "----------------------------------------------------------------------------"
 		Write-Host "|Extracting audit logs between "$StartDate" and "$EndDate"|"
@@ -506,7 +504,7 @@ function Main{
 			Write-Host "-$record"}
 		echo ""
 		Foreach ($record in $RecordTypes.Split(",")){
-			$SpecificResult = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -RecordType $record -UserIds $script:Userstoextract -ResultSize 1 | out-string -Stream | select-string ResultCount
+			$SpecificResult = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -RecordType $record -UserIds $script:Userstoextract -ResultSize 1 |out-string -Stream | select-string ResultCount
 			if($SpecificResult) {
 				$NumberOfLogs = $SpecificResult.tostring().split(":")[1]
 				$CSVOutputFile = "\Log_Directory\"+$record+"_AuditRecords.csv"
@@ -528,14 +526,14 @@ function Main{
 				while ($true){
 				$CurrentEnd = $CurrentStart.AddMinutes($IntervalMinutes)
 				
-				echo Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -RecordType $record -UserIds $script:Userstoextract -ResultSize 1 | out-string -Stream | select-string ResultCount
+				echo Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -RecordType $record -UserIds $script:Userstoextract -ResultSize 1 |out-string -Stream | select-string ResultCount
 				$AmountResults = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -RecordType $record -UserIds $script:Userstoextract -ResultSize 1 | out-string -Stream | select-string ResultCount
 				if($AmountResults){
 					$number = $AmountResults.tostring().split(":")[1]
 					$script:integer = [int]$number
 					
 					while ($script:integer -gt 5000){
-						$AmountResults = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -RecordType $record -UserIds $script:Userstoextract -ResultSize 1 | out-string -Stream | select-string ResultCount
+						$AmountResults = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -RecordType $record -UserIds $script:Userstoextract -ResultSize 1 |out-string -Stream | select-string ResultCount
 						if($AmountResults){
 							$number = $AmountResults.tostring().split(":")[1]
 							$script:integer = [int]$number
@@ -554,7 +552,7 @@ function Main{
 							$Intervalmin = $IntervalMinutes
 							$CurrentStart = $CurrentStart.AddMinutes($Intervalmin)
 							$CurrentEnd = $CurrentStart.AddMinutes($Intervalmin)
-							$AmountResults = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -RecordType $record -UserIds $script:Userstoextract -ResultSize 1 | out-string -Stream | select-string ResultCount
+							$AmountResults = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -RecordType $record -UserIds $script:Userstoextract -ResultSize 1 |out-string -Stream | select-string ResultCount
 							if($AmountResults){
 								$number = $AmountResults.tostring().split(":")[1]
 								$script:integer = [int]$number}}
@@ -585,7 +583,7 @@ function Main{
 					if($results){
 						$results | epcsv $OutputFile -NoTypeInformation -Append
 					}
-					write-host "Quiting.." -ForegroundColor Red
+					write-host "Acquisition complete, check the Log Directory for your files.." -ForegroundColor Red
 					break
 					Menu
 				}
@@ -634,24 +632,7 @@ function Main{
 	"5" {
 @"
 		
-For a full readme please visit our Github page https://github.com/PwC-IR/Office-365-Extractor
-
-Description of the tool:
-For incident response or audit purposes the Microsoft Audit log contains important information. This tool helps you to acquire the logs with their hash values. 
-
-Configuration:
-Every command requires date input the format is based on your time locale, the script provides you with the correct format. Optionally you can specify a time as well with the format HH:MM
-When one of the extraction methods is selected an audit file will be created and a file with the hashes of the output, which can be used to establish or mantain the chain of custody. 
-
-Available commands
-
-Option 1: "Show available log sources and amount of logging	" A search is executed and the total number of logs within the set timeframe will be displayed and written to a csv file called "Amount_Of_Audit_Logs.csv".
-
-Option 2: "Extract all audit logging" this extraction option allows for extraction of all available audit logs within the set timeframe.	
-
-Option 3: "Extract group audit logging" this extraction option allows for extraction of a group of logs for example extract all Exchange or Azure logging in one go.
-
-Option 4: "Extract specific audit logging (advanced mode)" Use this option if you want to extract a subset of the audit logs. To configure what logs will be extracted the tool needs to be configured with the required Record Types. A full list of recordtypes and what is contained in them can be found at: https://docs.microsoft.com/en-us/office/office-365-management-api/office-365-management-activity-api-schema#enum-auditlogrecordtype---type-edmint32
+For a full readme please visit our Github page https://github.com/invictus-ir/Microsoft-365-Extractor-Suite
 
 "@}
 	"6" {Write-Host "Quitting" -ForegroundColor Green}}}
