@@ -55,6 +55,14 @@ By default, these roles are assigned to the Compliance Management and Organizati
 
 See example video below: <br>
 
+<h3>How to use Microsoft365_extractor_light</h3>
+1.	Download Microsoft365_Extractor.ps1<br>
+2.	Open PowerShell navigate to the script and run it or right click on the script and press "Run with PowerShell".<br>
+3.	Select StartDate, EndDate and Interval or use the defaults and the script will acquire all logs for the defined period.<br>
+4.  The logs will be written to 'Log_Directory' in the folder where the script is located.<br><br>
+
+See example video below: <br>	
+
 <h3>Output</h3>
 <b>Amount_Of_Audit_Logs.csv:</b><br>
 Will show what logs are available and how many for each RecordType.<br>
