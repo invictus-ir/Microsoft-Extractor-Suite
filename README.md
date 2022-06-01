@@ -1,14 +1,12 @@
+<h3>If you want to support us</h3>
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/invictusir)
+
 <h2>Microsoft 365 Extractor Suite</h2>
 This suite of scripts contains two different scripts that can be used to acquire the Microsoft 365 Unified Audit Log
 <br>
 Read the accompanying blog post on https://invictus-ir.medium.com/introduction-of-the-microsoft-365-extractor-suite-b85e148d4bfe <br>
 <br>
-
-<h3>If you want to support us</h3>
-
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/invictusir)
-
-
 
 
 1.	_Microsoft365_Extractor_, the original script stems from the Office 365 Extractor and provides all features and complete customization. Choose this if you're not sure what to use. 
@@ -245,7 +243,5 @@ The password/username combination are incorrect or the user has not enough privi
 <b>Invalid Argument "Cannot convert value" to type "System.Int32"</b> <br>
 Safe to ignore, only observed this on PowerShell on macOS, the script will work fine and continue. 
 <br>
-<h3>If you want to support us</h3>
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/invictusir)
 
