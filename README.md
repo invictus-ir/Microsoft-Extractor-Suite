@@ -1,7 +1,3 @@
-<h3>If you want to support us</h3>
-
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/invictusir)
-
 <h2>Microsoft 365 Extractor Suite</h2>
 This suite of scripts contains two different scripts that can be used to acquire the Microsoft 365 Unified Audit Log
 <br>
