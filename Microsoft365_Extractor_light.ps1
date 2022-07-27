@@ -81,7 +81,7 @@ function Main{
     # Interval in minutes determines the timeframe the script will use to search for a set of logs. The reason is that there's a maximum of 5000 records per session. 
     # The script will automatically lower this value if there are more than 5000 records for the given interval. If the value is low the scripts takes a lot of time to run.
     $IntervalMinutes = read-host "Please enter a time interval or ENTER for the default value 480"
-	if ([string]::IsNullOrWhiteSpace($IntervalMinutes)) { $IntervalMinutes = "480" 
+	if ([string]::IsNullOrWhiteSpace($IntervalMinutes)) { $IntervalMinutes = "480" }
 	$ResetInterval = $IntervalMinutes
 	
 	Write-LogFile "Start date provided by user: $StartDate"
@@ -204,6 +204,6 @@ function Main{
 	#SHA256 hash calculation for the output files
 	$HASHValues = Join-Path $PSScriptRoot "\Log_Directory\Hashes.csv"
 	Get-ChildItem $LogDirectoryPath -Filter *AuditRecords.csv | Get-FileHash -Algorithm SHA256 | epcsv $HASHValues
-}}
+}
 $menupart1
 Main
