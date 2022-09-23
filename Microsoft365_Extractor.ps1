@@ -1,5 +1,4 @@
 $menupart1=@"
-
   __  __  _                                 __  _     ____     __  _____   ______        _                      _               
  |  \/  |(_)                               / _|| |   |___ \   / / | ____| |  ____|      | |                    | |              
  | \  / | _   ___  _ __  ___   ___   ___  | |_ | |_    __) | / /_ | |__   | |__   __  __| |_  _ __  __ _   ___ | |_  ___   _ __ 
@@ -10,10 +9,9 @@ $menupart1=@"
                                                                                                                                 
 Copyright (c) 2022 Invictus Incident Response
 New version of the Office 365 Extractor script, originally created by Joey Rentenaar & Korstiaan Stam formerly PwC Incident Response Netherlands.
-Documentation available on https://github.com/invictus-ir/Microsoft-365-Extractor-Suite
-
-
+Documentation available on https://github.com/invictus-ir/Microsoft-365-Extractor-Suitea
 "@
+
 
 Clear-Host
 $menupart1
@@ -51,7 +49,7 @@ function Users{
 		$script:Userstoextract = "*"}
 	
 	elseif($AllorSingleUse -eq "2"){
-		write-host "Provide accounts that you wish to acquire, use comma separated values for multiple accounts, example (bob@acmecorp.onmicrosoft.com,alice@acmecorp.onmicrosoft.com)"
+		write-host "Provide accounts that you wish to acquire, use comma separated values for multiple accounts, example (bob@acmecorp.onmicrosoft.com,mahyar@acmecorp.onmicrosoft.com)"
 		$script:Userstoextract = read-host ">"}
 		
 	else{
@@ -174,27 +172,33 @@ function Main{
 		 
 		while ($true){
 			$CurrentEnd = $CurrentStart.AddMinutes($IntervalMinutes)
-			
+			if($script:integer -lt $(get-random -Minimum 2500 -Maximum 4500)){
+                    $IntervalMinutes = [INT]$IntervalMinutes + [INT]$(get-random -Minimum $($IntervalMinutes/1.25) -Maximum $IntervalMinutes)
+					$CurrentEnd = $CurrentStart.AddMinutes($IntervalMinutes)
+                    write-host "INFO: Temporary increasing time interval to $IntervalMinutes minutes" -ForegroundColor Yellow
+            }
 			$AmountResults = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -UserIds $script:Userstoextract -ResultSize 1 |  out-string -Stream | select-string ResultCount
 			if($AmountResults){
 				$number = $AmountResults.tostring().split(":")[1]
 				$script:integer = [int]$number
-				
+
 				while ($script:integer -gt 5000){
 					$AmountResults = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $CurrentEnd -UserIds $script:Userstoextract -ResultSize 1 |out-string -Stream | select-string ResultCount
 					if($AmountResults){
 						$number = $AmountResults.tostring().split(":")[1]
 						$script:integer = [int]$number
+                        
 						if ($script:integer -lt 5000){
 							if ($IntervalMinutes -eq 0){
 								Exit
 								}
 							else{
 								write-host "INFO: Temporary lowering time interval to $IntervalMinutes minutes" -ForegroundColor Yellow
-								}}
-						else{
+								} }
+						elseif($script:integer -ge 5000){
 							$IntervalMinutes = $IntervalMinutes / 2
-							$CurrentEnd = $CurrentStart.AddMinutes($IntervalMinutes)}}
+							$CurrentEnd = $CurrentStart.AddMinutes($IntervalMinutes)}
+                     }
 							
 					else{
 						Write-LogFile "INFO: Retrieving audit logs between $($CurrentStart) and $($CurrentEnd)"
