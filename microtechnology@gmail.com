@@ -49,7 +49,7 @@ function Users{
 		$script:Userstoextract = "*"}
 	
 	elseif($AllorSingleUse -eq "2"){
-		write-host "Provide accounts that you wish to acquire, use comma separated values for multiple accounts, example (tajdini@acmecorp.onmicrosoft.com,mahyar@acmecorp.onmicrosoft.com)"
+		write-host "Provide accounts that you wish to acquire, use comma separated values for multiple accounts, example (bob@acmecorp.onmicrosoft.com,mahyar@acmecorp.onmicrosoft.com)"
 		$script:Userstoextract = read-host ">"}
 		
 	else{
@@ -636,7 +636,7 @@ function Main{
 	"5" {
 @"
 		
-more fun: https://tajdini.net
+For a full readme please visit our Github page https://github.com/invictus-ir/Microsoft-365-Extractor-Suite
 
 "@}
 	"6" {Write-Host "Quitting" -ForegroundColor Green}}}
