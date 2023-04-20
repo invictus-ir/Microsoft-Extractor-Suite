@@ -23,8 +23,7 @@ Microsoft-Extractor-Suite was created by Joey Rentenaar and Korstiaan Stam.
 Microsoft-Extractor-Suite is maintained by the [Invcitus IR](https://www.invictus-ir.com//) team.
 
 ## Usage
-To get started with the Microsoft-Extractor-Suite tool, make sure the requirements are met. If you do not have the Connect-ExchangeOnline or/and Connect-AzureAD installed check
-the installation page on Read the Docs.
+To get started with the Microsoft-Extractor-Suite tool, make sure the requirements are met. If you do not have the Connect-ExchangeOnline or/and Connect-AzureAD installed check [the installation guide.](https://microsoft-365-extractor-suite.readthedocs.io/en/latest/installation/Installation.html).
 
 The first step is to import the Microsoft-Extractor-Suite:
 > Import-Module .\Microsoft-Extractor-Suite.psd1
