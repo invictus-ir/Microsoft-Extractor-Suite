@@ -1,4 +1,4 @@
-![alt text](https://github.com/invictus-ir/Microsoft-Extractor-Suite/blob/main/docs/images/Invictus-Incident-Response.jpg?raw=true)
+![alt text](https://github.com/invictus-ir/Microsoft-Extractor-Suite/blob/main/docs/source/Images/Invictus-Incident-Response.jpg?raw=true)
 
 # Getting started with the Microsoft-Extractor-Suite
 
