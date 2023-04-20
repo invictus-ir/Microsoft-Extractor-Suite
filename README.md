@@ -18,9 +18,7 @@ The following Microsoft data sources are supported:
 * Azure AD Audit Logs
 * Registered OAuth applications in Azure AD
 
-Microsoft-Extractor-Suite was created by Joey Rentenaar and Korstiaan Stam.
-
-Microsoft-Extractor-Suite is maintained by the [Invcitus IR](https://www.invictus-ir.com//) team.
+Microsoft-Extractor-Suite was created by Joey Rentenaar and Korstiaan Stam and is maintained by the [Invcitus IR](https://www.invictus-ir.com/) team.
 
 ## Usage
 To get started with the Microsoft-Extractor-Suite tool, make sure the requirements are met. If you do not have the Connect-ExchangeOnline or/and Connect-AzureAD installed check [the installation guide.](https://microsoft-365-extractor-suite.readthedocs.io/en/latest/installation/Installation.html).
@@ -28,7 +26,7 @@ To get started with the Microsoft-Extractor-Suite tool, make sure the requiremen
 The first step is to import the Microsoft-Extractor-Suite:
 > Import-Module .\Microsoft-Extractor-Suite.psd1
 
-Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage before M365-Toolkit functions are made available. To sign in, use the cmdlets:
+You must sign-in to Microsoft 365 or Azure depending on your use case before running the functions. To sign in, use the cmdlets:
 > Connect-M365
 
 > Connect-Azure
