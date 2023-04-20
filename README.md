@@ -2,7 +2,7 @@
 
 # Getting started with the Microsoft-Extractor-Suite
 
-To get started with the Microsoft-Extractor-Suite, check out the [Microsoft-Extractor-Suite docs.](https://Microsoft-Extractor-Suite.readthedocs.io/en/latest/index.html)
+To get started with the Microsoft-Extractor-Suite, check out the [Microsoft-Extractor-Suite docs.](https://microsoft-365-extractor-suite.readthedocs.io/en/latest/)
 
 ## About Microsoft-Extractor-Suite
 Microsoft-Extractor-Suite is a fully-featured, actively-maintained, Powershell tool designed to streamline the process of collecting all necessary data and information from various sources within Microsoft.
