@@ -53,7 +53,7 @@ function Get-ADSignInLogs {
 		write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs"
 		$filePath = "Output\AzureAD\SignInLogs.json"
 
-		$signInLogs = Get-AzureADAuditSignInLogs
+		$signInLogs = Get-AzureADAuditSignInLogs -All $true
 		$signInLogs | ConvertTo-Json | Out-File -FilePath $filePath
 
 		write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
