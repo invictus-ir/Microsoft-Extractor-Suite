@@ -4,7 +4,7 @@ Use **Get-ADSignInLogs** to collect the contents of the Azure Active Directory s
 
 Usage
 """"""""""""""""""""""""""
-Running the script without any parameters will gather the Azure Active Directory sign-in log for the last 90 days:
+Running the script without any parameters will gather the Azure Active Directory sign-in log for the last 30 days:
 ::
 
    Get-ADSignInLogs
