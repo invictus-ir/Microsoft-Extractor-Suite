@@ -113,7 +113,7 @@ function Get-MessageTraceLog
 			$results = $resultsSender + $resultsRecipient
 			if ($results){
 				write-logFile -Message "[INFO] Collecting the Message Trace Log for $($_.PrimarySmtpAddress)"
-				$results | Export-Csv $outputFile -ErrorAction SilentlyContinue
+				$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation
 				write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 			}
 			else {
@@ -133,7 +133,7 @@ function Get-MessageTraceLog
 			$ResultsSender = Get-MessageTrace -SenderAddress $user -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
 
 			$results = $resultsSender + $resultsRecipient
-			$results | Export-Csv $outputFile -ErrorAction SilentlyContinue
+			$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation
 			write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 		}
 	}
@@ -146,7 +146,7 @@ function Get-MessageTraceLog
 		$resultsSender = Get-MessageTrace -SenderAddress $UserIds -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
 
 		$results = $resultsSender + $resultsRecipient
-		$results | Export-Csv $outputFile -ErrorAction SilentlyContinue
+		$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation
 		write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 	}	
 }

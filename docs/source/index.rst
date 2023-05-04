@@ -18,7 +18,7 @@ Supported sources
 ===================================== =========================================================================================================================================================================== 
   Unified Audit Log                     The unified audit log contains user, group, application, domain, and directory activities performed in the Microsoft 365 admin center or in the Azure management portal.   
   Admin Audit Log                       Administrator audit logging records when a user or administrator makes a change in your organization (in the Exchange admin center or by using cmdlets).                   
-  MailBox Audit Log                     Mailbox audit logs are generated for each mailbox that has mailbox audit logging enabled. This tracks all user actions on any items in a mailbox.                          
+  Mailbox Audit Log                     Mailbox audit logs are generated for each mailbox that has mailbox audit logging enabled. This tracks all user actions on any items in a mailbox.                          
   Message Trace Log                     The message tracking log contains messages as they pass through the organization.                                                                                          
   OAuth Permissions                     OAuth is a way of authorizing third-party applications to login into user accounts.                                                                                        
   Inbox Rules                           Inbox rules process messages in the inbox based on conditions and take actions such as moving a message to a specified folder or deleting a message.                       
@@ -63,6 +63,7 @@ Have a bug report or feature request? Open an issue on the Github repository.
    
    functionality/UnifiedAuditLog
    functionality/AdminAuditLog
+   functionality/MailboxAuditLog
    functionality/MessageTraceLog
    functionality/OAuthPermissions
    functionality/InboxRules

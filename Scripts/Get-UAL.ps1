@@ -93,13 +93,7 @@ function Get-UALAll
 		$Output = "CSV"
 		Write-LogFile -Message "[INFO] Output set to CSV"
 	}
-	
-	$outputDir = "Output\UnifiedAuditLog"
-	If (!(test-path $outputDir)) {
-		Write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
-		New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
-	}
-	
+		
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 	$outputDir = "Output\UnifiedAuditLog\$date"
 	If (!(test-path $outputDir)) {
