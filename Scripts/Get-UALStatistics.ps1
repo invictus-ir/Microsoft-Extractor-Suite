@@ -65,7 +65,7 @@ function Get-UALStatistics
 	Set-Content $outputDirectory -Value "RecordType,Amount of log entries"
 
 	#Write-Host "[INFO] Calculating the number of audit logs" -ForegroundColor Green
-	Write-LogFile -Message "[INFO] Calculating the number of audit logs for each of the 236 Record Types" -Color "Green"
+	Write-LogFile -Message "[INFO] Calculating the number of audit logs for each of the 236 Record Types between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Green"
 	$totalCount = Search-UnifiedAuditLog -Userids $UserIds -StartDate $script:StartDate -EndDate $script:EndDate -ResultSize 1 |  Format-List -Property ResultCount| out-string -Stream | select-string ResultCount
 	
 	Foreach ($record in $recordTypes) {
