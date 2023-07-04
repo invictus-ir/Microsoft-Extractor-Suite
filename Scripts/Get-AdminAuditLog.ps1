@@ -52,7 +52,7 @@ function Get-AdminAuditLog {
 	StartDate
 	EndDate
 
-    Write-LogFile -Message "[INFO] Extracting all available Admin Audit Logs between $script:StartDate and $script:EndDate" -Color "Green"
+    Write-LogFile -Message "[INFO] Extracting all available Admin Audit Logs between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Green"
 
     $results = Search-AdminAuditLog -ResultSize 250000 -StartDate $script:startDate -EndDate $script:EndDate
     $results | epcsv $outputDirectory -NoTypeInformation -Append

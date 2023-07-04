@@ -106,7 +106,7 @@ function Get-UALAll
 	[DateTime]$currentStart = $script:StartDate
 	[DateTime]$currentEnd = $script:EndDate
 
-	Write-LogFile -Message "[INFO] Extracting all available audit logs between $currentStart and $currentEnd" -Color "Green"
+	Write-LogFile -Message "[INFO] Extracting all available audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Green"
 	
 	while ($currentStart -lt $script:EndDate) {	
 		$currentEnd = $currentStart.AddMinutes($Interval)
@@ -124,7 +124,7 @@ function Get-UALAll
 				else {
 					$interval = [math]::Round(($Interval/(($amountResults/5000)*1.25)),2)
 					$currentEnd = $currentStart.AddMinutes($Interval)
-					Write-LogFile -Message "[WARNING] $amountResults entries between $($currentStart) and $($currentEnd) exceeding the maximum of 5000 of entries" -Color "Red"
+					Write-LogFile -Message "[WARNING] $amountResults entries between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) exceeding the maximum of 5000 of entries" -Color "Red"
 					Write-LogFile -Message "[INFO] Temporary lowering time interval to $Interval minutes" -Color "Yellow"
 				}
 			}
@@ -152,14 +152,14 @@ function Get-UALAll
 				}
 				
 				else {
-					Write-LogFile -Message "No audit logs between $($currentStart) and $($currentEnd)"
+					Write-LogFile -Message "No audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
 					break
 				}
 			}
 				
 			$currentTotal = $results[0].ResultCount
 			$currentCount = $currentCount + $results.Count
-			Write-LogFile -Message "[INFO] Found $currentTotal audit logs between $($currentStart) and $($currentEnd)"
+			Write-LogFile -Message "[INFO] Found $currentTotal audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
 			
 			if ($currentTotal -eq $results[$results.Count - 1].ResultIndex) {
 				$message = "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range. Moving on!"
@@ -309,7 +309,7 @@ function Get-UALGroup
 		New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
 	}
 
-	write-logFile -Message "[INFO] Extracting all available audit logs between $script:StartDate and $script:EndDate"
+	write-logFile -Message "[INFO] Extracting all available audit logs between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
 	write-logFile -Message "[INFO] The following RecordType(s) are configured to be extracted:"
 	
 	foreach ($record in $recordTypes) {
@@ -343,7 +343,7 @@ function Get-UALGroup
 						else {
 							$Interval = [math]::Round(($Interval/(($amountResults/5000)*1.25)),2)
 							$currentEnd = $currentStart.AddMinutes($Interval)
-							Write-LogFile -Message "[WARNING] $amountResults entries between $($currentStart) and $($currentEnd) exceeding the maximum of 5000 of entries" -Color "Red"
+							Write-LogFile -Message "[WARNING] $amountResults entries between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) exceeding the maximum of 5000 of entries" -Color "Red"
 							Write-LogFile -Message "[INFO] Temporary lowering time interval to $Interval minutes" -Color "Yellow"
 						}
 					}
@@ -372,14 +372,14 @@ function Get-UALGroup
 							continue
 						}
 						else {
-							Write-LogFile -Message "No audit logs between $($currentStart) and $($currentEnd)"
+							Write-LogFile -Message "No audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
 							break
 						}
 					}
 							
 					$currentTotal = $results[0].ResultCount
 					$currentCount = $currentCount + $results.Count
-					Write-LogFile -Message "[INFO] Found $currentTotal audit logs between $($currentStart) and $($currentEnd)" -Color "Green"
+					Write-LogFile -Message "[INFO] Found $currentTotal audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Green"
 
 					if ($currentTotal -eq $results[$results.Count - 1].ResultIndex){
 						$message = "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range. Moving on!"
@@ -508,7 +508,7 @@ function Get-UALSpecific
 		write-logFile -Message "[INFO] Output set to CSV"
 	}
 
-	write-logFile -Message "[INFO] Extracting all available audit logs between $script:StartDate and $script:EndDate"
+	write-logFile -Message "[INFO] Extracting all available audit logs between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
 	write-logFile -Message "[INFO] The following RecordType(s) are configured to be extracted:"
 
 	foreach ($record in $recordType) {
@@ -548,7 +548,7 @@ function Get-UALSpecific
 						else {
 							$interval = [math]::Round(($Interval/(($amountResults/5000)*1.25)),2)
 							$currentEnd = $currentStart.AddMinutes($Interval)
-							Write-LogFile -Message "[WARNING] $amountResults entries between $($currentStart) and $($currentEnd) exceeding the maximum of 5000 of entries" -Color "Red"
+							Write-LogFile -Message "[WARNING] $amountResults entries between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) exceeding the maximum of 5000 of entries" -Color "Red"
 							Write-LogFile -Message "[INFO] Temporary lowering time interval to $Interval minutes" -Color "Yellow"
 						}
 					}
@@ -575,14 +575,14 @@ function Get-UALSpecific
 							continue
 						}
 						else {
-							Write-LogFile -Message "No audit logs between $($currentStart) and $($currentEnd)"
+							Write-LogFile -Message "No audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
 							break
 						}
 					}
 							
 					$currentTotal = $results[0].ResultCount
 					$currentCount = $currentCount + $results.Count
-					Write-LogFile -Message "[INFO] Found $currentTotal audit logs between $($currentStart) and $($currentEnd)" -Color "Green"
+					Write-LogFile -Message "[INFO] Found $currentTotal audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Green"
 
 					if ($currentTotal -eq $results[$results.Count - 1].ResultIndex) {
 						$message = "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range. Moving on!"

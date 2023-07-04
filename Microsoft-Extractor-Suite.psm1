@@ -25,11 +25,8 @@ if (!(test-path $outputDir)) {
 Function StartDate
 {
 	if (($startDate -eq "") -Or ($null -eq $startDate)) {
-		$startDate = [datetime]::Now.ToUniversalTime().AddDays(-90)
-		$startDate = Get-Date $startDate -Format "yyyy-MM-dd HH:mm:ss"
-		write-LogFile -Message "[INFO] No start date provived by user setting the start date to: $startDate" -Color "Yellow"
-		
-		$script:StartDate = Get-Date $startDate -Format "yyyy-MM-dd HH:mm:ss"
+		$script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-90)
+		write-LogFile -Message "[INFO] No start date provived by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
 	}
 	else
 	{
@@ -43,11 +40,8 @@ Function StartDate
 function EndDate
 {
 	if (($endDate -eq "") -Or ($null -eq $endDate)) {
-		$endDate = [datetime]::Now.ToUniversalTime()
-		$endDate = Get-Date $endDate -Format "yyyy-MM-dd HH:mm:ss"
-		write-LogFile -Message "[INFO] No end date provived by user setting the end date to: $endDate" -Color "Yellow"
-		
-		$script:endDate = Get-Date $endDate -Format "yyyy-MM-dd HH:mm:ss"
+		$script:EndDate = [datetime]::Now.ToUniversalTime()
+		write-LogFile -Message "[INFO] No end date provived by user setting the end date to: $($script:EndDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
 	}
 
 	else {

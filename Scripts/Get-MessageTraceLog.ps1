@@ -3,15 +3,12 @@ Function StartDateMTL
 {
 	if (($startDate -eq "") -Or ($null -eq $startDate))
 	{
-		$startDate = [datetime]::Now.ToUniversalTime().AddDays(-10)
-		$startDate = Get-Date $startDate -Format "yyyy-MM-dd HH:mm:ss"
-		write-LogFile -Message "[INFO] No start date provived by user setting the start date to: $startDate" -Color "Yellow"
-		
-		$script:startDate = Get-Date $startDate -Format "yyyy-MM-dd HH:mm:ss"
+		$script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-10)
+		write-LogFile -Message "[INFO] No start date provived by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
 	}
 	else
 	{
-		$script:startDate = $startDate -as [datetime]
+		$script:StartDate = $startDate -as [datetime]
 		if (!$startDate) { write-LogFile -Message "[WARNING] Not A valid start date and time, make sure to use YYYY-MM-DD" -Color "Red"} 
 	}
 }
@@ -20,15 +17,12 @@ function EndDateMTL
 {
 	if (($endDate -eq "") -Or ($null -eq $endDate))
 	{
-		$endDate = [datetime]::Now.ToUniversalTime()
-		$endDate = Get-Date $endDate -Format "yyyy-MM-dd HH:mm:ss"
-		write-LogFile -Message "[INFO] No end date provived by user setting the end date to: $endDate" -Color "Yellow"
-		
-		$script:endDate = Get-Date $endDate -Format "yyyy-MM-dd HH:mm:ss"
+		$script:EndDate = [datetime]::Now.ToUniversalTime()
+		write-LogFile -Message "[INFO] No end date provived by user setting the end date to: $($script:EndDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
 	}
 	else
 	{
-		$script:endDate = $endDate -as [datetime]
+		$script:EndDate = $endDate -as [datetime]
 		if (!$endDate) {write-LogFile -Message "[WARNING] Not A valid end date and time, make sure to use YYYY-MM-DD" -Color "Red"} 
 	}
 }
@@ -102,7 +96,7 @@ function Get-MessageTraceLog
 	}
 	
 	if (($null -eq $UserIds) -Or ($UserIds -eq ""))  {
-		write-logFile -Message "[INFO] No users provided.. Getting the Message Trace Log for all users" -Color "Yellow"
+		write-logFile -Message "[INFO] No users provided. Getting the Message Trace Log for all users between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
 		Get-mailbox -resultsize unlimited  |
 		ForEach-Object {
 			$outputFile = "Output\MessageTrace\"+$($_.PrimarySmtpAddress)+"-MTL.csv"
@@ -126,7 +120,7 @@ function Get-MessageTraceLog
 		$UserIds.Split(",") | foreach {
 			$user = $_
 			
-			write-logFile -Message "[INFO] Collecting the Message Trace Log for $user"
+			write-logFile -Message "[INFO] Collecting the Message Trace Log for $user between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
 			$outputFile = "Output\MessageTrace\"+$user+"-MTL.csv"
 
 			$ResultsRecipient = Get-MessageTrace -RecipientAddress $user -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
