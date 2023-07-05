@@ -11,6 +11,14 @@ Exchange, SharePoint, OneDrive, and Skype.
   
   Office 365 E5 - Audit records are retained for 365 days. 
 
+.. note::
+
+  Important note reading the StartDate and EndDate variables. 
+  - When you don't specify a timestamp the script will automatically default to
+  - When you specifiy a timestamp it will be converted to that timestamp in UTC
+  - If you want to specify date and time without conversion use the ISO 8601 + UTC timeformat (example 2023-01-01T08:15:00Z) This will acquire data from January 1st 2023 from a quarter past 8 in the morning until the specified end date. 
+  
+
 
 Show available log sources and amount of logging
 ^^^^^^^^^^^
