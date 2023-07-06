@@ -36,7 +36,7 @@ The first step is to import the Microsoft-Extractor-Suite:
 
 Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage before Microsoft-Extractor-Suite functions are made available. We made a graphic to help you decide which Connect function you should use depening on what you wan to acquire. 
 
-.. image:: docs/source/Images/Microsoft-Extractor-Suite-Connect.png
+.. image:: Microsoft-Extractor-Suite-Connect.png
    :width: 600
 
 To sign in, use the cmdlets:
