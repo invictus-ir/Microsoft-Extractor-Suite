@@ -8,7 +8,7 @@ Author = 'Joey Rentenaar & Korstiaan Stam'
 CompanyName = 'Invictus-IR'
 
 # Version number of this module.
-ModuleVersion = '1.0.0'
+ModuleVersion = '1.1.0' 
 
 # Copyright statement for this module
 Copyright = 'Copyright (c) 2023 Invictus Incident Response'
@@ -23,15 +23,19 @@ NestedModules = @(
 	".\Scripts\Get-Rules.ps1"
 	".\Scripts\Get-MailboxAuditLog.ps1"
 	".\Scripts\Get-MessageTraceLog.ps1"
-	".\Scripts\Get-AzureLogs.ps1"
+	".\Scripts\Get-AzureADLogs.ps1"
 	".\Scripts\Get-OAuthPermissions.ps1"
 	".\Scripts\Get-AdminAuditLog.ps1"
+	".\Scripts\Get-AzureActivityLogs.ps1"
+	".\Scripts\Get-AzureADGraphLogs.ps1"
 )
 
 FunctionsToExport = @(
 	# Connect.ps1
 	"Connect-M365"
 	"Connect-Azure"
+	"Connect-AzureAZ"
+	"Connect-Graph"
 	
 	# Get-UAL.ps1
 	"Get-UALAll"
@@ -53,7 +57,7 @@ FunctionsToExport = @(
 	# Get-MessageTraceLog.ps1
 	"Get-MessageTraceLog"
 	
-	# Get-AzureLogs.ps1
+	# Get-AzureADLogs
 	"Get-ADAuditLogs"
 	"Get-ADSignInLogs"
 
@@ -62,13 +66,21 @@ FunctionsToExport = @(
 
 	# Get-AdminAuditLog.ps1
 	"Get-AdminAuditLog"
+	
+	# Get-AzureActivityLogs.ps1
+	"Get-ActivityLogs"
+
+	# Get-AzureADGraphLogs.ps1
+	"Get-ADSignInLogsGraph"
+	"Get-ADAuditLogsGraph"
 )
 
 # Variables to export from this module
 VariablesToExport = @(
 	'$outputdir',
 	'$curDir',
-	'$logFile'
+	'$logFile',
+	'$retryCount'
 )
 
 # Cmdlets to export from this module, for best performance

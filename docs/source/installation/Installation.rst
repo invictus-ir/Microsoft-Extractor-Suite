@@ -1,12 +1,22 @@
 Installation
 =======
 
-Install the Powershell module ExchangeOnlineManagement:
+Install the Powershell module Microsoft.Graph for the Graph API Beta functionalities:
 ::
 
-   install-module -name ExchangeOnlineManagement
+   Install-module -name Microsoft.Graph
 
-Install the Powershell module AzureADPreview:
+Install the Powershell module ExchangeOnlineManagement for the Microsoft 365 functionalities:
+::
+
+   Install-module -name ExchangeOnlineManagement
+
+Install the Powershell module Az for the Azure Activity log functionality:
+::
+
+   Install-module -name Az
+
+Install the Powershell module AzureADPreview for the Azure Active Direcotry functionalities:
 ::
 
    Install-Module -Name AzureADPreview
@@ -24,8 +34,19 @@ The first step is to import the Microsoft-Extractor-Suite:
 
    Import-Module .\Microsoft-Extractor-Suite.psd1
 
-Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage before Microsoft-Extractor-Suite functions are made available. To sign in, use the cmdlets:
+Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage before Microsoft-Extractor-Suite functions are made available. We made a graphic to help you decide which Connect function you should use depening on what you wan to acquire. 
+
+.. image:: Microsoft-Extractor-Suite-Connect.png
+   :width: 600
+
+To sign in, use the cmdlets:
 ::
 
    Connect-M365
    Connect-Azure
+   Connect-AzureAZ
+   Connect-Graph
+
+.. note::
+ Connect-Graph to sign in with the required scopes. The first time you'll need to sign in with an admin account to consent to the required scopes.
+   

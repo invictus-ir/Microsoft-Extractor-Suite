@@ -1,6 +1,6 @@
-Azure Active Directory Audit Log
+Azure Audit Logs via Graph API (BETA)
 =======
-Use **Get-ADAuditLogs** to collect the contents of the Azure Active Directory Audit Log.
+Use **Get-ADAuditLogsGraph** to collect the contents of the Azure Active Directory Audit Log.
 
 .. note::
 
@@ -11,17 +11,17 @@ Usage
 Running the script without any parameters will gather the Azure Active Directory Audit Log for the last 90 days:
 ::
 
-   Get-ADAuditLogs
+   Get-ADAuditLogsGraph
 
 Get the Azure Active Directory Audit Log before 2023-04-12:
 ::
 
-   Get-ADAuditLogs -Before 2023-04-12
+   Get-ADAuditLogsGraph -Before 2023-04-12
 
 Get the Azure Active Directory Audit Log after 2023-04-12:
 ::
 
-   Get-ADAuditLogs -After 2023-04-12
+   Get-ADAuditLogsGraph -After 2023-04-12
 
 Parameters
 """"""""""""""""""""""""""
@@ -33,4 +33,4 @@ Parameters
 
 Output
 """"""""""""""""""""""""""
-The output will be saved to the 'AzureAD' directory within the 'Output' directory, with the file name 'Auditlogs.json'. Each time an acquisition is performed, the output JSON file will be overwritten. Therefore, if you perform multiple acquisitions, the JSON file will only contain the results from the latest acquisition.
+The output will be saved to the 'AzureAD' directory within the 'Output' directory, with the file name 'AuditlogsGraph.json'. Each time an acquisition is performed, the output JSON file will be overwritten. Therefore, if you perform multiple acquisitions, the JSON file will only contain the results from the latest acquisition.

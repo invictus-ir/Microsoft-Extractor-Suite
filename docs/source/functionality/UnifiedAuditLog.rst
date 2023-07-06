@@ -11,15 +11,6 @@ Exchange, SharePoint, OneDrive, and Skype.
   
   Office 365 E5 - Audit records are retained for 365 days. 
 
-.. note::
-
-  **Important note** regarding the StartDate and EndDate variables. 
-- When you don't specify a timestamp the script will automatically default to midnight 00:00 that day.
-- When you specifiy a timestamp it will be converted to that timestamp in UTC (example 2023-01-01 08:15:00 will become 2023-01-01 06:15:00 if your local timezone is UTC+2).
-- If you want to specify date and time without conversion use the ISO 8601 + UTC timeformat (example 2023-01-01T08:15:00Z) This will acquire data from January 1st 2023 from a quarter past 8 in the morning until the specified end date. 
-  
-
-
 Show available log sources and amount of logging
 ^^^^^^^^^^^
 Pretty straightforward a search is executed and the total number of logs within the set timeframe will be displayed and written to a csv file called "Amount_Of_Audit_Logs.csv" the file is prefixed with a random number to prevent duplicates.
@@ -48,6 +39,14 @@ Parameters
 -EndDate (optional)
     - EndDate is the parameter specifying the end date of the date range.
     - Default: Now
+
+.. note::
+
+  **Important note** regarding the StartDate and EndDate variables. 
+
+- When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
+- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2023-01-01 08:15:00 will be converted to 2023-01-01 06:15:00 in UTC.
+- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2023-01-01T08:15:00Z). This format will retrieve data from January 1st, 2023, starting from a quarter past 8 in the morning until the specified end date.
 
 Output
 """"""""""""""""""""""""""
@@ -109,6 +108,14 @@ Parameters
 -Output (optional)
     - Output is the parameter specifying the CSV or JSON output type.
     - Default: CSV
+
+.. note::
+
+  **Important note** regarding the StartDate and EndDate variables. 
+
+- When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
+- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2023-01-01 08:15:00 will be converted to 2023-01-01 06:15:00 in UTC.
+- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2023-01-01T08:15:00Z). This format will retrieve data from January 1st, 2023, starting from a quarter past 8 in the morning until the specified end date.
 
 Output
 """"""""""""""""""""""""""
@@ -246,6 +253,14 @@ Parameters
     - Output is the parameter specifying the CSV or JSON output type.
     - Default: CSV
 
+.. note::
+
+  **Important note** regarding the StartDate and EndDate variables. 
+
+- When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
+- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2023-01-01 08:15:00 will be converted to 2023-01-01 06:15:00 in UTC.
+- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2023-01-01T08:15:00Z). This format will retrieve data from January 1st, 2023, starting from a quarter past 8 in the morning until the specified end date.
+
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'UnifiedAuditLog' directory within the 'Output' directory, with the file name 'UAL-[$CurrentStart].[csv/json]'.
@@ -305,6 +320,14 @@ Parameters
 -Output (optional)
     - Output is the parameter specifying the CSV or JSON output type.
     - Default: CSV
+
+.. note::
+
+  **Important note** regarding the StartDate and EndDate variables. 
+
+- When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
+- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2023-01-01 08:15:00 will be converted to 2023-01-01 06:15:00 in UTC.
+- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2023-01-01T08:15:00Z). This format will retrieve data from January 1st, 2023, starting from a quarter past 8 in the morning until the specified end date.
 
 Output
 """"""""""""""""""""""""""
