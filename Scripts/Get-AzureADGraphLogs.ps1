@@ -138,7 +138,7 @@ function Get-ADAuditLogsGraph {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs"
 		$filePath = "Output\AzureAD\$date\AuditlogsGraph.json"
 		
-		$auditLogs = Get-AzureADAuditDirectoryLogs -All $true | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
+		$auditLogs = Get-MgAuditLogDirectoryAudit -All $true | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
 		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
 		
 		Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"

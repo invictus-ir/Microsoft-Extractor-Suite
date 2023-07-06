@@ -1,11 +1,11 @@
-Azure Audit Logs (BETA)
+Azure Audit Logs via Graph API (BETA)
 =======
 Use **Get-ADAuditLogsGraph** to collect the contents of the Azure Active Directory Audit Log.
 
 .. note::
 
     This GraphAPI functionality is currently in beta. If you encounter any issues or have suggestions for improvements please let us know.
-    
+
 Usage
 """"""""""""""""""""""""""
 Running the script without any parameters will gather the Azure Active Directory Audit Log for the last 90 days:

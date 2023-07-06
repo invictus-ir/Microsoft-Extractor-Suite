@@ -15,5 +15,5 @@ Function Connect-AzureAZ
 
 Function Connect-Graph
 {
-	Connect-MgGraph -Scopes "AuditLog.Read.All" | Out-Null
+	Connect-MgGraph -Scopes "AuditLog.Read.All"
 }
