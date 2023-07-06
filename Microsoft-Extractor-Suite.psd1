@@ -8,7 +8,7 @@ Author = 'Joey Rentenaar & Korstiaan Stam'
 CompanyName = 'Invictus-IR'
 
 # Version number of this module.
-ModuleVersion = '1.0.0'
+ModuleVersion = '1.1.0' 
 
 # Copyright statement for this module
 Copyright = 'Copyright (c) 2023 Invictus Incident Response'
@@ -35,6 +35,7 @@ FunctionsToExport = @(
 	"Connect-M365"
 	"Connect-Azure"
 	"Connect-AzureAZ"
+	"Connect-Graph"
 	
 	# Get-UAL.ps1
 	"Get-UALAll"
