@@ -13,7 +13,7 @@ Function Connect-AzureAZ
 	Connect-AzAccount | Out-Null
 }
 
-Function Connect-Graph
+Function Connect-GraphAPI
 {
 	Connect-MgGraph -Scopes "AuditLog.Read.All"
 }
