@@ -4,17 +4,17 @@ Installation
 Install the Powershell module Microsoft.Graph for the Graph API Beta functionalities:
 ::
 
-   install-module -name Microsoft.Graph
+   Install-module -name Microsoft.Graph
 
 Install the Powershell module ExchangeOnlineManagement for the Microsoft 365 functionalities:
 ::
 
-   install-module -name ExchangeOnlineManagement
+   Install-module -name ExchangeOnlineManagement
 
 Install the Powershell module Az for the Azure Activity log functionality:
 ::
 
-   install-module -name Az
+   Install-module -name Az
 
 Install the Powershell module AzureADPreview for the Azure Active Direcotry functionalities:
 ::
