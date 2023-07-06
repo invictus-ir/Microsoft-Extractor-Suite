@@ -21,6 +21,8 @@ $outputDir = "Output"
 if (!(test-path $outputDir)) {
 	New-Item -ItemType Directory -Force -Name $Outputdir | Out-Null
 }
+
+$retryCount = 0 
 	
 Function StartDate
 {

@@ -1,6 +1,6 @@
 Transport Rules
 =======
-**Show-TransportRules** shows the transport rules (mail flow rules) in your organization.
+**Show-TransportRules** shows the transport rules (mail flow rules) in your organization. Transport rules are a set of policies that allow organizations to apply specific actions and conditions to incoming or outgoing email messages.
 
 Show transport rules
 ^^^^^^^^^^^

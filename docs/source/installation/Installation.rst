@@ -1,12 +1,22 @@
 Installation
 =======
 
-Install the Powershell module ExchangeOnlineManagement:
+Install the Powershell module Microsoft.Graph for the Graph API Beta functionalities:
+::
+
+   install-module -name Microsoft.Graph
+
+Install the Powershell module ExchangeOnlineManagement for the Microsoft 365 functionalities:
 ::
 
    install-module -name ExchangeOnlineManagement
 
-Install the Powershell module AzureADPreview:
+Install the Powershell module Az for the Azure Activity log functionality:
+::
+
+   install-module -name Az
+
+Install the Powershell module AzureADPreview for the Azure Active Direcotry functionalities:
 ::
 
    Install-Module -Name AzureADPreview
@@ -29,3 +39,9 @@ Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage
 
    Connect-M365
    Connect-Azure
+   Connect-AzureAZ
+   Connect-Graph
+
+.. note::
+ Connect-Graph to sign in with the required scopes. The first time you'll need to sign in with an admin account to consent to the required scopes.
+   

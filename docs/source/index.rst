@@ -23,8 +23,9 @@ Supported sources
   OAuth Permissions                     OAuth is a way of authorizing third-party applications to login into user accounts.                                                                                        
   Inbox Rules                           Inbox rules process messages in the inbox based on conditions and take actions such as moving a message to a specified folder or deleting a message.                       
   Transport Rules                       Transport rules take action on messages while they're in transit.                                                                                                          
-  Azure Active Directory sign-in logs   Gets the Azure Active Directory sign-in log.                                                                                                                               
-  Azure Active Directory Audit Log      Gets the Azure Active Directory audit log.                                                                                                                                 
+  Azure Active Directory sign-in log   Gets the Azure Active Directory sign-in log.                                                                                                                               
+  Azure Active Directory Audit Log      Gets the Azure Active Directory audit log.  
+  Azure Activity Log                    Gets the Azure Activity log.                                                                                                           
 ===================================== =========================================================================================================================================================================== 
 
 Getting Started
@@ -42,6 +43,8 @@ Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage
 
    Connect-M365
    Connect-Azure
+   Connect-AzureAZ
+   Connect-Graph
 
 Getting Help
 ------------
@@ -70,6 +73,9 @@ Have a bug report or feature request? Open an issue on the Github repository.
    functionality/TransportRules
    functionality/AzureActiveDirectorysign-inlogs
    functionality/AzureActiveDirectoryAuditLog
+   functionality/AzureActivityLogs
+   functionality/AzureSignInLogsGraph
+   functionality/AzureAuditLogsGraph
 
 .. toctree::
    :maxdepth: 2

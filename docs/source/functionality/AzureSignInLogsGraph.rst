@@ -1,6 +1,6 @@
-Azure Active Directory Audit Log
+Azure Sign-in Logs (BETA)
 =======
-Use **Get-ADAuditLogs** to collect the contents of the Azure Active Directory Audit Log.
+Use **Get-ADSignInLogsGraph** to collect the contents of the Azure Active Directory sign-in log.
 
 .. note::
 
@@ -8,20 +8,20 @@ Use **Get-ADAuditLogs** to collect the contents of the Azure Active Directory Au
 
 Usage
 """"""""""""""""""""""""""
-Running the script without any parameters will gather the Azure Active Directory Audit Log for the last 90 days:
+Running the script without any parameters will gather the Azure Active Directory sign-in log for the last 30 days:
 ::
 
-   Get-ADAuditLogs
+   Get-ADSignInLogsGraph
 
 Get the Azure Active Directory Audit Log before 2023-04-12:
 ::
 
-   Get-ADAuditLogs -Before 2023-04-12
+   Get-ADSignInLogsGraph -Before 2023-04-12
 
 Get the Azure Active Directory Audit Log after 2023-04-12:
 ::
 
-   Get-ADAuditLogs -After 2023-04-12
+   Get-ADSignInLogsGraph -After 2023-04-12
 
 Parameters
 """"""""""""""""""""""""""
@@ -33,4 +33,4 @@ Parameters
 
 Output
 """"""""""""""""""""""""""
-The output will be saved to the 'AzureAD' directory within the 'Output' directory, with the file name 'Auditlogs.json'. Each time an acquisition is performed, the output JSON file will be overwritten. Therefore, if you perform multiple acquisitions, the JSON file will only contain the results from the latest acquisition.
+The output will be saved to the 'AzureAD' directory within the 'Output' directory, with the file name 'SignInLogsGraph.json'. Each time an acquisition is performed, the output JSON file will be overwritten. Therefore, if you perform multiple acquisitions, the JSON file will only contain the results from the latest acquisition.
