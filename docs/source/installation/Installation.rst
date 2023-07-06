@@ -34,7 +34,12 @@ The first step is to import the Microsoft-Extractor-Suite:
 
    Import-Module .\Microsoft-Extractor-Suite.psd1
 
-Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage before Microsoft-Extractor-Suite functions are made available. To sign in, use the cmdlets:
+Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage before Microsoft-Extractor-Suite functions are made available. We made a graphic to help you decide which Connect function you should use depening on what you wan to acquire. 
+
+.. image:: Microsoft-Extractor-Suite-Connect.png
+   :width: 600
+
+To sign in, use the cmdlets:
 ::
 
    Connect-M365
