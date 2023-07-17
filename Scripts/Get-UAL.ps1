@@ -755,7 +755,7 @@ function Get-UALSpecificActivity
 		[DateTime]$currentStart = $script:StartDate
 		[DateTime]$currentEnd = $script:EndDate
 		
-		$specificResult = Search-UnifiedAuditLog -StartDate $script:StartDate -EndDate $script:EndDate -ActivityType $record -UserIds $UserIds -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+		$specificResult = Search-UnifiedAuditLog -StartDate $script:StartDate -EndDate $script:EndDate -Operations $record -UserIds $UserIds -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 		
 		if (($null -ne $specificResult) -and ($specificResult -ne 0)) {
 			$outputDir = "Output\UnifiedAuditLog\$record\"
@@ -769,7 +769,7 @@ function Get-UALSpecificActivity
 			
 			while ($currentStart -lt $script:EndDate) {	
 				$currentEnd = $currentStart.AddMinutes($Interval)
-				$amountResults = Search-UnifiedAuditLog -UserIds $UserIds -StartDate $currentStart -EndDate $currentEnd -ActivityType $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+				$amountResults = Search-UnifiedAuditLog -UserIds $UserIds -StartDate $currentStart -EndDate $currentEnd -Operations $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 				
 				
 				if ($amountResults -eq $null) {
@@ -779,7 +779,7 @@ function Get-UALSpecificActivity
 				
 				elseif ($amountResults -gt 5000) {
 					while ($amountResults -gt 5000) {
-						$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -UserIds $UserIds -ActivityType $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+						$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -UserIds $UserIds -Operations $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 						if ($amountResults -lt 5000) {
 							if ($Interval -eq 0) {
 								Exit
@@ -806,7 +806,7 @@ function Get-UALSpecificActivity
 					$sessionID = $currentStart.ToString("yyyyMMddHHmmss")
 						
 					while ($true) {					
-						[Array]$results = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -UserIds $UserIds -ActivityType $record -SessionCommand ReturnLargeSet -ResultSize $ResultSize
+						[Array]$results = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -UserIds $UserIds -Operations $record -SessionCommand ReturnLargeSet -ResultSize $ResultSize
 						$CurrentCount = 0
 						
 						if ($null -eq $results -or $results.Count -eq 0) {
