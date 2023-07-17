@@ -41,6 +41,7 @@ FunctionsToExport = @(
 	"Get-UALAll"
 	"Get-UALGroup"
 	"Get-UALSpecific"
+ 	"Get-UALSpecificActivity"
 	
 	# Get-UALStatistics.ps1
 	"Get-UALStatistics"
