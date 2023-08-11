@@ -3,15 +3,22 @@ Prerequisites
 
 1. The tool only supports PowerShell on Windows. While it is possible to use PowerShell on MacOS/Linux  through WinRM, there are known issues that can cause issues.
 
-2. Powershell module: Connect-ExchangeOnline
+2. Powershell module: ExchangeOnlineManagement for the Microsoft 365 functionalities.
 
-3. Powershell module: Connect-AzureADPreview
+3. Powershell module: AzureADPreview for the Azure Active Directory functionalities.
 
-4. Microsoft 365 account with privileges to access/extract audit logging.
+4. Powershell module: Microsoft.Graph for the Graph API Beta functionalities.
 
-5. Check if the Unified Audit Log has been activated.
+5. Powershell module: Az for the Azure Activity log functionality.
 
-6. Ensure that your PowerShell Execution Policy is configured to "Unrestricted".
+6. Microsoft 365 account with privileges to access/extract audit logging.
+
+7. Check if the Unified Audit Log has been activated.
+
+8. Ensure that your PowerShell Execution Policy is configured to "Unrestricted".
+
+9. If using the Graph API functionalities, the first time you'll need to sign in with an admin account to consent to the required scopes.
+
 
 ::
 

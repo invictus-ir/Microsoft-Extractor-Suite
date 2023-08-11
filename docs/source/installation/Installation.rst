@@ -45,8 +45,8 @@ To sign in, use the cmdlets:
    Connect-M365
    Connect-Azure
    Connect-AzureAZ
-   Connect-Graph
+   Connect-GraphAPI
 
 .. note::
- Connect-Graph to sign in with the required scopes. The first time you'll need to sign in with an admin account to consent to the required scopes.
+ Connect-GraphAPI to sign in with the required scopes. The first time you'll need to sign in with an admin account to consent to the required scopes.
    

@@ -35,7 +35,7 @@ FunctionsToExport = @(
 	"Connect-M365"
 	"Connect-Azure"
 	"Connect-AzureAZ"
-	"Connect-Graph"
+	"Connect-GraphAPI"
 	
 	# Get-UAL.ps1
 	"Get-UALAll"
