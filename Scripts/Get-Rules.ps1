@@ -203,13 +203,13 @@ function Get-MailboxRules
 						TextDescription = $rule.Description
                      }
 
-					$RuleList += $tempval
+					$RuleList = $tempval
 					$amountofRules = $amountofRules + 1
 					$totalRules = $totalRules + 1
+					$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation
 					
 				}
 
-				$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation
 				write-LogFile -Message "[INFO] Found $amountofRules InboxRule(s) for: $($_.alias)..." -Color "Yellow"
 				write-LogFile -Message "[INFO] Collecting $amountofRules InboxRule(s) for: $($_.alias)..." -Color "Yellow"
 			}
@@ -237,12 +237,12 @@ function Get-MailboxRules
 							TextDescription = $rule.Description
 						}
 
-						$RuleList += $tempval
+						$RuleList = $tempval
 						$amountofRules = $amountofRules + 1
 						$totalRules = $totalRules + 1
+						$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation
 					}
 					
-					$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation
 					write-LogFile -Message "[INFO] Found $amountofRules InboxRule(s) for: $User..." -Color "Yellow"
 					write-LogFile -Message "[INFO] Collecting $amountofRules InboxRule(s) for: $User..." -Color "Yellow"
 				}
@@ -266,13 +266,12 @@ function Get-MailboxRules
 							TextDescription = $rule.Description
 						}
 
-						$RuleList += $tempval
+						$RuleList = $tempval
 						$totalRules = $totalRules + 1
+						$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation
 					}
 					
-					$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation
 					write-LogFile -Message "[INFO] Collecting $amountofRules InboxRule(s) for: $UserIds..." -Color "Yellow"
-				
 			}
 		}
 	}

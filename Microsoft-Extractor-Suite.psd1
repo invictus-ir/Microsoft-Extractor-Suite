@@ -8,7 +8,7 @@ Author = 'Joey Rentenaar & Korstiaan Stam'
 CompanyName = 'Invictus-IR'
 
 # Version number of this module.
-ModuleVersion = '1.1.0' 
+ModuleVersion = '1.1.1' 
 
 # Copyright statement for this module
 Copyright = 'Copyright (c) 2023 Invictus Incident Response'
@@ -41,6 +41,7 @@ FunctionsToExport = @(
 	"Get-UALAll"
 	"Get-UALGroup"
 	"Get-UALSpecific"
+	"Get-UALSpecificActivity"
 	
 	# Get-UALStatistics.ps1
 	"Get-UALStatistics"

@@ -131,6 +131,23 @@ function Get-MessageTraceLog
 			write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 		}
 	}
+
+	elseif ($UserIds -match "\*") {	
+		write-logFile -Message "[INFO] An entire domain has been provided, retrieving all messages between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
+		write-logFile -Message "[WARNING] Please be aware that the output is restricted to a maximum of 5000 received and 5000 sent emails in the results" -Color "Red"
+
+		$Domain = $UserIds.Replace("*@","")
+		$outputFile = "Output\MessageTrace\$Domain-MTL.csv"
+		
+		$ResultsRecipient = Get-MessageTrace -RecipientAddress $UserIds -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
+		$ResultsSender = Get-MessageTrace -SenderAddress $UserIds -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
+		
+		$results = $resultsSender + $resultsRecipient
+
+		$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation
+		write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
+
+	}
 	
 	else {
 		$outputFile = "Output\MessageTrace\"+$UserIds+"-MTL.csv"

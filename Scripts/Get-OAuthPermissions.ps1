@@ -228,5 +228,5 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 	}
 	)
     Write-LogFile -Message "Done saving output to: Output\OAuthPermissions\OAuthPermissions.csv" -Color "Green"
-    $report | Export-CSV -nti -Path "Output\OAuthPermissions\OAuthPermissions-$date.csv"
+    $report | Export-CSV -NoTypeInformation -Path "Output\OAuthPermissions\OAuthPermissions-$date.csv" -Encoding UTF8
 }

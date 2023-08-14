@@ -109,6 +109,10 @@ Parameters
     - Output is the parameter specifying the CSV or JSON output type.
     - Default: CSV
 
+-MergeCSVOutput (optional)
+    - MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
+    - Default: n
+
 .. note::
 
   **Important note** regarding the StartDate and EndDate variables. 
@@ -253,6 +257,10 @@ Parameters
     - Output is the parameter specifying the CSV or JSON output type.
     - Default: CSV
 
+-MergeCSVOutput (optional)
+    - MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
+    - Default: n
+
 .. note::
 
   **Important note** regarding the StartDate and EndDate variables. 
@@ -320,6 +328,10 @@ Parameters
 -Output (optional)
     - Output is the parameter specifying the CSV or JSON output type.
     - Default: CSV
+
+-MergeCSVOutput (optional)
+    - MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
+    - Default: n
 
 .. note::
 
@@ -573,3 +585,66 @@ Supported Record Types
   DefenderExpertsforXDRAdmin
   CDPEdgeBlockedMessage
   HostedRpa
+
+Extract specific audit logs
+^^^^^^^^^^^
+Makes it possible to extract a group of specific unified audit activities out of a Microsoft 365 environment. You can for example extract all Inbox Rules or Azure Changes in one go.
+
+Usage
+""""""""""""""""""""""""""
+Gets the New-InboxRule logging from the unified audit log:
+::
+
+   Get-UALSpecificActivity -ActivityType New-InboxRule
+
+Gets the Sharepoint FileDownload logging from the unified audit log for the user Test@invictus-ir.com:
+::
+
+  Get-UALSpecificActivity -ActivityType FileDownloaded -UserIds "Test@invictus-ir.com"
+  
+Gets the Add Service Principal. logging from the unified audit log for the uses Test@invictus-ir.com and HR@invictus-ir.com:
+::
+
+   Get-UALSpecificActivity -ActivityType "Add service principal." -UserIds "Test@invictus-ir.com,HR@invictus-ir.com"
+
+Gets all the MailItemsAccessed logging from the unified audit log for the user Test@invictus-ir.com in JSON format with a time interval of 720:
+::
+
+   Get-UALSpecificActivity -ActivityType MailItemsAccessed -UserIds Test@invictus-ir.com -StartDate 25/3/2023 -EndDate 5/4/2023 -Interval 720 -Output JSON
+
+Parameters
+""""""""""""""""""""""""""
+-ActivityType (required)
+    - The ActivityType parameter filters the log entries by operation or activity type.
+	- Options are: New-MailboxRule, MailItemsAccessed, etc. A total of 108 common ActivityTypes are supported.
+
+-UserIds (optional)
+    - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
+
+-StartDate (optional)
+    - StartDate is the parameter specifying the start date of the date range.
+    - Default: Today -90 days
+
+-EndDate (optional)
+    - EndDate is the parameter specifying the end date of the date range.
+    - Default: Now
+
+-Interval (optional)
+    - Interval is the parameter specifying the interval in which the logs are being gathered.
+    - Default: 60 minutes
+
+-Output (optional)
+    - Output is the parameter specifying the CSV or JSON output type.
+    - Default: CSV
+
+.. note::
+
+  **Important note** regarding the StartDate and EndDate variables. 
+
+- When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
+- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2023-01-01 08:15:00 will be converted to 2023-01-01 06:15:00 in UTC.
+- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2023-01-01T08:15:00Z). This format will retrieve data from January 1st, 2023, starting from a quarter past 8 in the morning until the specified end date.
+
+Output
+""""""""""""""""""""""""""
+The output will be saved to the 'Name of the Activity' directory within the 'Output' directory.
