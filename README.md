@@ -29,7 +29,7 @@ The first step is to import the Microsoft-Extractor-Suite:
 You must sign-in to Microsoft 365 or Azure depending on your use case before running the functions. To sign in, use the cmdlets:
 > Connect-M365
 
-> Connect-Azure
+> Connect-Azure 
 
 > Connect-AzureAZ
 
