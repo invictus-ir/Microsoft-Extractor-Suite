@@ -127,7 +127,7 @@ function Get-MessageTraceLog
 			$ResultsSender = Get-MessageTrace -SenderAddress $user -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
 
 			$results = $resultsSender + $resultsRecipient
-			$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation
+			$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding UTF8
 			write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 		}
 	}
@@ -144,7 +144,7 @@ function Get-MessageTraceLog
 		
 		$results = $resultsSender + $resultsRecipient
 
-		$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation
+		$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding UTF8
 		write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 
 	}
@@ -157,7 +157,7 @@ function Get-MessageTraceLog
 		$resultsSender = Get-MessageTrace -SenderAddress $UserIds -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
 
 		$results = $resultsSender + $resultsRecipient
-		$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation
+		$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding UTF8
 		write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 	}	
 }
