@@ -70,7 +70,7 @@ function Get-MailboxAuditLog
 
 			write-logFile -Message "[INFO] Collecting the MailboxAuditLog for $($_.UserPrincipalName)"
 			$result = Search-MailboxAuditlog -Identity $_.UserPrincipalName -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 
-			$result | export-csv -NoTypeInformation -Path $outputFile
+			$result | export-csv -NoTypeInformation -Path $outputFile -Encoding UTF8
 			
 			write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 		}
@@ -84,7 +84,7 @@ function Get-MailboxAuditLog
 
 			write-logFile -Message "[INFO] Collecting the MailboxAuditLog for $user"
 			$result = Search-MailboxAuditlog -Identity $user -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 
-			$result | export-csv -NoTypeInformation -Path $outputFile
+			$result | export-csv -NoTypeInformation -Path $outputFile -Encoding UTF8
 			
 			write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 		}
@@ -96,7 +96,7 @@ function Get-MailboxAuditLog
 
 		write-logFile -Message "[INFO] Collecting the MailboxAuditLog for $UserIds"
 		$result = Search-MailboxAuditlog -Identity $UserIds -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 
-		$result | export-csv -NoTypeInformation -Path $outputFile
+		$result | export-csv -NoTypeInformation -Path $outputFile -Encoding UTF8
 		
 		write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 	} 

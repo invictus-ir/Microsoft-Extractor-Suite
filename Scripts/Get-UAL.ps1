@@ -195,7 +195,8 @@ function Get-UALAll
 						}
 
 						elseif ($Output -eq "CSV") {
-							$results | epcsv "./$outputDir/UAL-$sessionID.csv" -NoTypeInformation -Append
+							$results | export-CSV "./$outputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding UTF8
+							
 							Write-LogFile -Message $message -Color "Green"
 						}
 						
@@ -453,7 +454,7 @@ function Get-UALGroup
 								}
 								elseif ($Output -eq "CSV")
 								{
-									$results | epcsv "./$outputDir/UAL-$sessionID.csv" -NoTypeInformation -Append
+									$results | export-CSV "./$outputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding UTF8
 									Write-LogFile -Message $message
 								}
 								break
@@ -690,7 +691,7 @@ function Get-UALSpecific
 							}
 							elseif ($Output -eq "CSV")
 							{
-								$results | epcsv "./$outputDir/UAL-$sessionID.csv" -NoTypeInformation -Append
+								$results | export-CSV "./$outputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding UTF8
 								Write-LogFile -Message $message
 							}
 							break
@@ -914,7 +915,7 @@ function Get-UALSpecificActivity
 							}
 							elseif ($Output -eq "CSV")
 							{
-								$results | epcsv "./$outputDir/UAL-$sessionID.csv" -NoTypeInformation -Append
+								$results | export-CSV "./$outputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding UTF8
 								Write-LogFile -Message $message
 							}
 							break

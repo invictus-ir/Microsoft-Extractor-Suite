@@ -56,7 +56,7 @@ function Get-TransportRules
 	$transportRules = Get-TransportRule | Select-Object -Property Name,Description,CreatedBy,WhenChanged,State
 	
 	if ($null -ne $transportRules) {
-		$transportRules | export-csv -NoTypeInformation $outputDirectory
+		$transportRules | export-csv -NoTypeInformation $outputDirectory -Encoding UTF8
 		write-LogFile -Message "[INFO] Transport rules are collected and writen to: $outputDirectory" -Color "Green"
 	}
 }
@@ -206,7 +206,7 @@ function Get-MailboxRules
 					$RuleList = $tempval
 					$amountofRules = $amountofRules + 1
 					$totalRules = $totalRules + 1
-					$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation
+					$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation -Encoding UTF8
 					
 				}
 
@@ -240,7 +240,7 @@ function Get-MailboxRules
 						$RuleList = $tempval
 						$amountofRules = $amountofRules + 1
 						$totalRules = $totalRules + 1
-						$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation
+						$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation -Encoding UTF8
 					}
 					
 					write-LogFile -Message "[INFO] Found $amountofRules InboxRule(s) for: $User..." -Color "Yellow"
@@ -268,7 +268,7 @@ function Get-MailboxRules
 
 						$RuleList = $tempval
 						$totalRules = $totalRules + 1
-						$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation
+						$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation -Encoding UTF8
 					}
 					
 					write-LogFile -Message "[INFO] Collecting $amountofRules InboxRule(s) for: $UserIds..." -Color "Yellow"
