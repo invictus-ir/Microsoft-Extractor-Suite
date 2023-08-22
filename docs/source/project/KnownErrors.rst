@@ -8,3 +8,6 @@ Known errors
 
 3. Invalid Argument "Cannot convert value" to type "System.Int32"
     - Safe to ignore, only observed this on PowerShell on macOS, the script will work fine and continue.
+
+4. Output directory expected
+    - The Output directory, as part of the folderstructurer from GitHub, is expected to be used for all output. If you attempt to use the script from a location outside of the folder structure provided by the GitHub repository, then errors will be thrown by the script, or the output won't be written to disk.
