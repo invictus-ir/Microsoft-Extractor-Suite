@@ -119,7 +119,7 @@ function Get-ADAuditLogs {
 	)
 
 	try {
-		$areYouConnected = Get-AzureADAuditSignInLogs -ErrorAction stop
+		$areYouConnected = Get-AzureADAuditDirectoryLogs -ErrorAction stop
 	}
 	catch {
 		Write-logFile -Message "[WARNING] You must call Connect-Azure before running this script" -Color "Red"
