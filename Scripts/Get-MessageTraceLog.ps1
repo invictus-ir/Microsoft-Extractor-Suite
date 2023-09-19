@@ -48,6 +48,14 @@ function Get-MessageTraceLog
     endDate is the parameter specifying the end date of the date range.
 	Default: Now
 
+	.PARAMETER OutputDir
+    outputDir is the parameter specifying the output directory.
+	Default: Output\MessageTrace
+
+	.PARAMETER Encoding
+    Encoding is the parameter specifying the encoding of the CSV output file.
+	Default: UTF8
+
 	.EXAMPLE
     Get-MessageTraceLog
 	Collects the trace messages for all users.
@@ -72,7 +80,9 @@ function Get-MessageTraceLog
 	param(
 		[string]$UserIds,
 		[string]$StartDate,
-		[string]$EndDate
+		[string]$EndDate,
+		[string]$OutputDir,
+		[string]$Encoding
 	)
 
 	try {
@@ -89,17 +99,28 @@ function Get-MessageTraceLog
 	EndDateMTL
 	
 	$date = Get-Date -Format "yyyyMMddHHmm"
-	$outputDir = "Output\MessageTrace\"	
-	if (!(test-path $outputDir)) {
-		write-logFile -Message "[INFO] Creating the following directory: $outputDir"
-		New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\MessageTrace"	
+		if (!(test-path $OutputDir)) {
+			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+		}
 	}
-	
+
+	if ($Encoding -eq "" ){
+		$Encoding = "UTF8"
+	}
+
+	else {
+		write-logFile -Message "[INFO] Output directory set to: $OutputDir" -Color "Green"
+	}
+
 	if (($null -eq $UserIds) -Or ($UserIds -eq ""))  {
 		write-logFile -Message "[INFO] No users provided. Getting the Message Trace Log for all users between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
 		Get-mailbox -resultsize unlimited  |
 		ForEach-Object {
-			$outputFile = "Output\MessageTrace\"+$($_.PrimarySmtpAddress)+"-MTL.csv"
+			$outputFile = "$OutputDir\"+$($_.PrimarySmtpAddress)+"-MTL.csv"
 
 			$ResultsRecipient = Get-MessageTrace -RecipientAddress $_.PrimarySmtpAddress -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
 			$ResultsSender = Get-MessageTrace -SenderAddress $_.PrimarySmtpAddress -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
@@ -121,13 +142,13 @@ function Get-MessageTraceLog
 			$user = $_
 			
 			write-logFile -Message "[INFO] Collecting the Message Trace Log for $user between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
-			$outputFile = "Output\MessageTrace\"+$user+"-MTL.csv"
+			$outputFile = "$OutputDir\"+$user+"-MTL.csv"
 
 			$ResultsRecipient = Get-MessageTrace -RecipientAddress $user -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
 			$ResultsSender = Get-MessageTrace -SenderAddress $user -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
 
 			$results = $resultsSender + $resultsRecipient
-			$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding UTF8
+			$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding $Encoding
 			write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 		}
 	}
@@ -137,27 +158,27 @@ function Get-MessageTraceLog
 		write-logFile -Message "[WARNING] Please be aware that the output is restricted to a maximum of 5000 received and 5000 sent emails in the results" -Color "Red"
 
 		$Domain = $UserIds.Replace("*@","")
-		$outputFile = "Output\MessageTrace\$Domain-MTL.csv"
+		$outputFile = "$OutputDir\$Domain-MTL.csv"
 		
 		$ResultsRecipient = Get-MessageTrace -RecipientAddress $UserIds -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
 		$ResultsSender = Get-MessageTrace -SenderAddress $UserIds -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
 		
 		$results = $resultsSender + $resultsRecipient
 
-		$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding UTF8
+		$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding $Encoding
 		write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 
 	}
 	
 	else {
-		$outputFile = "Output\MessageTrace\"+$UserIds+"-MTL.csv"
+		$outputFile = "$OutputDir\"+$UserIds+"-MTL.csv"
 		write-logFile -Message "[INFO] Collecting the Message Trace Log for $UserIds"
 
 		$resultsRecipient = Get-MessageTrace -RecipientAddress $UserIds -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
 		$resultsSender = Get-MessageTrace -SenderAddress $UserIds -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
 
 		$results = $resultsSender + $resultsRecipient
-		$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding UTF8
+		$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding $Encoding
 		write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 	}	
 }

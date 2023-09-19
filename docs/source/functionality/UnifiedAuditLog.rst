@@ -40,6 +40,10 @@ Parameters
     - EndDate is the parameter specifying the end date of the date range.
     - Default: Now
 
+-OutputDir (optional)
+    - OutputDir is the parameter specifying the output directory.
+    - Default: UnifiedAuditLog
+
 .. note::
 
   **Important note** regarding the StartDate and EndDate variables. 
@@ -112,6 +116,14 @@ Parameters
 -MergeCSVOutput (optional)
     - MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
     - Default: n
+
+-OutputDir (optional)
+    - OutputDir is the parameter specifying the output directory.
+    - Default: UnifiedAuditLog
+
+-Encoding (optional)
+    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Default: UTF8
 
 .. note::
 
@@ -261,6 +273,14 @@ Parameters
     - MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
     - Default: n
 
+-OutputDir (optional)
+    - OutputDir is the parameter specifying the output directory.
+    - Default: UnifiedAuditLog
+
+-Encoding (optional)
+    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Default: UTF8
+
 .. note::
 
   **Important note** regarding the StartDate and EndDate variables. 
@@ -332,6 +352,14 @@ Parameters
 -MergeCSVOutput (optional)
     - MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
     - Default: n
+
+-OutputDir (optional)
+    - OutputDir is the parameter specifying the output directory.
+    - Default: UnifiedAuditLog
+
+-Encoding (optional)
+    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Default: UTF8
 
 .. note::
 
@@ -636,6 +664,14 @@ Parameters
 -Output (optional)
     - Output is the parameter specifying the CSV or JSON output type.
     - Default: CSV
+
+-OutputDir (optional)
+    - OutputDir is the parameter specifying the output directory.
+    - Default: UnifiedAuditLog
+
+-Encoding (optional)
+    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Default: UTF8
 
 .. note::
 

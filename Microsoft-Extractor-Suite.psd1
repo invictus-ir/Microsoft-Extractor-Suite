@@ -8,7 +8,10 @@ Author = 'Joey Rentenaar & Korstiaan Stam'
 CompanyName = 'Invictus-IR'
 
 # Version number of this module.
-ModuleVersion = '1.1.1' 
+ModuleVersion = '1.1.2' 
+
+# ID used to uniquely identify this module
+GUID = '4376306b-0078-4b4d-b565-e22804e3be01'
 
 # Copyright statement for this module
 Copyright = 'Copyright (c) 2023 Invictus Incident Response'

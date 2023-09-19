@@ -31,6 +31,10 @@ Parameters
 -Before (optional)
     - EndDate is the parameter specifying the end date of the date range. The time format supported is limited to yyyy-mm-dd only.
 
+-OutputDir (optional)
+    - OutputDir is the parameter specifying the output directory.
+    - Default: AzureAD
+
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'AzureAD' directory within the 'Output' directory, with the file name 'SignInLogsGraph.json'. Each time an acquisition is performed, the output JSON file will be overwritten. Therefore, if you perform multiple acquisitions, the JSON file will only contain the results from the latest acquisition.

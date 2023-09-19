@@ -38,6 +38,14 @@ Parameters
     - EndDate is the parameter specifying the end date of the date range.
     - Default: Now
 
+-OutputDir (optional)
+    - OutputDir is the parameter specifying the output directory.
+    - Default: MailboxAuditLog
+
+-Encoding (optional)
+    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Default: UTF8
+
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'MailboxAuditLog' directory within the 'Output' directory, with the file name 'mailboxAuditLog_$($UserIds)_$($date).csv"'.

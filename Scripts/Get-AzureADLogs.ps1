@@ -14,6 +14,10 @@ function Get-ADSignInLogs {
 
 	.PARAMETER Before
     The Before parameter specifies the date before which all logs need to be collected.
+
+	.PARAMETER OutputDir
+    outputDir is the parameter specifying the output directory.
+	Default: Output\AzureAD
     
     .EXAMPLE
     Get-ADSignInLogs
@@ -30,11 +34,12 @@ function Get-ADSignInLogs {
 	[CmdletBinding()]
 	param(
 		[string]$After,
-		[string]$Before
+		[string]$Before,
+		[string]$outputDir
 	)
 
 	try {
-		$areYouConnected = Get-AzureADAuditSignInLogs -ErrorAction stop
+		$areYouConnected = Get-AzureADAuditDirectoryLogs -ErrorAction stop
 	}
 	catch {
 		Write-logFile -Message "[WARNING] You must call Connect-Azure before running this script" -Color "Red"
@@ -44,15 +49,17 @@ function Get-ADSignInLogs {
 	Write-logFile -Message "[INFO] Running Get-AADSignInLogs" -Color "Green"
 
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-	$outputDir = "Output\AzureAD\$date\"
-	if (!(test-path $outputDir)) {
-		Write-logFile -Message "[INFO] Creating the following directory: $outputDir"
-		New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+	if ($outputDir -eq "" ){
+		$outputDir = "Output\AzureAD\$date\"
+		if (!(test-path $outputDir)) {
+			write-logFile -Message "[INFO] Creating the following directory: $outputDir"
+			New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+		}
 	}
 
 	if (($After -eq "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs"
-		$filePath = "Output\AzureAD\$date\SignInLogs.json"
+		$filePath = "$outputDir\SignInLogs.json"
 
 		$signInLogs = Get-AzureADAuditSignInLogs -All $true
 		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
@@ -62,7 +69,7 @@ function Get-ADSignInLogs {
 
 	elseif (($After -ne "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs on or after $After"
-		$filePath = "Output\AzureAD\$date\SignInLogs.json"
+		$filePath = "$outputDir\SignInLogs.json"
 
 		$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime gt $After"
 		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
@@ -72,7 +79,7 @@ function Get-ADSignInLogs {
 
 	elseif (($Before -ne "") -and ($After -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs on or before $Before"
-		$filePath = "Output\AzureAD\$date\SignInLogs.json"
+		$filePath = "$outputDir\$date\SignInLogs.json"
 
 		$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $Before"
 		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
@@ -99,6 +106,10 @@ function Get-ADAuditLogs {
 
 	.PARAMETER Before
     The Before parameter specifies the date before which all logs need to be collected.
+
+	.PARAMETER OutputDir
+    outputDir is the parameter specifying the output directory.
+	Default: Output\AzureAD
     
     .EXAMPLE
     Get-ADAuditLogs
@@ -115,7 +126,8 @@ function Get-ADAuditLogs {
 	[CmdletBinding()]
 	param(
 		[string]$After,
-		[string]$Before
+		[string]$Before,
+		[string]$outputDir
 	)
 
 	try {
@@ -129,15 +141,17 @@ function Get-ADAuditLogs {
 	Write-logFile -Message "[INFO] Running Get-AADAuditLogs" -Color "Green"
 	
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-	$outputDir = "Output\AzureAD\$date\"
-	if (!(test-path $outputDir)) {
-		Write-logFile -Message "[INFO] Creating the following directory: $outputDir"
-		New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+	if ($outputDir -eq "" ){
+		$outputDir = "Output\AzureAD\$date\"
+		if (!(test-path $outputDir)) {
+			write-logFile -Message "[INFO] Creating the following directory: $outputDir"
+			New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+		}
 	}
 
 	if (($After -eq "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs"
-		$filePath = "Output\AzureAD\$date\Auditlogs.json"
+		$filePath = "$outputDir\$date\Auditlogs.json"
 		
 		$auditLogs = Get-AzureADAuditDirectoryLogs -All $true | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
 		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
@@ -147,7 +161,7 @@ function Get-ADAuditLogs {
 
 	elseif (($After -ne "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs on or after $After"
-		$filePath = "Output\AzureAD\$date\Auditlogs.json"
+		$filePath = "$outputDir\$date\Auditlogs.json"
 		
 		$auditLogs = Get-AzureADAuditDirectoryLogs -All $true -Filter "activityDateTime gt $After" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
 		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
@@ -157,7 +171,7 @@ function Get-ADAuditLogs {
 
 	elseif (($Before -ne "") -and ($After -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs logs on or before $Before"
-		$filePath = "Output\AzureAD\$date\Auditlogs.json"
+		$filePath = "$outputDir\$date\Auditlogs.json"
 		
 		$auditLogs = Get-AzureADAuditDirectoryLogs -All $true -Filter "activityDateTime lt $Before" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
 		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath

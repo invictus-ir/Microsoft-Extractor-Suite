@@ -25,6 +25,14 @@ Parameters
     - EndDate is the parameter specifying the end date of the date range.
     - Default: Now
 
+-OutputDir (optional)
+    - OutputDir is the parameter specifying the output directory.
+    - Default: AdminAuditLog
+
+-Encoding (optional)
+    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Default: UTF8
+
 .. note::
 
   **Important note** regarding the StartDate and EndDate variables. 
