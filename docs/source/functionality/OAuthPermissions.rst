@@ -10,7 +10,7 @@ Parameters
 """"""""""""""""""""""""""
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: OAuthPermissions
+    - Default: Output\OAuthPermissions
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV output file.

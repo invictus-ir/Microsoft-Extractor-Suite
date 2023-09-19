@@ -27,7 +27,7 @@ Parameters
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: AdminAuditLog
+    - Default: Output\AdminAuditLog
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV output file.

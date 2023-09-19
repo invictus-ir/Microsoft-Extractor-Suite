@@ -51,7 +51,7 @@ Parameters
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: Rules
+    - Default: Output\Rules
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV output file.

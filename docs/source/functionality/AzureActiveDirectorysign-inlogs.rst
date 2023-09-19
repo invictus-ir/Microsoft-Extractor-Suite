@@ -29,7 +29,7 @@ Parameters
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: AzureAD
+    - Default: Output\AzureAD
 
 Output
 """"""""""""""""""""""""""

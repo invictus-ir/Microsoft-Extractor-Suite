@@ -40,7 +40,7 @@ Parameters
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: MailboxAuditLog
+    - Default: Output\MailboxAuditLog
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV output file.

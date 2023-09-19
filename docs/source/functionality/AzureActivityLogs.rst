@@ -44,7 +44,7 @@ Parameters
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: AzureActivityLogs
+    - Default: Output\AzureActivityLogs
 
 Output
 """"""""""""""""""""""""""
