@@ -16,7 +16,7 @@ function Get-AdminAuditLog {
     endDate is the parameter specifying the end date of the date range.
 
 	.PARAMETER OutputDir
-    outputDir is the parameter specifying the output directory.
+    OutputDir is the parameter specifying the output directory.
 	Default: Output\AdminAuditLog
     
     .EXAMPLE
@@ -47,14 +47,14 @@ function Get-AdminAuditLog {
     $outputFile = "AdminAuditLog.csv"
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss')
 
-	if ($outputDir -eq "" ){
-		$outputDir = "\Output\AdminAuditLog"
-		if (!(test-path $outputDir)) {
+	if ($OutputDir -eq "" ){
+		$OutputDir = "\Output\AdminAuditLog"
+		if (!(test-path $OutputDir)) {
 			write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
 			New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
 		}
 
-		$outputFile = "$outputDir\"+$date+"-"+$outputFile
+		$outputFile = "$OutputDir\"+$date+"-"+$outputFile
    		$outputDirectory = Join-Path $curDir $outputFile
 	}
 

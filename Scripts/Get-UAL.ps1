@@ -31,7 +31,7 @@ function Get-UALAll
 	Default: CSV
 
 	.PARAMETER OutputDir
-	outputDir is the parameter specifying the output directory.
+	OutputDir is the parameter specifying the output directory.
 	Default: Output\UnifiedAuditLog
 
  	.PARAMETER MergeCSVOutput
@@ -79,7 +79,7 @@ function Get-UALAll
 		[string]$Interval,
 		[string]$Output,
   		[string]$MergeCSVOutput,
-		[string]$outputDir,
+		[string]$OutputDir,
 		[string]$Encoding
 	)
 
@@ -116,7 +116,6 @@ function Get-UALAll
     			Write-LogFile -Message "[INFO] MergeCSVOutput set to y"
       		} else {
 			$MergeCSVOutput = "n"
-   			Write-LogFile -Message "[INFO] MergeCSVOutput set to n"
 		}
 	}
 
@@ -125,11 +124,11 @@ function Get-UALAll
 	}
 		
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-	if ($outputDir -eq "" ){
-		$outputDir = "Output\UnifiedAuditLog\$date"
-		If (!(test-path $outputDir)) {
-			Write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
-			New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\UnifiedAuditLog\$date"
+		If (!(test-path $OutputDir)) {
+			Write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
 	}
 	
@@ -206,12 +205,12 @@ function Get-UALAll
 						
 						if ($Output -eq "JSON") {
 							$results = $results|Select-Object AuditData -ExpandProperty AuditData
-							$results | Out-File -Append "$outputDir/UAL-$sessionID.json"
+							$results | Out-File -Append "$OutputDir/UAL-$sessionID.json"
 							Write-LogFile -Message $message -Color "Green"
 						}
 
 						elseif ($Output -eq "CSV") {
-							$results | export-CSV "$outputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding $Encoding
+							$results | export-CSV "$OutputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding $Encoding
 							
 							Write-LogFile -Message $message -Color "Green"
 						}
@@ -226,13 +225,13 @@ function Get-UALAll
 
 	if ($Output -eq "CSV" -and $MergeCSVOutput -eq "y")
 	{
-	  $outputDirMerged = "$outputDir\Merged\"
+	  $outputDirMerged = "$OutputDir\Merged\"
 	  If (!(test-path $outputDirMerged)) {
 		  Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
 		  New-Item -ItemType Directory -Force -Name $outputDirMerged | Out-Null
 	  }
   
-	    Get-ChildItem $outputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/UAL-Combined.csv" -NoTypeInformation -Append
+	    Get-ChildItem $OutputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/UAL-Combined.csv" -NoTypeInformation -Append
 		Write-LogFile -Message "[INFO] Merging UAL Files" -Color "Green"
 	  }
 
@@ -274,7 +273,7 @@ function Get-UALGroup
 	Default: CSV
 
 	.PARAMETER OutputDir
-	outputDir is the parameter specifying the output directory.
+	OutputDir is the parameter specifying the output directory.
 	Default: Output\UnifiedAuditLog
  
  	.PARAMETER MergeCSVOutput
@@ -318,7 +317,7 @@ function Get-UALGroup
 		[string]$Group,
 		[string]$Output,
   		[string]$MergeCSVOutput,
-		[string]$outputDir,
+		[string]$OutputDir,
 		[string]$Encoding
 	)
 
@@ -379,7 +378,6 @@ function Get-UALGroup
     			Write-LogFile -Message "[INFO] MergeCSVOutput set to y"
       		} else {
 			$MergeCSVOutput = "n"
-   			Write-LogFile -Message "[INFO] MergeCSVOutput set to n"
 		}
 	}
 
@@ -387,11 +385,11 @@ function Get-UALGroup
 		$Encoding = "UTF8"
 	}
 	
-	if ($outputDir -eq "" ){
-		$outputDir = "Output\UnifiedAuditLog\$recordFile"
-		if (!(test-path $outputDir)) {
-			write-logFile -Message "[INFO] Creating the following directory: $outputDir"
-			New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\UnifiedAuditLog\$recordFile"
+		if (!(test-path $OutputDir)) {
+			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
 	}
 
@@ -481,12 +479,12 @@ function Get-UALGroup
 								if ($Output -eq "JSON")
 								{
 									$results = $results|Select-Object AuditData -ExpandProperty AuditData
-									$results | Out-File -Append "$outputDir/UAL-$sessionID.json"
+									$results | Out-File -Append "$OutputDir/UAL-$sessionID.json"
 									Write-LogFile -Message $message
 								}
 								elseif ($Output -eq "CSV")
 								{
-									$results | export-CSV "$outputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding $Encoding
+									$results | export-CSV "$OutputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding $Encoding
 									Write-LogFile -Message $message
 								}
 								break
@@ -504,13 +502,13 @@ function Get-UALGroup
 	}
  	if ($Output -eq "CSV" -and $MergeCSVOutput -eq "y")
   	{
-		$outputDirMerged = "$outputDir\Merged\"
+		$outputDirMerged = "$OutputDir\Merged\"
 		If (!(test-path $outputDirMerged)) {
 			Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
 			New-Item -ItemType Directory -Force -Name $outputDirMerged | Out-Null
 		}
 
- 		Get-ChildItem $outputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/UAL-Combined.csv" -NoTypeInformation -Append
+ 		Get-ChildItem $OutputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/UAL-Combined.csv" -NoTypeInformation -Append
    		Write-LogFile -Message "[INFO] Merging UAL Files" -Color "Green"
         }
 	Write-LogFile -Message "[INFO] Acquisition complete, check the Output directory for your files.." -Color "Green"
@@ -551,7 +549,7 @@ function Get-UALSpecific
 	Default: CSV
 
 	.PARAMETER OutputDir
-	outputDir is the parameter specifying the output directory.
+	OutputDir is the parameter specifying the output directory.
 	Default: Output\UnifiedAuditLog
 
 	.PARAMETER Encoding
@@ -595,7 +593,7 @@ function Get-UALSpecific
 		[Parameter(Mandatory=$true)]$RecordType,
 		[string]$Output,
   		[string]$MergeCSVOutput,
-  		[string]$outputDir,
+  		[string]$OutputDir,
 		[string]$Encoding
 	)
 
@@ -636,7 +634,6 @@ function Get-UALSpecific
     			Write-LogFile -Message "[INFO] MergeCSVOutput set to y"
       		} else {
 			$MergeCSVOutput = "n"
-   			Write-LogFile -Message "[INFO] MergeCSVOutput set to n"
 		}
 	}
 
@@ -660,11 +657,11 @@ function Get-UALSpecific
 		$specificResult = Search-UnifiedAuditLog -StartDate $script:StartDate -EndDate $script:EndDate -RecordType $record -UserIds $UserIds -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 		
 		if (($null -ne $specificResult) -and ($specificResult -ne 0)) {
-			if ($outputDir -eq "" ){
-				$outputDir = "Output\UnifiedAuditLog\$record"
-				if (!(test-path $outputDir)) {
-					write-logFile -Message "[INFO] Creating the following output directory: $outputDir"
-					New-Item -ItemType Directory -Force -Name $outputDir | Out-Null 
+			if ($OutputDir -eq "" ){
+				$OutputDir = "Output\UnifiedAuditLog\$record"
+				if (!(test-path $OutputDir)) {
+					write-logFile -Message "[INFO] Creating the following output directory: $OutputDir"
+					New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null 
 				}
 			}
 
@@ -734,12 +731,12 @@ function Get-UALSpecific
 							if ($Output -eq "JSON")
 							{
 								$results = $results|Select-Object AuditData -ExpandProperty AuditData
-								$results | Out-File -Append "$outputDir/UAL-$sessionID.json"
+								$results | Out-File -Append "$OutputDir/UAL-$sessionID.json"
 								Write-LogFile -Message $message
 							}
 							elseif ($Output -eq "CSV")
 							{
-								$results | export-CSV "$outputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding $Encoding
+								$results | export-CSV "$OutputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding $Encoding
 								Write-LogFile -Message $message
 							}
 							break
@@ -757,14 +754,14 @@ function Get-UALSpecific
 
 	if ($Output -eq "CSV" -and $MergeCSVOutput -eq "y")
 	{
-	  $outputDirMerged = "$outputDir\Merged\"
+	  $outputDirMerged = "$OutputDir\Merged\"
 	  write-host $outputDirMerged
 	  If (!(test-path $outputDirMerged)) {
 		  Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
 		  New-Item -ItemType Directory -Force -Name $outputDirMerged | Out-Null
 	  }
   
-	    Get-ChildItem $outputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/UAL-Combined.csv" -NoTypeInformation -Append
+	    Get-ChildItem $OutputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/UAL-Combined.csv" -NoTypeInformation -Append
 		Write-LogFile -Message "[INFO] Merging UAL Files" -Color "Green"
 	  }
 
@@ -806,7 +803,7 @@ function Get-UALSpecificActivity
 	Default: CSV
 
 	.PARAMETER OutputDir
-	outputDir is the parameter specifying the output directory.
+	OutputDir is the parameter specifying the output directory.
 	Default: Output\UnifiedAuditLog
 
 	.PARAMETER Encoding
@@ -841,7 +838,7 @@ function Get-UALSpecificActivity
 		[string]$Interval,
 		[Parameter(Mandatory=$true)]$ActivityType,
 		[string]$Output,
-		[string]$outputDir,
+		[string]$OutputDir,
 		[string]$Encoding
 	)
 
@@ -900,11 +897,11 @@ function Get-UALSpecificActivity
 		$specificResult = Search-UnifiedAuditLog -StartDate $script:StartDate -EndDate $script:EndDate -Operations $record -UserIds $UserIds -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 		
 		if (($null -ne $specificResult) -and ($specificResult -ne 0)) {
-			if ($outputDir -eq "" ){
-				$outputDir = "Output\UnifiedAuditLog\$record\"
-				if (!(test-path $outputDir)) {
-					write-logFile -Message "[INFO] Creating the following output directory: $outputDir"
-					New-Item -ItemType Directory -Force -Name $outputDir | Out-Null 
+			if ($OutputDir -eq "" ){
+				$OutputDir = "Output\UnifiedAuditLog\$record\"
+				if (!(test-path $OutputDir)) {
+					write-logFile -Message "[INFO] Creating the following output directory: $OutputDir"
+					New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null 
 				}
 			}
 
@@ -974,12 +971,12 @@ function Get-UALSpecificActivity
 							if ($Output -eq "JSON")
 							{
 								$results = $results|Select-Object AuditData -ExpandProperty AuditData
-								$results | Out-File -Append "$outputDir/UAL-$sessionID.json"
+								$results | Out-File -Append "$OutputDir/UAL-$sessionID.json"
 								Write-LogFile -Message $message
 							}
 							elseif ($Output -eq "CSV")
 							{
-								$results | export-CSV "$outputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding $Encoding
+								$results | export-CSV "$OutputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding $Encoding
 								Write-LogFile -Message $message
 							}
 							break

@@ -127,7 +127,7 @@ function Get-ADAuditLogsGraph {
 	param(
 		[string]$After,
 		[string]$Before,
-		[string]$outputDir
+		[string]$OutputDir
 	)
 
 	try {
@@ -142,17 +142,17 @@ function Get-ADAuditLogsGraph {
 	
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 
-	if ($outputDir -eq "" ){
-		$outputDir = "Output\AzureAD\$date\"
-		if (!(test-path $outputDir)) {
-			write-logFile -Message "[INFO] Creating the following directory: $outputDir"
-			New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\AzureAD\$date\"
+		if (!(test-path $OutputDir)) {
+			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
 	}
 
 	if (($After -eq "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs"
-		$filePath = "$outputDir\AuditlogsGraph.json"
+		$filePath = "$OutputDir\AuditlogsGraph.json"
 		
 		$auditLogs = Get-MgAuditLogDirectoryAudit -All | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
 		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
@@ -162,7 +162,7 @@ function Get-ADAuditLogsGraph {
 
 	elseif (($After -ne "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs on or after $After"
-		$filePath = "$outputDir\AuditlogsGraph.json"
+		$filePath = "$OutputDir\AuditlogsGraph.json"
 		
 		$auditLogs = Get-MgAuditLogDirectoryAudit -All -Filter "activityDateTime gt $After" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
 		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
@@ -172,7 +172,7 @@ function Get-ADAuditLogsGraph {
 
 	elseif (($Before -ne "") -and ($After -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs logs on or before $Before"
-		$filePath = "$outputDir\$date\AuditlogsGraph.json"
+		$filePath = "$OutputDir\$date\AuditlogsGraph.json"
 		
 		$auditLogs = Get-MgAuditLogDirectoryAudit -All -Filter "activityDateTime lt $Before" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
 		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath

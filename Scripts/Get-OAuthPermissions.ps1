@@ -86,7 +86,7 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 		[string[]] $ServicePrincipalProperties = @("DisplayName"),
 		[switch] $ShowProgress = $true,
 		[int] $PrecacheSize = 999,
-		[string] $outputDir,
+		[string] $OutputDir,
 		[string]$Encoding
 	)
 		
@@ -104,16 +104,16 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 	write-logFile -Message "[INFO] Running Get-OAuthPermissions" -Color "Green"
     $date = Get-Date -Format "ddMMyyyyHHmmss" 
 	
-	if ($outputDir -eq "" ){
-		$outputDir = "Output\OAuthPermissions\"
-		if (!(test-path $outputDir)) {
-			write-logFile -Message "[INFO] Creating the following directory: $outputDir"
-			New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\OAuthPermissions\"
+		if (!(test-path $OutputDir)) {
+			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
 	}
 
 	else{
-		write-LogFile -Message "[INFO] OAuth applications are collected and writen to: $outputDir" -Color "Green"
+		write-LogFile -Message "[INFO] OAuth applications are collected and writen to: $OutputDir" -Color "Green"
 	}
 
 	$report = @(
@@ -302,7 +302,7 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 
 	$report | ConvertTo-Csv | Format-Table | out-null
 	$prop = $report.ForEach{ $_.PSObject.Properties.Name } | Select-Object -Unique
-	$report | Select-Object $prop | Export-CSV -NoTypeInformation -Path "$outputDir\OAuthPermissions1-$date.csv" -Encoding $Encoding
+	$report | Select-Object $prop | Export-CSV -NoTypeInformation -Path "$OutputDir\OAuthPermissions1-$date.csv" -Encoding $Encoding
 
-	Write-LogFile -Message "Done saving output to: $outputDir\OAuthPermissions.csv" -Color "Green"
+	Write-LogFile -Message "Done saving output to: $OutputDir\OAuthPermissions.csv" -Color "Green"
 }

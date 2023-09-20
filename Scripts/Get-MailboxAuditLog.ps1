@@ -48,7 +48,7 @@ function Get-MailboxAuditLog
 		[string]$UserIds,
 		[string]$StartDate,
 		[string]$EndDate,
-		[string]$outputDir,
+		[string]$OutputDir,
 		[string]$Encoding
 	)
 
@@ -62,11 +62,11 @@ function Get-MailboxAuditLog
 
 	write-logFile -Message "[INFO] Running Get-MailboxAuditLog" -Color "Green"
 
-	if ($outputDir -eq "" ){
-		$Outputdir = "Output\MailboxAuditLog"
-		If (!(test-path $outputDir)){
-			write-logFile -Message "[INFO] Creating the following directory: $outputDir" 
-			New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\MailboxAuditLog"
+		If (!(test-path $OutputDir)){
+			write-logFile -Message "[INFO] Creating the following directory: $OutputDir" 
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
 	}
 
@@ -82,7 +82,7 @@ function Get-MailboxAuditLog
 		Get-mailbox -resultsize unlimited  |
 		ForEach-Object {
 			$date = Get-Date -Format "yyyyMMddHHmm"
-			$outputFile = "$Outputdir\mailboxAuditLog_$($_.UserPrincipalName)_$($date).csv"
+			$outputFile = "$OutputDir\mailboxAuditLog_$($_.UserPrincipalName)_$($date).csv"
 
 			write-logFile -Message "[INFO] Collecting the MailboxAuditLog for $($_.UserPrincipalName)"
 			$result = Search-MailboxAuditlog -Identity $_.UserPrincipalName -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 
@@ -96,7 +96,7 @@ function Get-MailboxAuditLog
 		$UserIds.Split(",") | Foreach {
 			$user = $_
 			$date = Get-Date -Format "yyyyMMddHHmm"
-			$outputFile = "$Outputdir\mailboxAuditLog_$($user)_$($date).csv"
+			$outputFile = "$OutputDir\mailboxAuditLog_$($user)_$($date).csv"
 
 			write-logFile -Message "[INFO] Collecting the MailboxAuditLog for $user"
 			$result = Search-MailboxAuditlog -Identity $user -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 
@@ -108,7 +108,7 @@ function Get-MailboxAuditLog
 
 	else {		
 		$date = Get-Date -Format "yyyyMMddHHmm"
-		$outputFile = "$Outputdir\mailboxAuditLog_$($UserIds)_$($date).csv"
+		$outputFile = "$OutputDir\mailboxAuditLog_$($UserIds)_$($date).csv"
 
 		write-logFile -Message "[INFO] Collecting the MailboxAuditLog for $UserIds"
 		$result = Search-MailboxAuditlog -Identity $UserIds -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 

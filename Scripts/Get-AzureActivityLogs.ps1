@@ -56,7 +56,7 @@ function Get-ActivityLogs {
     Default: All subscriptions
 
 	.PARAMETER OutputDir
-    outputDir is the parameter specifying the output directory.
+    OutputDir is the parameter specifying the output directory.
 	Default: Output\AzureActivityLogs
 	
     .EXAMPLE
@@ -96,16 +96,16 @@ function Get-ActivityLogs {
 	
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss')
 
-	if ($outputDir -eq "" ){
-		$outputDir = "Output\AzureActivityLogs\$date\"
-		if (!(test-path $outputDir)) {
-			write-logFile -Message "[INFO] Creating the following directory: $outputDir"
-			New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\AzureActivityLogs\$date\"
+		if (!(test-path $OutputDir)) {
+			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
 	}
 
 	else{
-		write-logFile -Message "[INFO] Output directory set to: $outputDir" -Color "Green"
+		write-logFile -Message "[INFO] Output directory set to: $OutputDir" -Color "Green"
 	}
 
 	if ($SubscriptionID -eq "") {
@@ -130,7 +130,7 @@ function Get-ActivityLogs {
 		Set-AzContext -Subscription $iD | Out-Null
 		
 		write-logFile -Message "[INFO] Connected to $iD" -Color "Green"	
-		$filePath = "$outputDir\$iD-ActivityLog.json"
+		$filePath = "$OutputDir\$iD-ActivityLog.json"
 				
 		[DateTime]$currentStart = $script:StartDate
 		[DateTime]$currentEnd = $script:EndDate		

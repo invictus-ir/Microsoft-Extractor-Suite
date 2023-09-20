@@ -41,7 +41,7 @@ function Get-TransportRules
 	The output will be written to a CSV file called "TransportRules.csv".
 
 	.PARAMETER OutputDir
-	outputDir is the parameter specifying the output directory.
+	OutputDir is the parameter specifying the output directory.
 	Default: Output\Rules
 
 	.PARAMETER Encoding
@@ -54,15 +54,15 @@ function Get-TransportRules
 
 	[CmdletBinding()]
 	param (
-		[string]$outputDir,
+		[string]$OutputDir,
 		[string]$Encoding
 	)
 
-	if ($outputDir -eq "" ){
-		$outputDir = "Output\Rules\"
-		if (!(test-path $outputDir)) {
-			write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
-			New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\Rules\"
+		if (!(test-path $OutputDir)) {
+			write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
 		$filename = "\Output\Rules\"+$date+"_"+"TransportRules.csv"
 		$outputDirectory = Join-Path $curDir $filename
@@ -73,7 +73,7 @@ function Get-TransportRules
 	}
 
 	else{
-		$outputDirectory = $outputDir+"TransportRules.csv"
+		$outputDirectory = $OutputDir+"TransportRules.csv"
 	}
 		
 	$transportRules = Get-TransportRule | Select-Object -Property Name,Description,CreatedBy,WhenChanged,State
@@ -189,7 +189,7 @@ function Get-MailboxRules
     UserIds is the Identity parameter specifies the Inbox rule that you want to view.
 
 	.PARAMETER OutputDir
-	outputDir is the parameter specifying the output directory.
+	OutputDir is the parameter specifying the output directory.
 	Default: Output\Rules
 
 	.PARAMETER Encoding
@@ -203,7 +203,7 @@ function Get-MailboxRules
 	[CmdletBinding()]
 	param(
 		[string]$UserIds,
-		[string]$outputDir,
+		[string]$OutputDir,
 		[string]$Encoding
 	)
 	
@@ -213,18 +213,18 @@ function Get-MailboxRules
 		$Encoding = "UTF8"
 	}
 
-	if ($outputDir -eq "" ){
-		$outputdir = "Output\Rules"	
-		if (!(test-path $outputdir)) {
-			write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
-			New-Item -ItemType Directory -Force -Name $outputdir | Out-Null
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\Rules"	
+		if (!(test-path $OutputDir)) {
+			write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
 		$filename = "\Output\Rules\"+$date+"_"+"MailboxRules.csv"
 		$outputDirectory = Join-Path $curDir $filename
 	}
 
 	else{
-		$outputDirectory = $outputDir+"MailboxRules.csv"
+		$outputDirectory = $OutputDir+"MailboxRules.csv"
 	}
 	
 	$amountofRules = 0
