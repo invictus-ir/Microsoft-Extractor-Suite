@@ -1,6 +1,11 @@
 Installation
 =======
 
+Install the Microsoft-Extractor-Suite toolkit:
+::
+
+   Install-Module -Name Microsoft-Extractor-Suite
+
 Install the Powershell module Microsoft.Graph for the Graph API Beta functionalities:
 ::
 
@@ -29,10 +34,17 @@ Getting Started
 -------
 To get started with the Microsoft-Extractor-Suite tool, make sure the requirements are met.
 
-The first step is to import the Microsoft-Extractor-Suite:
+The first step is to import or install the Microsoft-Extractor-Suite.
+
+To import the Microsoft-Extractor-Suite:
 ::
 
    Import-Module .\Microsoft-Extractor-Suite.psd1
+   
+  To install the Microsoft-Extractor-Suite:
+::
+
+   Install-Module -Name Microsoft-Extractor-Suite
 
 Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage before Microsoft-Extractor-Suite functions are made available. We made a graphic to help you decide which Connect function you should use depening on what you wan to acquire. 
 

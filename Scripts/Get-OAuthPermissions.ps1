@@ -42,6 +42,17 @@ function GetOAuth2PermissionGrants ([switch]$FastMode) {
     }
 }
 
+function GetAzureADServicePrincipal ($ObjectId) {
+	Get-AzureADServicePrincipal -ObjectId $ObjectId | ForEach-Object {
+		$Output = $_
+		$script:homepage = $Output.Homepage
+		$script:PublisherName = $Output.PublisherName
+		$script:ReplyUrls = $Output.ReplyUrls
+		$script:AppDisplayName = $Output.AppDisplayName
+		$script:AppId = $Output.AppId
+	}
+}
+
 function Get-OAuthPermissions
 {
 <#
@@ -52,6 +63,14 @@ Script made by: https://gist.github.com/psignoret/41793f8c6211d2df5051d77ca3728c
 .DESCRIPTION
 Script to list all delegated permissions and application permissions in Azure AD
 The output will be written to a CSV file called "Output\OAuthPermissions\AADSPPermissions.csv".
+
+.PARAMETER OutputDir
+outputDir is the parameter specifying the output directory.
+Default: Output\OAuthPermissions
+
+.PARAMETER Encoding
+Encoding is the parameter specifying the encoding of the CSV output file.
+Default: UTF8
 
 .EXAMPLE
 Get-OAuthPermissions
@@ -66,7 +85,9 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 		[string[]] $UserProperties = @("DisplayName"),
 		[string[]] $ServicePrincipalProperties = @("DisplayName"),
 		[switch] $ShowProgress = $true,
-		[int] $PrecacheSize = 999
+		[int] $PrecacheSize = 999,
+		[string] $OutputDir,
+		[string]$Encoding
 	)
 		
 	try {
@@ -75,13 +96,24 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 		write-logFile -Message "[WARNING] You must call Connect-Azure before running this script" -Color "Red"
 		break
 	}
+
+	if ($Encoding -eq "" ){
+		$Encoding = "UTF8"
+	}
 	
 	write-logFile -Message "[INFO] Running Get-OAuthPermissions" -Color "Green"
     $date = Get-Date -Format "ddMMyyyyHHmmss" 
-    $outputDir = "Output\OAuthPermissions\"
-	if (!(test-path $outputDir)) {
-		write-logFile -Message "[INFO] Creating the following directory: $outputDir"
-		New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+	
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\OAuthPermissions\"
+		if (!(test-path $OutputDir)) {
+			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+		}
+	}
+
+	else{
+		write-LogFile -Message "[INFO] OAuth applications are collected and writen to: $OutputDir" -Color "Green"
 	}
 
 	$report = @(
@@ -130,18 +162,27 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 		Write-Verbose "Retrieving OAuth2PermissionGrants..."
 		GetOAuth2PermissionGrants -FastMode:$fastQueryMode | ForEach-Object {
 			$grant = $_
+			GetAzureADServicePrincipal($grant.ClientId)
 			if ($grant.Scope) {
-				$grant.Scope.Split(" ") | Where-Object { $_ } | ForEach-Object {
 
-					$scope = $_
+				$grant.Scope.Split(" ") | Where-Object { $_ } | ForEach-Object {
 
 					$grantDetails =  [ordered]@{
 						"PermissionType" = "Delegated"
+						"AppId" = $script:AppId
 						"ClientObjectId" = $grant.ClientId
 						"ResourceObjectId" = $grant.ResourceId
 						"Permission" = $scope
 						"ConsentType" = $grant.ConsentType
 						"PrincipalObjectId" = $grant.PrincipalId
+						"Homepage" = $script:homepage
+						"PublisherName" = $script:PublisherName
+						"ReplyUrls" = $null
+						"ExpiryTime" = $grant.ExpiryTime
+					}
+
+					if ($null -ne $ReplyUrls) {
+						$grantDetails["ReplyUrls"] = $script:ReplyUrls -join ', '
 					}
 
 					# Add properties for client and resource service principals
@@ -193,6 +234,8 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 
 			$sp = $_.Value
 
+			GetAzureADServicePrincipal($sp.ObjectId)
+
 			Get-AzureADServiceAppRoleAssignedTo -ObjectId $sp.ObjectId -All $true `
 			| Where-Object { $_.PrincipalType -eq "ServicePrincipal" } | ForEach-Object {
 				$assignment = $_
@@ -200,17 +243,45 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 				$resource = GetObjectByObjectId -ObjectId $assignment.ResourceId
 				$appRole = $resource.AppRoles | Where-Object { $_.Id -eq $assignment.Id }
 
-				$grantDetails = [ordered]@{
+				$grantDetails =  [ordered]@{
 					"PermissionType" = "Application"
+					"AppId" = $null
 					"ClientObjectId" = $assignment.PrincipalId
 					"ResourceObjectId" = $assignment.ResourceId
 					"Permission" = $appRole.Value
+					"IsEnabled" = $null
+					"Description" = $null
+					"CreationTimestamp" = $null
+					"Homepage" = $script:homepage
+					"PublisherName" = $script:PublisherName
+					"ReplyUrls" = $null
+				}
+
+				 # Add the properties if they are available and not null or empty
+				if ($null -ne $sp -and $sp.AppId) {
+					$grantDetails["AppId"] = $sp.AppId
+				}
+
+				if ($null -ne $ReplyUrls) {
+					$grantDetails["ReplyUrls"] = $script:ReplyUrls -join ', '
+				}
+			
+				if ($null -ne $appRole -and $appRole.IsEnabled) {
+					$grantDetails["IsEnabled"] = $appRole.IsEnabled
+				}
+			
+				if ($null -ne $appRole -and $appRole.Description) {
+					$grantDetails["Description"] = $appRole.Description
+				}
+			
+				if ($null -ne $assignment -and $assignment.CreationTimestamp) {
+					$grantDetails["CreationTimestamp"] = $assignment.CreationTimestamp
 				}
 
 				# Add properties for client and resource service principals
 				if ($ServicePrincipalProperties.Count -gt 0) {
 
-					$client = GetObjectByObjectId -ObjectId $assignment.PrincipalId
+					$client = GetObjectByObjectId -ObjectId $assignment.PrincipalId         		
 
 					$insertAtClient = 2
 					$insertAtResource = 3
@@ -221,12 +292,17 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 						$insertAtResource ++
 					}
 				}
-
+				
 				New-Object PSObject -Property $grantDetails
 			}
 		}
 	}
 	)
-    Write-LogFile -Message "Done saving output to: Output\OAuthPermissions\OAuthPermissions.csv" -Color "Green"
-    $report | Export-CSV -NoTypeInformation -Path "Output\OAuthPermissions\OAuthPermissions-$date.csv" -Encoding UTF8
+   
+
+	$report | ConvertTo-Csv | Format-Table | out-null
+	$prop = $report.ForEach{ $_.PSObject.Properties.Name } | Select-Object -Unique
+	$report | Select-Object $prop | Export-CSV -NoTypeInformation -Path "$OutputDir\OAuthPermissions1-$date.csv" -Encoding $Encoding
+
+	Write-LogFile -Message "Done saving output to: $OutputDir\OAuthPermissions.csv" -Color "Green"
 }

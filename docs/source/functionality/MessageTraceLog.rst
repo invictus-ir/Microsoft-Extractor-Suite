@@ -42,6 +42,14 @@ Parameters
 -UserIds (optional)
     - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
+-OutputDir (optional)
+    - OutputDir is the parameter specifying the output directory.
+    - Default: Output\MessageTrace
+
+-Encoding (optional)
+    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Default: UTF8
+
 -StartDate (optional)
     - StartDate is the parameter specifying the start date of the date range.
     - Default: Today -10 days

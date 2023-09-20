@@ -2,10 +2,6 @@
 
 $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 $curDir = Get-Location
-$tRulesout = "\Output\Rules\"+$date+"_"+"TransportRules.csv"
-$mRulesout = "\Output\Rules\"+$date+"_"+"MailboxRules.csv"
-$outputDirectory = Join-Path $curDir $tRulesout
-$outputDirectoryM = Join-Path $curDir $mRulesout
 
 function Show-TransportRules
 {
@@ -43,20 +39,47 @@ function Get-TransportRules
     .DESCRIPTION
     Collects all transport rules in your organization.
 	The output will be written to a CSV file called "TransportRules.csv".
+
+	.PARAMETER OutputDir
+	OutputDir is the parameter specifying the output directory.
+	Default: Output\Rules
+
+	.PARAMETER Encoding
+	Encoding is the parameter specifying the encoding of the CSV output file.
+	Default: UTF8
     
     .Example
     Get-TransportRules
 #>
-	$outputDir = "Output\Rules"
-	if (!(test-path $outputDir)) {
-		write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
-		New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+
+	[CmdletBinding()]
+	param (
+		[string]$OutputDir,
+		[string]$Encoding
+	)
+
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\Rules\"
+		if (!(test-path $OutputDir)) {
+			write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+		}
+		$filename = "\Output\Rules\"+$date+"_"+"TransportRules.csv"
+		$outputDirectory = Join-Path $curDir $filename
+	}
+
+	if ($Encoding -eq "" ){
+		$Encoding = "UTF8"
+	}
+
+	else{
+		$outputDirectory = $OutputDir+"TransportRules.csv"
 	}
 		
 	$transportRules = Get-TransportRule | Select-Object -Property Name,Description,CreatedBy,WhenChanged,State
 	
 	if ($null -ne $transportRules) {
-		$transportRules | export-csv -NoTypeInformation $outputDirectory -Encoding UTF8
+		$transportRules | export-csv -NoTypeInformation $outputDirectory -Encoding $Encoding
 		write-LogFile -Message "[INFO] Transport rules are collected and writen to: $outputDirectory" -Color "Green"
 	}
 }
@@ -164,6 +187,14 @@ function Get-MailboxRules
 	
 	.Parameter UserIds
     UserIds is the Identity parameter specifies the Inbox rule that you want to view.
+
+	.PARAMETER OutputDir
+	OutputDir is the parameter specifying the output directory.
+	Default: Output\Rules
+
+	.PARAMETER Encoding
+	Encoding is the parameter specifying the encoding of the CSV output file.
+	Default: UTF8
     
     .Example
 	Get-MailboxRules -UserIds Test@Invictus-ir.com
@@ -171,14 +202,29 @@ function Get-MailboxRules
 #>
 	[CmdletBinding()]
 	param(
-		[string]$UserIds
+		[string]$UserIds,
+		[string]$OutputDir,
+		[string]$Encoding
 	)
 	
 	$RuleList = @()
-	$outputdir = "Output\Rules"	
-	if (!(test-path $outputdir)) {
-		write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
-		New-Item -ItemType Directory -Force -Name $outputdir | Out-Null
+
+	if ($Encoding -eq "" ){
+		$Encoding = "UTF8"
+	}
+
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\Rules"	
+		if (!(test-path $OutputDir)) {
+			write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+		}
+		$filename = "\Output\Rules\"+$date+"_"+"MailboxRules.csv"
+		$outputDirectory = Join-Path $curDir $filename
+	}
+
+	else{
+		$outputDirectory = $OutputDir+"MailboxRules.csv"
 	}
 	
 	$amountofRules = 0
@@ -206,7 +252,7 @@ function Get-MailboxRules
 					$RuleList = $tempval
 					$amountofRules = $amountofRules + 1
 					$totalRules = $totalRules + 1
-					$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation -Encoding UTF8
+					$RuleList | export-CSV $outputDirectory -Append -NoTypeInformation -Encoding UTF8
 					
 				}
 
@@ -240,7 +286,7 @@ function Get-MailboxRules
 						$RuleList = $tempval
 						$amountofRules = $amountofRules + 1
 						$totalRules = $totalRules + 1
-						$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation -Encoding UTF8
+						$RuleList | export-CSV $outputDirectory -Append -NoTypeInformation -Encoding UTF8
 					}
 					
 					write-LogFile -Message "[INFO] Found $amountofRules InboxRule(s) for: $User..." -Color "Yellow"
@@ -268,7 +314,7 @@ function Get-MailboxRules
 
 						$RuleList = $tempval
 						$totalRules = $totalRules + 1
-						$RuleList | export-CSV $outputDirectoryM -Append -NoTypeInformation -Encoding UTF8
+						$RuleList | export-CSV $outputDirectory -Append -NoTypeInformation -Encoding UTF8
 					}
 					
 					write-LogFile -Message "[INFO] Collecting $amountofRules InboxRule(s) for: $UserIds..." -Color "Yellow"
@@ -276,5 +322,6 @@ function Get-MailboxRules
 		}
 	}
 
-	write-LogFile -Message "[INFO] A total of $totalRules InboxRules found" -Color "Green"
+	write-LogFile -Message "[INFO] A total of $totalRules InboxRules found!" -Color "Green"
+	write-LogFile -Message "[INFO] InboxRules rules are collected and writen to: $outputDirectory" -Color "Green"
 }

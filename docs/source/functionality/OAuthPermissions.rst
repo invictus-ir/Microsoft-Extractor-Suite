@@ -6,6 +6,16 @@ OAuth is a way of authorizing third-party applications to login into user accoun
 
    Script made by psignoret: https://gist.github.com/psignoret/41793f8c6211d2df5051d77ca3728c09
 
+Parameters
+""""""""""""""""""""""""""
+-OutputDir (optional)
+    - OutputDir is the parameter specifying the output directory.
+    - Default: Output\OAuthPermissions
+
+-Encoding (optional)
+    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Default: UTF8
+
 Usage
 """"""""""""""""""""""""""
 List delegated permissions (OAuth2PermissionGrants) and application permissions (AppRoleAssignments):

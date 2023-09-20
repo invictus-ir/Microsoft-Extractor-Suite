@@ -12,6 +12,10 @@ function Get-ADSignInLogsGraph {
 
 	.PARAMETER Before
     The Before parameter specifies the date before which all logs need to be collected.
+
+	.PARAMETER OutputDir
+    outputDir is the parameter specifying the output directory.
+	Default: Output\AzureAD
     
     .EXAMPLE
     Get-ADSignInLogsGraph
@@ -28,29 +32,33 @@ function Get-ADSignInLogsGraph {
 	[CmdletBinding()]
 	param(
 		[string]$After,
-		[string]$Before
+		[string]$Before,
+		[string]$outputDir
 	)
 
 	try {
 		$areYouConnected = Get-MgAuditLogSignIn -ErrorAction stop
 	}
 	catch {
-		write-logFile -Message "[WARNING] You must call Connect-Graph before running this script" -Color "Red"
+		write-logFile -Message "[WARNING] You must call Connect-GraphAPI before running this script" -Color "Red"
 		break
 	}
 
 	write-logFile -Message "[INFO] Running Get-ADSignInLogsGraph" -Color "Green"
 
-	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-	$outputDir = "Output\AzureAD\$date\"
-	if (!(test-path $outputDir)) {
-		write-logFile -Message "[INFO] Creating the following directory: $outputDir"
-		New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+	$date = [datetime]::Now.ToString('yyyyMMddHHmmss')
+
+	if ($outputDir -eq "" ){
+		$outputDir = "Output\AzureAD\$date\"
+		if (!(test-path $outputDir)) {
+			write-logFile -Message "[INFO] Creating the following directory: $outputDir"
+			New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+		}
 	}
 
 	if (($After -eq "") -and ($Before -eq "")) {
 		write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs"
-		$filePath = "Output\AzureAD\$date\SignInLogsGraph.json"
+		$filePath = "$outputDir\SignInLogsGraph.json"
 
 		$signInLogs = Get-MgAuditLogSignIn -All | Select-Object AppDisplayName,AppId,AppliedConditionalAccessPolicies,ClientAppUsed,ConditionalAccessStatus,CorrelationId,@{N='CreatedDateTime';E={$_.CreatedDateTime.ToString()}},DeviceDetail,IPAddress,Id,IsInteractive,Location,ResourceDisplayName,ResourceId,RiskDetail,RiskEventTypes,RiskEventTypesV2,RiskLevelAggregated,RiskLevelDuringSignIn,RiskState,Status,UserDisplayName,UserId,UserPrincipalName,AdditionalProperties
 		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
@@ -60,7 +68,7 @@ function Get-ADSignInLogsGraph {
 
 	elseif (($After -ne "") -and ($Before -eq "")) {
 		write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs on or after $After"
-		$filePath = "Output\AzureAD\$date\SignInLogsGraph.json"
+		$filePath = "$outputDir\SignInLogsGraph.json"
 
 		$signInLogs = Get-MgAuditLogSignIn -All -Filter "createdDateTime gt $After" | Select-Object AppDisplayName,AppId,AppliedConditionalAccessPolicies,ClientAppUsed,ConditionalAccessStatus,CorrelationId,@{N='CreatedDateTime';E={$_.CreatedDateTime.ToString()}},DeviceDetail,IPAddress,Id,IsInteractive,Location,ResourceDisplayName,ResourceId,RiskDetail,RiskEventTypes,RiskEventTypesV2,RiskLevelAggregated,RiskLevelDuringSignIn,RiskState,Status,UserDisplayName,UserId,UserPrincipalName,AdditionalProperties
 		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
@@ -70,7 +78,7 @@ function Get-ADSignInLogsGraph {
 
 	elseif (($Before -ne "") -and ($After -eq "")) {
 		write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs on or before $Before"
-		$filePath = "Output\AzureAD\$date\SignInLogsGraph.json"
+		$filePath = "$outputDir\SignInLogsGraph.json"
 
 		$signInLogs = Get-MgAuditLogSignIn -All -Filter "createdDateTime lt $Before" | Select-Object AppDisplayName,AppId,AppliedConditionalAccessPolicies,ClientAppUsed,ConditionalAccessStatus,CorrelationId,@{N='CreatedDateTime';E={$_.CreatedDateTime.ToString()}},DeviceDetail,IPAddress,Id,IsInteractive,Location,ResourceDisplayName,ResourceId,RiskDetail,RiskEventTypes,RiskEventTypesV2,RiskLevelAggregated,RiskLevelDuringSignIn,RiskState,Status,UserDisplayName,UserId,UserPrincipalName,AdditionalProperties
 		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
@@ -98,6 +106,10 @@ function Get-ADAuditLogsGraph {
 
 	.PARAMETER Before
     The Before parameter specifies the date before which all logs need to be collected.
+
+	.PARAMETER OutputDir
+    outputDir is the parameter specifying the output directory.
+	Default: Output\AzureAD
     
     .EXAMPLE
     Get-ADAuditLogsGraph
@@ -114,29 +126,33 @@ function Get-ADAuditLogsGraph {
 	[CmdletBinding()]
 	param(
 		[string]$After,
-		[string]$Before
+		[string]$Before,
+		[string]$OutputDir
 	)
 
 	try {
 		$areYouConnected = Get-MgAuditLogDirectoryAudit -ErrorAction stop
 	}
 	catch {
-		Write-logFile -Message "[WARNING] You must call Connect-Graph before running this script" -Color "Red"
+		Write-logFile -Message "[WARNING] You must call Connect-GraphAPI before running this script" -Color "Red"
 		break
 	}
 
 	Write-logFile -Message "[INFO] Running Get-ADAuditLogsGraph" -Color "Green"
 	
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-	$outputDir = "Output\AzureAD\$date\"
-	if (!(test-path $outputDir)) {
-		Write-logFile -Message "[INFO] Creating the following directory: $outputDir"
-		New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\AzureAD\$date\"
+		if (!(test-path $OutputDir)) {
+			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+		}
 	}
 
 	if (($After -eq "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs"
-		$filePath = "Output\AzureAD\$date\AuditlogsGraph.json"
+		$filePath = "$OutputDir\AuditlogsGraph.json"
 		
 		$auditLogs = Get-MgAuditLogDirectoryAudit -All | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
 		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
@@ -146,7 +162,7 @@ function Get-ADAuditLogsGraph {
 
 	elseif (($After -ne "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs on or after $After"
-		$filePath = "Output\AzureAD\$date\AuditlogsGraph.json"
+		$filePath = "$OutputDir\AuditlogsGraph.json"
 		
 		$auditLogs = Get-MgAuditLogDirectoryAudit -All -Filter "activityDateTime gt $After" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
 		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
@@ -156,7 +172,7 @@ function Get-ADAuditLogsGraph {
 
 	elseif (($Before -ne "") -and ($After -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs logs on or before $Before"
-		$filePath = "Output\AzureAD\$date\AuditlogsGraph.json"
+		$filePath = "$OutputDir\$date\AuditlogsGraph.json"
 		
 		$auditLogs = Get-MgAuditLogDirectoryAudit -All -Filter "activityDateTime lt $Before" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
 		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath

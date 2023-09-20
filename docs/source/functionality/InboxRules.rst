@@ -49,6 +49,14 @@ Parameters
 -UserIds (optional)
     - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
+-OutputDir (optional)
+    - OutputDir is the parameter specifying the output directory.
+    - Default: Output\Rules
+
+-Encoding (optional)
+    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Default: UTF8
+
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'Rules' directory within the 'Output' directory, with the file name 'MailboxRules.csv'.

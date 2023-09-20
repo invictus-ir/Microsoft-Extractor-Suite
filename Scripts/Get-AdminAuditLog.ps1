@@ -14,6 +14,10 @@ function Get-AdminAuditLog {
 
 	.PARAMETER EndDate
     endDate is the parameter specifying the end date of the date range.
+
+	.PARAMETER OutputDir
+    OutputDir is the parameter specifying the output directory.
+	Default: Output\AdminAuditLog
     
     .EXAMPLE
     Get-AdminAuditLog
@@ -26,7 +30,8 @@ function Get-AdminAuditLog {
     [CmdletBinding()]
 	param (
 		[string]$StartDate,
-		[string]$EndDate
+		[string]$EndDate,
+		[string]$outputDir
 	)
 
 	try {
@@ -40,13 +45,22 @@ function Get-AdminAuditLog {
     write-logFile -Message "[INFO] Running Get-AdminAuditLog" -Color "Green"
 
     $outputFile = "AdminAuditLog.csv"
-	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-	$outputFile = "\Output\AdminAuditLog\"+$date+"-"+$outputFile
-    $outputDirectory = Join-Path $curDir $outputFile
-    $outputDir = "\Output\AdminAuditLog"
-	if (!(test-path $outputDir)) {
-		write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
-		New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+	$date = [datetime]::Now.ToString('yyyyMMddHHmmss')
+
+	if ($OutputDir -eq "" ){
+		$OutputDir = "\Output\AdminAuditLog"
+		if (!(test-path $OutputDir)) {
+			write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
+			New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+		}
+
+		$outputFile = "$OutputDir\"+$date+"-"+$outputFile
+   		$outputDirectory = Join-Path $curDir $outputFile
+	}
+
+	else{
+		write-logFile -Message "[INFO] Output directory set to: $outputDir" -Color "Green"
+		$outputDirectory = "$outputDir\"+$date+"-"+$outputFile
 	}
 
 	StartDate

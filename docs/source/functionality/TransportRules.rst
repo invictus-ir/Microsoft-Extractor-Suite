@@ -17,6 +17,16 @@ Get transport rules
 ^^^^^^^^^^^
 Collects all the transport rules in your organization.
 
+Parameters
+""""""""""""""""""""""""""
+-OutputDir (optional)
+    - OutputDir is the parameter specifying the output directory.
+    - Default: Output\Rules
+
+-Encoding (optional)
+    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Default: UTF8
+
 Usage
 """"""""""""""""""""""""""
 Get all transport rules in your organization:

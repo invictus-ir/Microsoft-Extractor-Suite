@@ -18,6 +18,14 @@ function Get-MailboxAuditLog
 
 	.PARAMETER EndDate
     endDate is the parameter specifying the end date of the date range.
+
+	.PARAMETER OutputDir
+    outputDir is the parameter specifying the output directory.
+	Default: Output\MailboxAuditLog
+
+	.PARAMETER Encoding
+    Encoding is the parameter specifying the encoding of the CSV output file.
+	Default: UTF8
     
 	.EXAMPLE
     Get-MailboxAuditLog
@@ -39,7 +47,9 @@ function Get-MailboxAuditLog
 	param(
 		[string]$UserIds,
 		[string]$StartDate,
-		[string]$EndDate
+		[string]$EndDate,
+		[string]$OutputDir,
+		[string]$Encoding
 	)
 
 	try {
@@ -52,10 +62,16 @@ function Get-MailboxAuditLog
 
 	write-logFile -Message "[INFO] Running Get-MailboxAuditLog" -Color "Green"
 
-	$Outputdir = "Output\MailboxAuditLog"
-	If (!(test-path $outputDir)){
-		write-logFile -Message "[INFO] Creating the following directory: $outputDir" 
-		New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\MailboxAuditLog"
+		If (!(test-path $OutputDir)){
+			write-logFile -Message "[INFO] Creating the following directory: $OutputDir" 
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+		}
+	}
+
+	if ($Encoding -eq "" ){
+		$Encoding = "UTF8"
 	}
 	
 	StartDate
@@ -66,11 +82,11 @@ function Get-MailboxAuditLog
 		Get-mailbox -resultsize unlimited  |
 		ForEach-Object {
 			$date = Get-Date -Format "yyyyMMddHHmm"
-			$outputFile = "Output\MailboxAuditLog\mailboxAuditLog_$($_.UserPrincipalName)_$($date).csv"
+			$outputFile = "$OutputDir\mailboxAuditLog_$($_.UserPrincipalName)_$($date).csv"
 
 			write-logFile -Message "[INFO] Collecting the MailboxAuditLog for $($_.UserPrincipalName)"
 			$result = Search-MailboxAuditlog -Identity $_.UserPrincipalName -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 
-			$result | export-csv -NoTypeInformation -Path $outputFile -Encoding UTF8
+			$result | export-csv -NoTypeInformation -Path $outputFile -Encoding $Encoding
 			
 			write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 		}
@@ -80,11 +96,11 @@ function Get-MailboxAuditLog
 		$UserIds.Split(",") | Foreach {
 			$user = $_
 			$date = Get-Date -Format "yyyyMMddHHmm"
-			$outputFile = "Output\MailboxAuditLog\mailboxAuditLog_$($user)_$($date).csv"
+			$outputFile = "$OutputDir\mailboxAuditLog_$($user)_$($date).csv"
 
 			write-logFile -Message "[INFO] Collecting the MailboxAuditLog for $user"
 			$result = Search-MailboxAuditlog -Identity $user -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 
-			$result | export-csv -NoTypeInformation -Path $outputFile -Encoding UTF8
+			$result | export-csv -NoTypeInformation -Path $outputFile -Encoding $Encoding
 			
 			write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 		}
@@ -92,11 +108,11 @@ function Get-MailboxAuditLog
 
 	else {		
 		$date = Get-Date -Format "yyyyMMddHHmm"
-		$outputFile = "Output\MailboxAuditLog\mailboxAuditLog_$($UserIds)_$($date).csv"
+		$outputFile = "$OutputDir\mailboxAuditLog_$($UserIds)_$($date).csv"
 
 		write-logFile -Message "[INFO] Collecting the MailboxAuditLog for $UserIds"
 		$result = Search-MailboxAuditlog -Identity $UserIds -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 
-		$result | export-csv -NoTypeInformation -Path $outputFile -Encoding UTF8
+		$result | export-csv -NoTypeInformation -Path $outputFile -Encoding $Encoding
 		
 		write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
 	} 
