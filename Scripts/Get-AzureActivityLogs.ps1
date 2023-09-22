@@ -58,6 +58,10 @@ function Get-ActivityLogs {
 	.PARAMETER OutputDir
     OutputDir is the parameter specifying the output directory.
 	Default: Output\AzureActivityLogs
+
+	.PARAMETER Encoding
+    Encoding is the parameter specifying the encoding of the JSON output file.
+	Default: UTF8
 	
     .EXAMPLE
     Get-ActivityLogs
@@ -80,7 +84,8 @@ function Get-ActivityLogs {
 		[string]$StartDate,
 		[string]$EndDate,
 		[string]$SubscriptionID,
-		[string]$OutputDir		
+		[string]$OutputDir,
+		[string]$Encoding		
 	)
 
 	try {
@@ -95,6 +100,10 @@ function Get-ActivityLogs {
 	EndDateAzure
 	
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss')
+
+	if ($Encoding -eq "" ){
+		$Encoding = "UTF8"
+	}
 
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\AzureActivityLogs\$date\"
@@ -170,7 +179,7 @@ function Get-ActivityLogs {
 						$amountResults = Get-AzActivityLog -StartTime $tempStartDate -EndTime $currentEnd -MaxRecord 1000 -WarningAction SilentlyContinue
 						Write-LogFile -Message "[INFO] Successfully retrieved $($amountResults.count) Activity logs between $tempStartDate and $currentEnd" -Color "Green"
 
-						$amountResults | Out-File -FilePath $filePath -Append
+						$amountResults | Out-File -FilePath $filePath -Append -Encoding $Encoding
 						
 						if ($tempStartDate -eq $currentEnd) {
 							$timeLeft = ($currentEnd - $start).TotalHours							
@@ -183,7 +192,7 @@ function Get-ActivityLogs {
 				
 				else {
 					Write-LogFile -Message "[INFO] Successfully retrieved $($amountResults.count) Activity logs for $formattedDate. Moving on!" -Color "Green"
-					Get-AzActivityLog -StartTime $start -EndTime $end -MaxRecord 1000 -WarningAction silentlyContinue | Out-File -FilePath $filePath -Append
+					Get-AzActivityLog -StartTime $start -EndTime $end -MaxRecord 1000 -WarningAction silentlyContinue | Out-File -FilePath $filePath -Append -Encoding $Encoding
 				}					
 			}
 			

@@ -24,6 +24,7 @@ Parameters
     - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
 Get mailbox rules
+
 ^^^^^^^^^^^
 **Get-MailboxRules** collects all the mailbox rules in your organization.
 

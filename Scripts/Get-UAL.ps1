@@ -39,7 +39,7 @@ function Get-UALAll
     Default: n
 
 	.PARAMETER Encoding
-    Encoding is the parameter specifying the encoding of the CSV output file.
+    Encoding is the parameter specifying the encoding of the CSV/JSON output file.
 	Default: UTF8
     
     .EXAMPLE
@@ -205,7 +205,7 @@ function Get-UALAll
 						
 						if ($Output -eq "JSON") {
 							$results = $results|Select-Object AuditData -ExpandProperty AuditData
-							$results | Out-File -Append "$OutputDir/UAL-$sessionID.json"
+							$results | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
 							Write-LogFile -Message $message -Color "Green"
 						}
 
@@ -281,7 +281,7 @@ function Get-UALGroup
     Default: n
     
 	.PARAMETER Encoding
-    Encoding is the parameter specifying the encoding of the CSV output file.
+    Encoding is the parameter specifying the encoding of the CSV/JSON output file.
 	Default: UTF8
 	
 	.EXAMPLE
@@ -479,7 +479,7 @@ function Get-UALGroup
 								if ($Output -eq "JSON")
 								{
 									$results = $results|Select-Object AuditData -ExpandProperty AuditData
-									$results | Out-File -Append "$OutputDir/UAL-$sessionID.json"
+									$results | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
 									Write-LogFile -Message $message
 								}
 								elseif ($Output -eq "CSV")
@@ -553,7 +553,7 @@ function Get-UALSpecific
 	Default: Output\UnifiedAuditLog
 
 	.PARAMETER Encoding
-    Encoding is the parameter specifying the encoding of the CSV output file.
+    Encoding is the parameter specifying the encoding of the CSV/JSON output file.
 	Default: UTF8
 
   	.PARAMETER MergeCSVOutput
@@ -731,7 +731,7 @@ function Get-UALSpecific
 							if ($Output -eq "JSON")
 							{
 								$results = $results|Select-Object AuditData -ExpandProperty AuditData
-								$results | Out-File -Append "$OutputDir/UAL-$sessionID.json"
+								$results | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
 								Write-LogFile -Message $message
 							}
 							elseif ($Output -eq "CSV")
@@ -807,7 +807,7 @@ function Get-UALSpecificActivity
 	Default: Output\UnifiedAuditLog
 
 	.PARAMETER Encoding
-    Encoding is the parameter specifying the encoding of the CSV output file.
+    Encoding is the parameter specifying the encoding of the CSV/JSON output file.
 	Default: UTF8
 
 	.EXAMPLE
@@ -971,7 +971,7 @@ function Get-UALSpecificActivity
 							if ($Output -eq "JSON")
 							{
 								$results = $results|Select-Object AuditData -ExpandProperty AuditData
-								$results | Out-File -Append "$OutputDir/UAL-$sessionID.json"
+								$results | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
 								Write-LogFile -Message $message
 							}
 							elseif ($Output -eq "CSV")
