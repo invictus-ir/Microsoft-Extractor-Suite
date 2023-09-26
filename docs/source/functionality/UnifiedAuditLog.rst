@@ -122,7 +122,7 @@ Parameters
     - Default: UnifiedAuditLog
 
 -Encoding (optional)
-    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
 .. note::
@@ -278,7 +278,7 @@ Parameters
     - Default: UnifiedAuditLog
 
 -Encoding (optional)
-    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
 .. note::
@@ -358,7 +358,7 @@ Parameters
     - Default: UnifiedAuditLog
 
 -Encoding (optional)
-    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
 .. note::
@@ -670,7 +670,7 @@ Parameters
     - Default: Output\UnifiedAuditLog
 
 -Encoding (optional)
-    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
 .. note::

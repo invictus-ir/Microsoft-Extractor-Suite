@@ -16,6 +16,10 @@ function Get-ADSignInLogsGraph {
 	.PARAMETER OutputDir
     outputDir is the parameter specifying the output directory.
 	Default: Output\AzureAD
+
+	.PARAMETER Encoding
+    Encoding is the parameter specifying the encoding of the JSON output file.
+	Default: UTF8
     
     .EXAMPLE
     Get-ADSignInLogsGraph
@@ -33,7 +37,8 @@ function Get-ADSignInLogsGraph {
 	param(
 		[string]$After,
 		[string]$Before,
-		[string]$outputDir
+		[string]$outputDir,
+		[string]$Encoding
 	)
 
 	try {
@@ -42,6 +47,10 @@ function Get-ADSignInLogsGraph {
 	catch {
 		write-logFile -Message "[WARNING] You must call Connect-GraphAPI before running this script" -Color "Red"
 		break
+	}
+
+	if ($Encoding -eq "" ){
+		$Encoding = "UTF8"
 	}
 
 	write-logFile -Message "[INFO] Running Get-ADSignInLogsGraph" -Color "Green"
@@ -56,32 +65,31 @@ function Get-ADSignInLogsGraph {
 		}
 	}
 
+	$filePath = "$outputDir\SignInLogsGraph.json"
+
 	if (($After -eq "") -and ($Before -eq "")) {
 		write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs"
-		$filePath = "$outputDir\SignInLogsGraph.json"
 
 		$signInLogs = Get-MgAuditLogSignIn -All | Select-Object AppDisplayName,AppId,AppliedConditionalAccessPolicies,ClientAppUsed,ConditionalAccessStatus,CorrelationId,@{N='CreatedDateTime';E={$_.CreatedDateTime.ToString()}},DeviceDetail,IPAddress,Id,IsInteractive,Location,ResourceDisplayName,ResourceId,RiskDetail,RiskEventTypes,RiskEventTypesV2,RiskLevelAggregated,RiskLevelDuringSignIn,RiskState,Status,UserDisplayName,UserId,UserPrincipalName,AdditionalProperties
-		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
+		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
 		write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
 	}
 
 	elseif (($After -ne "") -and ($Before -eq "")) {
 		write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs on or after $After"
-		$filePath = "$outputDir\SignInLogsGraph.json"
 
 		$signInLogs = Get-MgAuditLogSignIn -All -Filter "createdDateTime gt $After" | Select-Object AppDisplayName,AppId,AppliedConditionalAccessPolicies,ClientAppUsed,ConditionalAccessStatus,CorrelationId,@{N='CreatedDateTime';E={$_.CreatedDateTime.ToString()}},DeviceDetail,IPAddress,Id,IsInteractive,Location,ResourceDisplayName,ResourceId,RiskDetail,RiskEventTypes,RiskEventTypesV2,RiskLevelAggregated,RiskLevelDuringSignIn,RiskState,Status,UserDisplayName,UserId,UserPrincipalName,AdditionalProperties
-		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
+		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
 		write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
 	}
 
 	elseif (($Before -ne "") -and ($After -eq "")) {
 		write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs on or before $Before"
-		$filePath = "$outputDir\SignInLogsGraph.json"
 
 		$signInLogs = Get-MgAuditLogSignIn -All -Filter "createdDateTime lt $Before" | Select-Object AppDisplayName,AppId,AppliedConditionalAccessPolicies,ClientAppUsed,ConditionalAccessStatus,CorrelationId,@{N='CreatedDateTime';E={$_.CreatedDateTime.ToString()}},DeviceDetail,IPAddress,Id,IsInteractive,Location,ResourceDisplayName,ResourceId,RiskDetail,RiskEventTypes,RiskEventTypesV2,RiskLevelAggregated,RiskLevelDuringSignIn,RiskState,Status,UserDisplayName,UserId,UserPrincipalName,AdditionalProperties
-		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
+		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
 		write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
 	}
@@ -110,6 +118,10 @@ function Get-ADAuditLogsGraph {
 	.PARAMETER OutputDir
     outputDir is the parameter specifying the output directory.
 	Default: Output\AzureAD
+
+	.PARAMETER Encoding
+    Encoding is the parameter specifying the encoding of the JSON output file.
+	Default: UTF8
     
     .EXAMPLE
     Get-ADAuditLogsGraph
@@ -127,7 +139,8 @@ function Get-ADAuditLogsGraph {
 	param(
 		[string]$After,
 		[string]$Before,
-		[string]$OutputDir
+		[string]$OutputDir,
+		[string]$Encoding
 	)
 
 	try {
@@ -136,6 +149,10 @@ function Get-ADAuditLogsGraph {
 	catch {
 		Write-logFile -Message "[WARNING] You must call Connect-GraphAPI before running this script" -Color "Red"
 		break
+	}
+
+	if ($Encoding -eq "" ){
+		$Encoding = "UTF8"
 	}
 
 	Write-logFile -Message "[INFO] Running Get-ADAuditLogsGraph" -Color "Green"
@@ -155,7 +172,7 @@ function Get-ADAuditLogsGraph {
 		$filePath = "$OutputDir\AuditlogsGraph.json"
 		
 		$auditLogs = Get-MgAuditLogDirectoryAudit -All | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
-		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
+		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 		
 		Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
 	}
@@ -165,7 +182,7 @@ function Get-ADAuditLogsGraph {
 		$filePath = "$OutputDir\AuditlogsGraph.json"
 		
 		$auditLogs = Get-MgAuditLogDirectoryAudit -All -Filter "activityDateTime gt $After" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
-		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
+		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 		
 		Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
 	}
@@ -175,7 +192,7 @@ function Get-ADAuditLogsGraph {
 		$filePath = "$OutputDir\$date\AuditlogsGraph.json"
 		
 		$auditLogs = Get-MgAuditLogDirectoryAudit -All -Filter "activityDateTime lt $Before" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
-		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath
+		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 		
 		Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
 	}
