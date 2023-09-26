@@ -108,14 +108,14 @@ function Show-MailboxRules
 	if ($UserIds -eq "") {		
 		Get-mailbox -resultsize unlimited  |
 		ForEach-Object {
-			write-LogFile -Message "[INFO] Checking $($_.alias)..."
+			write-LogFile -Message "[INFO] Checking $($_.UserPrincipalName)..."
 			
-			$inboxrule = Get-inboxrule -Mailbox $_.alias  
+			$inboxrule = Get-inboxrule -Mailbox $_.UserPrincipalName  
 			if ($inboxrule) {
-				write-LogFile -Message "[INFO] Found InboxRule(s) for: $($_.alias)..." -Color "Green"
+				write-LogFile -Message "[INFO] Found InboxRule(s) for: $($_.UserPrincipalName)..." -Color "Green"
 				foreach($rule in $inboxrule){
 					$amountofRules = $amountofRules + 1
-					write-LogFile -Message "Username: $($_.alias)" -Color "Yellow"
+					write-LogFile -Message "Username: $($_.UserPrincipalName)" -Color "Yellow"
 					write-LogFile -Message "RuleName: $($rule.name)" -Color "Yellow"
 					write-LogFile -Message "RuleEnabled: $($rule.Enabled)" -Color "Yellow"
 					write-LogFile -Message "CopytoFolder: $($rule.CopyToFolder)" -Color "Yellow"
@@ -232,14 +232,14 @@ function Get-MailboxRules
 		$totalRules = 0
 		Get-mailbox -resultsize unlimited  |
 		ForEach-Object {
-			Write-Output ('[INFO] Checking {0}...' -f $_.alias)
+			Write-Output ('[INFO] Checking {0}...' -f $_.UserPrincipalName)
 			
-			$inboxrule = Get-inboxrule -Mailbox $_.alias  
+			$inboxrule = Get-inboxrule -Mailbox $_.UserPrincipalName  
 			if ($inboxrule) {
 				$amountofRules = 0
 				foreach ($rule in $inboxrule) {
 					$tempval = [pscustomobject]@{
-						UserName = $_.alias
+						UserName = $_.UserPrincipalName
 						RuleName = $rule.name           
 						RuleEnabled = $rule.Enabled
 						CopytoFolder = $rule.CopyToFolder
@@ -256,8 +256,8 @@ function Get-MailboxRules
 					
 				}
 
-				write-LogFile -Message "[INFO] Found $amountofRules InboxRule(s) for: $($_.alias)..." -Color "Yellow"
-				write-LogFile -Message "[INFO] Collecting $amountofRules InboxRule(s) for: $($_.alias)..." -Color "Yellow"
+				write-LogFile -Message "[INFO] Found $amountofRules InboxRule(s) for: $($_.UserPrincipalName)..." -Color "Yellow"
+				write-LogFile -Message "[INFO] Collecting $amountofRules InboxRule(s) for: $($_.UserPrincipalName)..." -Color "Yellow"
 			}
 		} 	
 	}
