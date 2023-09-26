@@ -1,0 +1,20 @@
+﻿"Name","Description","CreatedBy","WhenChanged","State"
+"etas","If the message:
+	Is received from 'MiriamG@bonacu.onmicrosoft.com'
+Take the following actions:
+	Generate recipient notification and include the following content: 'xbz\c'
+","FNU LNU","8/9/2023 4:35:33 PM","Enabled"
+"adsgsg","If the message:
+	Is sent to 'GradyA@bonacu.onmicrosoft.com'
+Take the following actions:
+	Send the incident report to FortunaHodan@bonacu.onmicrosoft.com, include these message properties in the report: false positive reports
+","FNU LNU","8/9/2023 11:02:29 AM","Disabled"
+"gsrfsdfg","If the message:
+	Includes these patterns in the message subject or body: 'gsads'
+Take the following actions:
+	Send the incident report to FortunaHodan@bonacu.onmicrosoft.com, include these message properties in the report: original mail
+","FNU LNU","8/9/2023 11:02:59 AM","Disabled"
+"temp","Take the following actions:
+	Redirect the message to 'hacker@gmail.com'
+Expiry date: 8/10/2023 2:30:00 PM
+","FNU LNU","8/9/2023 4:33:42 PM","Disabled"

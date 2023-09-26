@@ -1,0 +1,4 @@
+﻿"UserName","RuleName","RuleEnabled","CopytoFolder","MovetoFolder","RedirectTo","ForwardTo","TextDescription"
+"FortunaHodan","..","True",,,,"""hacker@gmail.com"" [SMTP:hacker@gmail.com]","Take the following actions:
+	forward the message to 'hacker@gmail.com'
+"
