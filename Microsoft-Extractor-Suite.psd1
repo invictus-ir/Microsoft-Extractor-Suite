@@ -31,6 +31,11 @@ NestedModules = @(
 	".\Scripts\Get-AdminAuditLog.ps1"
 	".\Scripts\Get-AzureActivityLogs.ps1"
 	".\Scripts\Get-AzureADGraphLogs.ps1"
+	".\Scripts\Get-UsersInfo.ps1"
+	".\Scripts\Get-MFAStatus.ps1"
+	".\Scripts\Get-RiskyEvents.ps1"
+	".\Scripts\Get-ConditionalAccessPolicy.ps1"
+	".\Scripts\Get-Emails.ps1"
 )
 
 FunctionsToExport = @(
@@ -77,6 +82,25 @@ FunctionsToExport = @(
 	# Get-AzureADGraphLogs.ps1
 	"Get-ADSignInLogsGraph"
 	"Get-ADAuditLogsGraph"
+
+	# Get-Users.ps1
+	"Get-Users"
+	"Get-AdminUsers"
+
+	# Get-MFAStatus.ps1
+	"Get-MFA"
+
+	# Get-RiskyEvents.ps1
+	"Get-RiskyUsers"
+	"Get-RiskyDetections"
+
+	# Get-ConditionalAccessPolicy.ps1
+	"Get-ConditionalAccess"
+
+	# Get-Emails.ps1
+	"Get-Email"
+	"Get-Attachment"
+	"Show-Email"
 )
 
 # Variables to export from this module

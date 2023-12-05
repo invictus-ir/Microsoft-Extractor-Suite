@@ -27,7 +27,7 @@ function Get-UALAll
 	Default: 720 minutes
 
 	.PARAMETER Output
-    Output is the parameter specifying the CSV or JSON output type
+    Output is the parameter specifying the CSV or JSON output type.
 	Default: CSV
 
 	.PARAMETER OutputDir
@@ -228,7 +228,7 @@ function Get-UALAll
 	  $outputDirMerged = "$OutputDir\Merged\"
 	  If (!(test-path $outputDirMerged)) {
 		  Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
-		  New-Item -ItemType Directory -Force -Name $outputDirMerged | Out-Null
+		  New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
 	  }
   
 	    Get-ChildItem $OutputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/UAL-Combined.csv" -NoTypeInformation -Append
@@ -269,7 +269,7 @@ function Get-UALGroup
 	Options are: Exchange, Azure, Sharepoint, Skype and Defender
 
 	.PARAMETER Output
-    Output is the parameter specifying the CSV or JSON output type
+    Output is the parameter specifying the CSV or JSON output type.
 	Default: CSV
 
 	.PARAMETER OutputDir
@@ -505,7 +505,7 @@ function Get-UALGroup
 		$outputDirMerged = "$OutputDir\Merged\"
 		If (!(test-path $outputDirMerged)) {
 			Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
-			New-Item -ItemType Directory -Force -Name $outputDirMerged | Out-Null
+			New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
 		}
 
  		Get-ChildItem $OutputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/UAL-Combined.csv" -NoTypeInformation -Append
@@ -545,7 +545,7 @@ function Get-UALSpecific
 	Options are: ExchangeItem, ExchangeAdmin, etc. A total of 236 RecordTypes are supported.
 
 	.PARAMETER Output
-    Output is the parameter specifying the CSV or JSON output type
+    Output is the parameter specifying the CSV or JSON output type.
 	Default: CSV
 
 	.PARAMETER OutputDir
@@ -758,7 +758,7 @@ function Get-UALSpecific
 	  write-host $outputDirMerged
 	  If (!(test-path $outputDirMerged)) {
 		  Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
-		  New-Item -ItemType Directory -Force -Name $outputDirMerged | Out-Null
+		  New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
 	  }
   
 	    Get-ChildItem $OutputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/UAL-Combined.csv" -NoTypeInformation -Append
@@ -799,7 +799,7 @@ function Get-UALSpecificActivity
 	Options are: New-MailboxRule, MailItemsAccessed, etc. A total of 108 common ActivityTypes are supported.
 
 	.PARAMETER Output
-    Output is the parameter specifying the CSV or JSON output type
+    Output is the parameter specifying the CSV or JSON output type.
 	Default: CSV
 
 	.PARAMETER OutputDir

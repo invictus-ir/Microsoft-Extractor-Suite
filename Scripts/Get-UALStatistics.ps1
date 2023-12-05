@@ -68,7 +68,7 @@ function Get-UALStatistics
 		$outputDirectory = Join-Path $curDir $outputFile
 	}
 
-	else{
+	else {
 		$outputDirectory = $outputDir+$outputFile
 	}
 	

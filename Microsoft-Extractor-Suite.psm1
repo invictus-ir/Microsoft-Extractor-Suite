@@ -9,8 +9,7 @@ $logo=@"
 
  +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+
  |M|i|c|r|o|s|o|f|t| |E|x|t|r|a|c|t|o|r| |S|u|i|t|e|
- +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+
-                                                                                                                                                                            
+ +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+                                                                                                                                                                     
 Copyright (c) 2023 Invictus Incident Response
 Created by Joey Rentenaar & Korstiaan Stam
 "@
