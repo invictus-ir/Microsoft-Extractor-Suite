@@ -13,8 +13,8 @@ Frequently Asked Questions
     - The audit logs are recorded in UTC and will be exported in the same time zone.
 
 5. What is the retention period?
-    - Office 365 E3 - Audit records are retained for 90 days. That means you can search the audit log for activities that were performed within the last 90 days.
-    - Office 365 E5 - Audit records are retained for 365 days (one year). That means you can search the audit log for activities that were performed within the last year. Retaining audit records for one year is also available for users that are assigned an E3/Exchange Online Plan 1 license and have an Office 365 Advanced Compliance add-on license.
+    - Office 365 EMS E3 - Audit records are retained for 90 days. That means you can search the audit log for activities that were performed within the last 90 days.
+    - Office 365 EMS E5 - Audit records are retained for 365 days (one year). That means you can search the audit log for activities that were performed within the last year. Retaining audit records for one year is also available for users that are assigned an E3/Exchange Online Plan 1 license and have an Office 365 Advanced Compliance add-on license.
 
 6. What if I have E5 or other license that has more than 90 days?
     - Just define a manual startdate instead of the 'maximum' because the variable maximum is set to 90 days, which is the default for almost everyone.
