@@ -8,7 +8,7 @@ Use **Get-ADAuditLogs** to collect the contents of the Azure Active Directory Au
 
 Usage
 """"""""""""""""""""""""""
-Running the script without any parameters will gather the Azure Active Directory Audit Log for the last 90 days:
+Running the script without any parameters will gather the Azure Active Directory Audit Log for the last 7 days (Entra ID Free) or 30 days (Entra ID P1+P2):
 ::
 
    Get-ADAuditLogs

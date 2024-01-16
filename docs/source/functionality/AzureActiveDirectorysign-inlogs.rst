@@ -2,6 +2,11 @@ Azure Active Directory sign-in logs
 =======
 Use **Get-ADSignInLogs** to collect the contents of the Azure Active Directory sign-in log.
 
+.. note::
+
+  **Important note** This module requires the Graph Beta module. Install it using the command: 'Install-Module Microsoft.Graph.Beta'.
+
+
 Usage
 """"""""""""""""""""""""""
 Running the script without any parameters will gather the Azure Active Directory sign-in log for the last 30 days:

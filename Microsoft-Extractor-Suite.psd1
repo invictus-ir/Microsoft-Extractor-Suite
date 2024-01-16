@@ -8,7 +8,7 @@ Author = 'Joey Rentenaar & Korstiaan Stam'
 CompanyName = 'Invictus-IR'
 
 # Version number of this module.
-ModuleVersion = '1.1.3' 
+ModuleVersion = '1.1.4' 
 
 # ID used to uniquely identify this module
 GUID = '4376306b-0078-4b4d-b565-e22804e3be01'
@@ -36,6 +36,7 @@ NestedModules = @(
 	".\Scripts\Get-RiskyEvents.ps1"
 	".\Scripts\Get-ConditionalAccessPolicy.ps1"
 	".\Scripts\Get-Emails.ps1"
+	".\Scripts\Get-MailItemsAccessed.ps1"
 )
 
 FunctionsToExport = @(
@@ -95,12 +96,16 @@ FunctionsToExport = @(
 	"Get-RiskyDetections"
 
 	# Get-ConditionalAccessPolicy.ps1
-	"Get-ConditionalAccess"
+	"Get-ConditionalAccessPolicies"
 
 	# Get-Emails.ps1
 	"Get-Email"
 	"Get-Attachment"
 	"Show-Email"
+
+	# Get-MailItemsAccessed.ps1
+	"Get-Sessions"
+	"Get-MessageIDs"
 )
 
 # Variables to export from this module

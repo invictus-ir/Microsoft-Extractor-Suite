@@ -35,14 +35,13 @@ function Get-Users {
 		[string]$Encoding
 	)
 
-    Import-Module Microsoft.Graph.Users 
-    Connect-Graph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, User.ReadWrite.All, Directory.Read.All, Directory.ReadWrite.All -NoWelcome
+    Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, User.ReadWrite.All, Directory.Read.All, Directory.ReadWrite.All -NoWelcome
 
     try {
         $areYouConnected = Get-MgUser -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-GraphAPI before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, User.ReadWrite.All, Directory.Read.All, Directory.ReadWrite.All' before running this script" -Color "Red"
         break
     }
 
@@ -96,7 +95,7 @@ function Get-Users {
 
     Get-MgUser | Get-Member | out-null
     $filePath = "$OutputDir\Userinformation.csv"
-    $users | select-object $selectobjects | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+    $mgUsers | select-object $selectobjects | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
     
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
 }
@@ -120,15 +119,15 @@ Function Get-AdminUsers {
     
     .EXAMPLE
     Get-AdminUsers
-	etrieves Administrator directory roles, including the identification of users associated with each specific role.
+	Retrieves Administrator directory roles, including the identification of users associated with each specific role.
 	
 	.EXAMPLE
 	Get-AdminUsers -Encoding utf32
-	etrieves Administrator directory roles, including the identification of users associated with each specific role and exports the output to a CSV file with UTF-32 encoding.
+	Retrieves Administrator directory roles, including the identification of users associated with each specific role and exports the output to a CSV file with UTF-32 encoding.
 		
 	.EXAMPLE
 	Get-AdminUsers -OutputDir C:\Windows\Temp
-	etrieves Administrator directory roles, including the identification of users associated with each specific role and saves the output to the C:\Windows\Temp folder.	
+	Retrieves Administrator directory roles, including the identification of users associated with each specific role and saves the output to the C:\Windows\Temp folder.	
 #>    
 
     [CmdletBinding()]
@@ -136,6 +135,16 @@ Function Get-AdminUsers {
 		[string]$outputDir,
 		[string]$Encoding
 	)
+
+    Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, User.ReadWrite.All, Directory.Read.All, Directory.ReadWrite.All -NoWelcome
+
+    try {
+        $areYouConnected = Get-MgDirectoryRole -ErrorAction stop
+    }
+    catch {
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, User.ReadWrite.All, Directory.Read.All, Directory.ReadWrite.All' before running this script" -Color "Red"
+        break
+    }
     
     Write-logFile -Message "[INFO] Running Get-AdminUsers" -Color "Green"
 
@@ -194,7 +203,7 @@ Function Get-AdminUsers {
                     }
                 }
 
-                Write-logFile -Message "[info] $roleName - $count users found" -Color "Green"
+                Write-logFile -Message "[info] $roleName - $count users found" -Color "Yellow"
 
                 $filePath = "$OutputDir\$roleName.csv"
                 $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding

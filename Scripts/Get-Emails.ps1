@@ -8,7 +8,7 @@ Function Get-Email {
 
 	.PARAMETER OutputDir
 	OutputDir is the parameter specifying the output directory.
-	Default: Output\Emails
+	Default: Output\EmailExport
 
 	.PARAMETER UserIds
     The unique identifier of the user.
@@ -47,17 +47,24 @@ Function Get-Email {
 
     Write-logFile -Message "[INFO] Running Get-Email" -Color "Green"
 
-    Import-Module Microsoft.Graph.Mail
+    try {
+        $areYouConnected = Get-MgUserMessage -ErrorAction stop
+    }
+    catch {
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.Read, Mail.ReadBasic, Mail.ReadBasic.All, Mail.ReadWrite before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
+        break
+    }
 
     if ($outputDir -eq "" ){
-        $outputDir = "Output\Emails"
+        $outputDir = "Output\EmailExport"
         if (!(test-path $outputDir)) {
             write-logFile -Message "[INFO] Creating the following directory: $outputDir"
             New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
         }
     }
 
-    $getMessage = Get-MgUserMessage -Filter "internetMessageId eq '$internetMessageId'" -UserId $userId
+    $getMessage = Get-MgUserMessage -UserId $userIds -Filter "internetMessageId eq '$internetMessageId'"
     $messageId = $getMessage.Id
     $subject = $getMessage.Subject
 
@@ -69,11 +76,11 @@ Function Get-Email {
         $filePath = "$outputDir\$subject.msg"
     }
 
-    Get-MgUserMessageContent -MessageId $messageId -UserId $userId -OutFile $filePath
+    Get-MgUserMessageContent -MessageId $messageId -UserId $userIds -OutFile $filePath
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
 
     if ($attachment -eq "True"){
-        Get-Attachment -Userid $Userids - -internetMessageId $internetMessageId
+        Get-Attachment -Userid $Userids -internetMessageId $internetMessageId
     }
 }
 
@@ -113,23 +120,30 @@ Function Get-Attachment {
 
     Write-logFile -Message "[INFO] Running Get-Attachment" -Color "Green"
 
-    Import-Module Microsoft.Graph.Mail
+    try {
+        $areYouConnected = Get-MgUserMessage -ErrorAction stop
+    }
+    catch {
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.Read, Mail.ReadBasic, Mail.ReadBasic.All, Mail.ReadWrite before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
+        break
+    }
 
     if ($outputDir -eq "" ){
-        $outputDir = "Output\Emails"
+        $outputDir = "Output\EmailExport"
         if (!(test-path $outputDir)) {
             write-logFile -Message "[INFO] Creating the following directory: $outputDir"
             New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
         }
     }
 
-    $getMessage = Get-MgUserMessage -Filter "internetMessageId eq '$internetMessageId'" -UserId $userId
+    $getMessage = Get-MgUserMessage -Filter "internetMessageId eq '$internetMessageId'" -UserId $userIds
     $messageId = $getMessage.Id
     $hasAttachment = $getMessage.HasAttachments
     $subject = $getMessage.Subject
 
     if ($hasAttachment -eq "True"){
-        $attachment = Get-MgUserMessageAttachment -UserId $userId -MessageId $messageId
+        $attachment = Get-MgUserMessageAttachment -UserId $userIds -MessageId $messageId
         $filename = $attachment.Name
     
         Write-logFile -Message "[INFO] Downloading attachment"
@@ -139,10 +153,10 @@ Function Get-Attachment {
         $base64B = ($attachment).AdditionalProperties.contentBytes
         $decoded = [System.Convert]::FromBase64String($base64B)
 
-        $filePath = "$OutputDir\$filename"
+        $filePath = "$OutputDir\'$subject-$filename'"
         Set-Content $filePath -Value $decoded -Encoding Byte
     
-        Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
+        Write-logFile -Message "[INFO] Output written to '$subject-$filename'" -Color "Green"
     }
 
     else {
@@ -157,29 +171,29 @@ Function Show-Email {
     Show a specific email in the PowerShell Window.
 
     .DESCRIPTION
-    Show a specific email in the PowerShell Window based on userId and Internet Message Id and saves the output to a msg or txt file.
-
-	.PARAMETER OutputDir
-	OutputDir is the parameter specifying the output directory.
-	Default: Output\Emails
+    Show a specific email in the PowerShell Window based on userId and Internet Message Id.
 
     .EXAMPLE
-    Show-Email
+    Show-Email -userIds {userId} -internetMessageId {InternetMessageId}
     Show a specific email in the PowerShell Window.
 	
 #>
     [CmdletBinding()]
 	param(
 		[Parameter(Mandatory=$true)]$userIds,
-		[Parameter(Mandatory=$true)]$internetMessageId,
-        [string]$output,
-		[string]$outputDir,
-        [string]$attachment
+		[Parameter(Mandatory=$true)]$internetMessageId
 	)
 
     Write-logFile -Message "[INFO] Running Show-Email" -Color "Green"
 
-    Import-Module Microsoft.Graph.Mail
+    try {
+        $areYouConnected = Get-MgUserMessage -ErrorAction stop
+    }
+    catch {
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.Read, Mail.ReadBasic, Mail.ReadBasic.All, Mail.ReadWrite before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
+        break
+    }
 
-    Get-MgUserMessage -Filter "internetMessageId eq '$internetMessageId'" -UserId $userId | fl *
+    Get-MgUserMessage -Filter "internetMessageId eq '$internetMessageId'" -UserId $userIds | fl *
 }

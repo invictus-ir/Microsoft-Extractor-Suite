@@ -38,7 +38,7 @@ function Get-MessageTraceLog
 	Only 10 days of history is available. Output is saved in: Output\MessageTrace\
 	
 	.PARAMETER UserIds
-    UserIds is the Identity parameter specifies the Inbox rule that you want to view.
+    UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
 	.PARAMETER StartDate
     startDate is the parameter specifying the start date of the date range.

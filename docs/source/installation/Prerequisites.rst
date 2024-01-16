@@ -11,13 +11,15 @@ Prerequisites
 
 5. Powershell module: Az for the Azure Activity log functionality.
 
-6. Microsoft 365 account with privileges to access/extract audit logging.
+6. Powershell module: Graph Beta module for the Azure Sign-in Logs.
 
-7. Check if the Unified Audit Log has been activated.
+7. Microsoft 365 account with privileges to access/extract audit logging.
 
-8. Ensure that your PowerShell Execution Policy is configured to "Unrestricted".
+8. Check if the Unified Audit Log has been activated.
 
-9. If using the Graph API functionalities, the first time you'll need to sign in with an admin account to consent to the required scopes.
+9. Ensure that your PowerShell Execution Policy is configured to "Unrestricted".
+
+10. If using the Graph API functionalities, the first time you'll need to sign in with an admin account to consent to the required scopes.
 
 
 ::
@@ -78,6 +80,32 @@ Each functionality requires one of the following permissions:
 |                           | Global Reader (sign-in logs only)       |
 |                           +-----------------------------------------+
 |                           | Global Administrator                    |
++---------------------------+-----------------------------------------+
+| MFA information           | UserAuthenticationMethod.Read.All       |
+|                           +-----------------------------------------+
+|                           | User.Read.All                           |
++---------------------------+-----------------------------------------+
+| Conditional Access Policy | Policy.Read.All                         |
++---------------------------+-----------------------------------------+
+| Risky users/detections    | IdentityRiskEvent.Read.All              |
++---------------------------+-----------------------------------------+
+| E-mails/Attachments       | Mail.Read                               |
+|                           +-----------------------------------------+
+|                           | Mail.ReadBasic.All (Application only)   |
+|                           +-----------------------------------------+
+|                           | Mail.ReadWrite                          |
++---------------------------+-----------------------------------------+
+| User/Admin information    | User.Read.All                           |
+|                           +-----------------------------------------+
+|                           | Directory.AccessAsUser.All              |
+|                           +-----------------------------------------+
+|                           | User.ReadBasic.all                      |
+|                           +-----------------------------------------+
+|                           | User.ReadWrite.All                      |
+|                           +-----------------------------------------+
+|                           | Directory.Read.All                      |
+|                           +-----------------------------------------+
+|                           | Directory.ReadWrite.All                 |
 +---------------------------+-----------------------------------------+
 
 Our preference

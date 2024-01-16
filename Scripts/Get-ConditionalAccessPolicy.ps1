@@ -1,5 +1,5 @@
 
-Function Get-ConditionalAccess {
+Function Get-ConditionalAccessPolicies {
 <#
     .SYNOPSIS
     Retrieves all the conditional access policies. 
@@ -18,15 +18,15 @@ Function Get-ConditionalAccess {
     
     .EXAMPLE
     Get-ConditionalAccess
-    Retrieves all risky users.
+    Retrieves all the conditional access policies.
 	
     .EXAMPLE
 	Get-ConditionalAccess -Encoding utf32
-	Retrieves all risky users and exports the output to a CSV file with UTF-32 encoding.
+	Retrieves all the conditional access policies and exports the output to a CSV file with UTF-32 encoding.
 		
 	.EXAMPLE
 	Get-ConditionalAccess -OutputDir C:\Windows\Temp
-	Retrieves all risky users and saves the output to the C:\Windows\Temp folder.	
+	Retrieves all the conditional access policies and saves the output to the C:\Windows\Temp folder.	
 #>
     [CmdletBinding()]
     param(
@@ -38,11 +38,13 @@ Function Get-ConditionalAccess {
         $Encoding = "UTF8"
     }
 
+    Connect-MgGraph -Scopes Policy.Read.All -NoWelcome
+
     try {
         $areYouConnected = get-MgIdentityConditionalAccessPolicy -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-GraphAPI before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Policy.Read.All' before running this script" -Color "Red"
         break
     }
 
@@ -59,12 +61,21 @@ Function Get-ConditionalAccess {
 
     get-MgIdentityConditionalAccessPolicy -all | ForEach-Object {
         $myObject = [PSCustomObject]@{
-            DisplayName         = "-"
-            CreatedDateTime     = "-"
-            Description         = "-"
-            Id                  = "-"
-            ModifiedDateTime    = "-"
-            State               = "-"
+            DisplayName                   = "-"
+            CreatedDateTime               = "-"
+            Description                   = "-"
+            Id                            = "-"
+            ModifiedDateTime              = "-"
+            State                         = "-"
+            ClientAppTypes                = "-"
+            ServicePrincipalRiskLevels    = "-"
+            SignInRiskLevels              = "-"
+            UserRiskLevels                = "-"
+            BuiltInControls               = "-"
+            CustomAuthenticationFactors   = "-"
+            ClientOperatorAppTypes        = "-"
+            TermsOfUse                    = "-"
+            DisableResilienceDefaults     = "-"
         }
 
         $myobject.DisplayName = $_.DisplayName
@@ -73,8 +84,16 @@ Function Get-ConditionalAccess {
         $myobject.Id = $_.Id
         $myobject.ModifiedDateTime = $_.ModifiedDateTime
         $myobject.State = $_.State
+        $myobject.ClientAppTypes = $_.Conditions.ClientAppTypes | out-string
+        $myobject.ServicePrincipalRiskLevels = $_.Conditions.ServicePrincipalRiskLevels | out-string
+        $myobject.SignInRiskLevels = $_.Conditions.SignInRiskLevels | out-string
+        $myobject.UserRiskLevels = $_.Conditions.UserRiskLevels | out-string
+        $myobject.BuiltInControls = $_.GrantControls.BuiltInControls | out-string
+        $myobject.CustomAuthenticationFactors = $_.GrantControls.CustomAuthenticationFactors | out-string
+        $myobject.ClientOperatorAppTypes = $_.GrantControls.Operator | out-string
+        $myobject.TermsOfUse = $_.GrantControls.TermsOfUse | out-string
+        $myobject.DisableResilienceDefaults = $_.SessionControls.DisableResilienceDefaults | out-string
         $results+= $myObject;
-
     }
 
     $filePath = "$OutputDir\ConditionalAccessPolicy.csv"

@@ -23,9 +23,25 @@ Supported sources
   OAuth Permissions                     OAuth is a way of authorizing third-party applications to login into user accounts.                                                                                        
   Inbox Rules                           Inbox rules process messages in the inbox based on conditions and take actions such as moving a message to a specified folder or deleting a message.                       
   Transport Rules                       Transport rules take action on messages while they're in transit.                                                                                                          
-  Azure Active Directory sign-in log   Gets the Azure Active Directory sign-in log.                                                                                                                               
+  Azure Active Directory sign-in log    Gets the Azure Active Directory sign-in log.                                                                                                                               
   Azure Active Directory Audit Log      Gets the Azure Active Directory audit log.  
   Azure Activity Log                    Gets the Azure Activity log.                                                                                                           
+===================================== =========================================================================================================================================================================== 
+
+Retrieve other relevant information
+-------
+
+===================================== =========================================================================================================================================================================== 
+  Source                                Description                                                                                                                                                                
+===================================== =========================================================================================================================================================================== 
+  MFA                                   Retrieves the MFA status for all users.   
+  User information                      Retrieves the creation time and date of the last password change for all users.                  
+  Risky users                           Retrieves the risky users.                         
+  Risky Detections                      Retrieves the risky detections from the Entra ID Identity Protection.                                                                                      
+  Conditional Access Policies           Retrieves all the conditional access policies.                                                                                        
+  Admin users/roles                     Retrieves Administrator directory roles, including the identification of users associated with each specific role.                      
+  E-mails                               Get a specific email.                                                                                                          
+  Attachments                           Get a specific attachment.                                                                                                                                                                                                                                          
 ===================================== =========================================================================================================================================================================== 
 
 Getting Started
@@ -33,7 +49,12 @@ Getting Started
 To get started with the Microsoft-Extractor-Suite tool, make sure the requirements are met. If you do not have the **Connect-ExchangeOnline** or/and **Connect-AzureAD** installed check
 the installation page.
 
-The first step is to import the Microsoft-Extractor-Suite:
+Install the Microsoft-Extractor-Suite toolkit:
+::
+
+   Install-Module -Name Microsoft-Extractor-Suite
+
+To import the Microsoft-Extractor-Suite:
 ::
 
    Import-Module .\Microsoft-Extractor-Suite.psd1
@@ -71,11 +92,15 @@ Have a bug report or feature request? Open an issue on the Github repository.
    functionality/OAuthPermissions
    functionality/InboxRules
    functionality/TransportRules
+   functionality/MailItemsAccessed
    functionality/AzureActiveDirectorysign-inlogs
    functionality/AzureActiveDirectoryAuditLog
    functionality/AzureActivityLogs
    functionality/AzureSignInLogsGraph
    functionality/AzureAuditLogsGraph
+   functionality/ConditionalAccessPolicies
+   functionality/GetEmails
+   functionality/GetUserInfo
 
 .. toctree::
    :maxdepth: 2

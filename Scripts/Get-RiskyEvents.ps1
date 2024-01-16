@@ -37,11 +37,13 @@ function Get-RiskyUsers {
         $Encoding = "UTF8"
     }
 
+    Connect-MgGraph -Scopes IdentityRiskEvent.Read.All -NoWelcome
+
     try {
         $areYouConnected = Get-MgRiskyUser -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-GraphAPI before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] You must call Connect-GraphAPI -Scopes IdentityRiskyUser.Read.All before running this script" -Color "Red"
         break
     }
 
@@ -54,10 +56,43 @@ function Get-RiskyUsers {
     }
 
     Write-logFile -Message "[INFO] Running Get-RiskyUsers" -Color "Green"
-    $results = Get-MgRiskyUser -All
+    $results=@();
+    $count = 0
+
+    Get-MgRiskyUser -All | ForEach-Object {
+        $myObject = [PSCustomObject]@{
+            History                           = "-"
+            Id                                = "-"
+            IsDeleted                         = "-"
+            IsProcessing                      = "-"
+            RiskDetail                        = "-"
+            RiskLastUpdatedDateTime           = "-"
+            RiskLevel                         = "-"
+            RiskState                         = "-"
+            UserDisplayName                   = "-"
+            UserPrincipalName                 = "-"
+            AdditionalProperties              = "-"
+        }
+
+        $myobject.History = $_.History
+        $myobject.Id = $_.Id
+        $myobject.IsDeleted = $_.IsDeleted
+        $myobject.IsProcessing = $_.IsProcessing
+        $myobject.RiskDetail = $_.RiskDetail
+        $myobject.RiskLastUpdatedDateTime = $_.RiskLastUpdatedDateTime
+        $myobject.RiskLevel = $_.RiskLevel
+        $myobject.RiskState = $_.RiskState
+        $myobject.UserDisplayName = $_.UserDisplayName
+        $myobject.UserPrincipalName = $_.UserPrincipalName
+        $myobject.AdditionalProperties = $_.AdditionalProperties | out-string
+
+        $results+= $myObject;
+        $count = $count +1
+    }
 
     $filePath = "$OutputDir\RiskyUsers.csv"
     $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+    Write-logFile -Message "[INFO] A total of $count Risky Users found"
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
 }
 
@@ -96,11 +131,13 @@ function Get-RiskyDetections {
         [string]$Encoding
     )
 
+    Connect-MgGraph -Scopes IdentityRiskEvent.Read.All -NoWelcome
+
     try {
         $areYouConnected = Get-MgRiskDetection -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-GraphAPI before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] You must call Connect-GraphAPI -Scopes IdentityRiskEvent.Read.All before running this script" -Color "Red"
         break
     }
 
@@ -109,7 +146,7 @@ function Get-RiskyDetections {
     }
 
     if ($OutputDir -eq "" ){
-        $OutputDir = "Output\UserInfo\"
+        $OutputDir = "Output\UserInfo"
         if (!(test-path $OutputDir)) {
             write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
             New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
@@ -117,10 +154,62 @@ function Get-RiskyDetections {
     }
 
     Write-logFile -Message "[INFO] Running Get-RiskyDetections" -Color "Green"
-    $results = Get-MgRiskDetection -All
+    $results=@();
+    $count = 0
+    Get-MgRiskDetection -All | ForEach-Object {
+        $myObject = [PSCustomObject]@{
+            Activity                        = "-"
+            ActivityDateTime                = "-"
+            AdditionalInfo                  = "-"
+            CorrelationId                   = "-"
+            DetectedDateTime                = "-"
+            IPAddress                       = "-"
+            Id                              = "-"
+            LastUpdatedDateTime             = "-"
+            City                            = "-"
+            CountryOrRegion                 = "-"
+            State                           = "-"
+            RequestId                       = "-"
+            RiskDetail                      = "-"
+            RiskEventType                   = "-"
+            RiskLevel                       = "-"
+            Source                          = "-"
+            TokenIssuerType                 = "-"
+            UserDisplayName                 = "-"
+            UserId                          = "-"
+            UserPrincipalName               = "-"
+            AdditionalProperties            = "-"
+        }
+
+        $myobject.Activity = $_.Activity
+        $myobject.ActivityDateTime = $_.ActivityDateTime
+        $myobject.AdditionalInfo = $_.AdditionalInfo
+        $myobject.CorrelationId = $_.CorrelationId
+        $myobject.DetectedDateTime = $_.DetectedDateTime
+        $myobject.IPAddress = $_.IPAddress
+        $myobject.Id = $_.Id
+        $myobject.LastUpdatedDateTime = $_.LastUpdatedDateTime
+        $myobject.City = $_.Location.City | out-string
+        $myobject.CountryOrRegion = $_.Location.CountryOrRegion | out-string
+        $myobject.State = $_.Location.State | out-string
+        $myobject.RequestId = $_.RequestId
+        $myobject.RiskDetail = $_.RiskDetail
+        $myobject.RiskEventType = $_.RiskEventType
+        $myobject.RiskLevel = $_.RiskLevel
+        $myobject.Source = $_.Source
+        $myobject.TokenIssuerType = $_.TokenIssuerType
+        $myobject.UserDisplayName = $_.UserDisplayName
+        $myobject.UserId = $_.UserId
+        $myobject.UserPrincipalName = $_.UserPrincipalName
+        $myobject.AdditionalProperties = $_.AdditionalProperties | out-string
+
+        $results+= $myObject;
+        $count = $count +1
+    }
 
     $filePath = "$OutputDir\RiskyDetections.csv"
     $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+    Write-logFile -Message "[INFO] A total of $count Risky Detections found"
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
 }
 

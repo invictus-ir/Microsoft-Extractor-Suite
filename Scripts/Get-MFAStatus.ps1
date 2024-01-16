@@ -1,11 +1,11 @@
 function Get-MFA {
 <#
-  .SYNOPSIS
-  Retrieves the MFA status for all users.
-  Script inspired by: https://activedirectorypro.com/mfa-status-powershell/
+	.SYNOPSIS
+	Retrieves the MFA status for all users.
+	Script inspired by: https://activedirectorypro.com/mfa-status-powershell/
 
-  .DESCRIPTION
-  Retrieves the MFA status for all users.
+	.DESCRIPTION
+	Retrieves the MFA status for all users.
 	The output will be written to: Output\UserInfo\
 
 	.PARAMETER OutputDir
@@ -13,11 +13,11 @@ function Get-MFA {
 	Default: Output\UserInfo
 
 	.PARAMETER Encoding
-  Encoding is the parameter specifying the encoding of the CSV output file.
+	Encoding is the parameter specifying the encoding of the CSV output file.
 	Default: UTF8
     
-  .EXAMPLE
-  Get-MFA
+	.EXAMPLE
+	Get-MFA
 	Retrieves the MFA status for all users.
 	
 	.EXAMPLE
@@ -34,11 +34,13 @@ function Get-MFA {
         [string]$Encoding
     )
 
+    Connect-MgGraph -Scopes UserAuthenticationMethod.Read.All,User.Read.All -NoWelcome
+
     try {
-        $areYouConnected = Get-MgUser -ErrorAction stop
+        $areYouConnected = Get-MgUser -ErrorAction stop 
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-GraphAPI before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes 'UserAuthenticationMethod.Read.All,User.Read.All' before running this script" -Color "Red"
         break
     }
 
@@ -47,7 +49,7 @@ function Get-MFA {
     }
 
     if ($OutputDir -eq "" ){
-        $OutputDir = "Output\UserInfo\"
+        $OutputDir = "Output\UserInfo"
         if (!(test-path $OutputDir)) {
             write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
             New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
@@ -84,7 +86,7 @@ function Get-MFA {
             hellobusiness      = "-"
         }
 
-        $MFAData=Get-MgUserAuthenticationMethod -UserId $user.UserPrincipalName
+        $MFAData= Get-MgUserAuthenticationMethod -UserId $user.UserPrincipalName
 
         $myobject.user = $user.UserPrincipalName;
         ForEach ($method in $MFAData) {

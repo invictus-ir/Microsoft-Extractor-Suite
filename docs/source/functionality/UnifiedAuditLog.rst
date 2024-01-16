@@ -7,7 +7,7 @@ Exchange, SharePoint, OneDrive, and Skype.
 
 .. note::
 
-  Office 365 E3 - Audit records are retained for 90 days.
+  Office 365 E3 - Audit records are retained for 180 days.
   
   Office 365 E5 - Audit records are retained for 365 days. 
 
