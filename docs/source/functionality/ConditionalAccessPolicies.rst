@@ -1,4 +1,4 @@
-Retrieves conditional access policies
+Conditional Access Policies
 =======
 Retrieves the risky users from the Entra ID Identity Protection, which marks an account as being at risk based on the pattern of activity for the account.
 

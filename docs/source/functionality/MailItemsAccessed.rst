@@ -1,10 +1,10 @@
-User Information
+MailItemsAccessed
 =======
 This section comprises a variety of functions designed to gather information session ID(s) and/or Internet Message ID(s) assosiated with a threat actor. This information can be used to find and download all messages and their attachments.
 
-Find SessionID(s) in the Audit Log.
+Find SessionID(s) in the Unified Audit Log.
 ^^^^^^^^^^^
-Find SessionID(s) in the Audit Log. You can filter based on IP address or Username. The first step is to identify what sessions belong to the threat actor. 
+Find SessionID(s) in the Unified Audit Log. You can filter based on IP address or Username. The first step is to identify what sessions belong to the threat actor. 
 
 Usage
 """"""""""""""""""""""""""
@@ -31,7 +31,7 @@ Parameters
 
 -Output (optional)
     - "Y" or "N" to specify whether the output should be saved to a file.
-	- Default: Y
+    - Default: Y
 
 -IP (optional)
     - The IP address parameter is used to filter the logs by specifying the desired IP address.
@@ -70,14 +70,14 @@ Parameters
 
 -Output (optional)
     - "Y" or "N" to specify whether the output should be saved to a file.
-	- Default: Y
+    - Default: Y
 
 -IP (optional)
     - The IP address parameter is used to filter the logs by specifying the desired IP address.
 
 -Download (optional)
     - To specifiy whether the messages and their attachments should be saved.
-	- Default: No
+    - Default: No
 
 -SessionID (optional)
     - The sessionsID parameter is used to filter the logs by specifying the desired session id.

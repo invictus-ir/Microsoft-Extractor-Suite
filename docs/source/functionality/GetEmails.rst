@@ -1,4 +1,4 @@
-Retreive and/or download e-mails
+E-mails/Attachments
 =======
 This section comprises a variety of functions designed to gather e-mails and their attachments. 
 
@@ -29,15 +29,15 @@ Retrieves an email and saves it to C:\Windows\Temp folder.
 
 Parameters
 """"""""""""""""""""""""""
--UserIds (mandatory)
+-UserIds (Mandatory)
     - The unique identifier of the user.
 
--InternetMessageId (mandatory)
+-InternetMessageId (Mandatory)
     - The InternetMessageId parameter represents the Internet message identifier of an item.
 
 -Output (optional)
     - Output is the parameter specifying the msg or txt output type.
-	- Default: msg
+    - Default: msg
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
@@ -65,10 +65,10 @@ Retrieves an attachment and saves it to C:\Windows\Temp folder.
 
 Parameters
 """"""""""""""""""""""""""
--UserIds (mandatory)
+-UserIds (Mandatory)
     - The unique identifier of the user.
 
--InternetMessageId (mandatory)
+-InternetMessageId (Mandatory)
     - The InternetMessageId parameter represents the Internet message identifier of an item.
 
 -OutputDir (optional)
@@ -88,9 +88,9 @@ Show a specific email in the PowerShell Window.
 
 Parameters
 """"""""""""""""""""""""""
--UserIds (mandatory)
+-UserIds (Mandatory)
     - The unique identifier of the user.
 
--InternetMessageId (mandatory)
+-InternetMessageId (Mandatory)
     - The InternetMessageId parameter represents the Internet message identifier of an item.
 

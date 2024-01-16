@@ -21,10 +21,15 @@ Install the Powershell module Az for the Azure Activity log functionality:
 
    Install-module -name Az
 
-Install the Powershell module AzureADPreview for the Azure Active Direcotry functionalities:
+Install the Powershell module AzureADPreview for the Azure Active Directory functionalities:
 ::
 
    Install-Module -Name AzureADPreview
+
+Install the Powershell module Graph Beta module for the Azure Active Directory sign-in log (BETA):
+::
+
+   Install-Module Microsoft.Graph.Beta
 
 .. note::
 
@@ -41,7 +46,7 @@ To import the Microsoft-Extractor-Suite:
 
    Import-Module .\Microsoft-Extractor-Suite.psd1
    
-  To install the Microsoft-Extractor-Suite:
+To install the Microsoft-Extractor-Suite:
 ::
 
    Install-Module -Name Microsoft-Extractor-Suite
@@ -51,7 +56,7 @@ Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage
 .. image:: Microsoft-Extractor-Suite-Connect.png
    :width: 600
 
-To sign in, use the cmdlets:
+To sign in, use the following cmdlets:
 ::
 
    Connect-M365
