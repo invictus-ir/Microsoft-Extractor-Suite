@@ -44,6 +44,10 @@ Parameters
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
+Output
+""""""""""""""""""""""""""
+The output will be saved to the 'MailItemsAccessed' directory within the 'Output' directory.
+
 Find the InternetMessageID(s).
 ^^^^^^^^^^^
 Find the InternetMessageID(s). You can filter on SessionID(s) or IP addresses. After you identified the session(s) of the threat actor, you can use this information to find all MessageID(s).
@@ -89,3 +93,7 @@ Parameters
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
+
+Output
+""""""""""""""""""""""""""
+The output will be saved to the 'MailItemsAccessed' directory within the 'Output' directory.

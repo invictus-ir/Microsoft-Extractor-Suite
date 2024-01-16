@@ -65,7 +65,6 @@ Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage
    Connect-M365
    Connect-Azure
    Connect-AzureAZ
-   Connect-Graph
 
 Getting Help
 ------------

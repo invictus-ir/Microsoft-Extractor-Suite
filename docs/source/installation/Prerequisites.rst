@@ -21,7 +21,6 @@ Prerequisites
 
 10. If using the Graph API functionalities, the first time you'll need to sign in with an admin account to consent to the required scopes.
 
-
 ::
 
    Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser

@@ -26,15 +26,19 @@ Install the Powershell module AzureADPreview for the Azure Active Directory func
 
    Install-Module -Name AzureADPreview
 
-Install the Powershell module Graph Beta module for the Azure Active Directory sign-in log (BETA):
+.. note::
+
+   If you receive an error message indicating that the specified commands already exist on your system, you can resolve the issue by including the "-AllowClobber" parameter in the "Install-Module" command. This parameter will allow the installation process to overwrite any existing versions of the module and replace them with the newer version.
+
+Install the Powershell module Graph Beta module for the Azure Active Directory sign-in log:
 ::
 
    Install-Module Microsoft.Graph.Beta
 
 .. note::
-
-   If you receive an error message indicating that the specified commands already exist on your system, you can resolve the issue by including the "-AllowClobber" parameter in the "Install-Module" command. This parameter will allow the installation process to overwrite any existing versions of the module and replace them with the newer version.
-
+   
+   Connect-GraphAPI to sign in with the required scopes. The first time you'll need to sign in with an admin account to consent to the required scopes.
+   
 Getting Started
 -------
 To get started with the Microsoft-Extractor-Suite tool, make sure the requirements are met.
@@ -62,8 +66,5 @@ To sign in, use the following cmdlets:
    Connect-M365
    Connect-Azure
    Connect-AzureAZ
-   Connect-GraphAPI
 
-.. note::
- Connect-GraphAPI to sign in with the required scopes. The first time you'll need to sign in with an admin account to consent to the required scopes.
-   
+

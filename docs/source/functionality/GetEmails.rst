@@ -45,7 +45,11 @@ Parameters
 
 -Attachment (optional)
     - The attachment parameter specifies whether the attachment should be saved or not. 
-    - Default: False 
+    - Default: False
+
+Output
+""""""""""""""""""""""""""
+The output will be saved to the 'EmailExport' directory within the 'Output' directory.
 
 Get a specific attachment.
 ^^^^^^^^^^^
@@ -74,6 +78,10 @@ Parameters
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
     - Default: EmailExport
+
+Output
+""""""""""""""""""""""""""
+The output will be saved to the 'EmailExport' directory within the 'Output' directory.
 
 Show e-mail.
 ^^^^^^^^^^^

@@ -1,4 +1,4 @@
-Azure Sign-in Logs via Graph API (BETA)
+Azure Sign-in Logs via Graph API
 =======
 Use **Get-ADSignInLogsGraph** to collect the contents of the Azure Active Directory sign-in log.
 

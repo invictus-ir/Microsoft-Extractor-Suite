@@ -1,4 +1,4 @@
-Azure Activity Logs (BETA)
+Azure Activity Logs
 =======
 Use **Get-ActivityLogs** to collect the contents of the Azure Activity Log.
 

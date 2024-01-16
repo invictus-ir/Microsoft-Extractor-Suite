@@ -33,6 +33,9 @@ Parameters
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
+Output
+""""""""""""""""""""""""""
+The output will be saved to the 'UserInfo' directory within the 'Output' directory.
 
 Retrieve all Administrator directory roles.
 ^^^^^^^^^^^
@@ -65,6 +68,10 @@ Parameters
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
+Output
+""""""""""""""""""""""""""
+The output will be saved to the 'UserInfo' directory within the 'Output' directory.
+
 Retrieves MFA status
 ^^^^^^^^^^^
 Retrieves the MFA status for all users.
@@ -91,6 +98,10 @@ Parameters
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
+Output
+""""""""""""""""""""""""""
+The output will be saved to the 'UserInfo' directory within the 'Output' directory.
+
 Retrieves the risky users
 ^^^^^^^^^^^
 Retrieves the risky users from the Entra ID Identity Protection, which marks an account as being at risk based on the pattern of activity for the account.
@@ -112,6 +123,10 @@ Parameters
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
+Output
+""""""""""""""""""""""""""
+The output will be saved to the 'UserInfo' directory within the 'Output' directory.
+
 Retrieves the risky detections
 ^^^^^^^^^^^
 Retrieves the risky detections from the Entra ID Identity Protection.
@@ -132,3 +147,7 @@ Parameters
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
+
+Output
+""""""""""""""""""""""""""
+The output will be saved to the 'UserInfo' directory within the 'Output' directory.

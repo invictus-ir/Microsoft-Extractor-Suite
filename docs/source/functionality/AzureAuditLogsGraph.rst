@@ -1,4 +1,4 @@
-Azure Audit Logs via Graph API (BETA)
+Azure Audit Logs via Graph API
 =======
 Use **Get-ADAuditLogsGraph** to collect the contents of the Azure Active Directory Audit Log.
 

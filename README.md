@@ -45,6 +45,3 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 
 > Connect-AzureAZ
 
-> Connect-GraphAPI
-
-

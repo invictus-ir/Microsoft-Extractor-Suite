@@ -71,28 +71,55 @@ function Get-ADSignInLogs {
 	if (($After -eq "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs"
 
-		$signInLogs = Get-AzureADAuditSignInLogs -All $true
-		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+		try{
+			$signInLogs = Get-AzureADAuditSignInLogs -All $true
+			$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
-		Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+		}
+		catch{
+			Start-Sleep -Seconds 20
+			$signInLogs = Get-AzureADAuditSignInLogs -All $true
+			$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+
+			Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+		}
 	}
 
 	elseif (($After -ne "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs on or after $After"
 
-		$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime gt $After"
-		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+		try{
+			$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime gt $After"
+			$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
-		Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+		}
+		catch{
+			Start-Sleep -Seconds 20
+			$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime gt $After"
+			$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+
+			Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+		}
 	}
 
 	elseif (($Before -ne "") -and ($After -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs on or before $Before"
 
-		$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $Before"
-		$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+		try{
+			$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $Before"
+			$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
-		Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+		}
+		catch{
+			Start-Sleep -Seconds 20
+			$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $Before"
+			$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+
+			Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+		}
 	}
 
 	else {
@@ -164,7 +191,6 @@ function Get-ADAuditLogs {
 			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
 			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
-		
 	}
 
 	$filePath = "$OutputDir\Auditlogs.json"
@@ -172,29 +198,56 @@ function Get-ADAuditLogs {
 	if (($After -eq "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs"
 
-		
-		$auditLogs = Get-AzureADAuditDirectoryLogs -All $true | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
-		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-		
-		Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		try{
+			$auditLogs = Get-AzureADAuditDirectoryLogs -All $true | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
+			$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+			
+			Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		}
+		catch{
+			Start-Sleep -Seconds 20
+			$auditLogs = Get-AzureADAuditDirectoryLogs -All $true | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
+			$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+			
+			Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		}
+
 	}
 
 	elseif (($After -ne "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs on or after $After"
 		
-		$auditLogs = Get-AzureADAuditDirectoryLogs -All $true -Filter "activityDateTime gt $After" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
-		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-		
-		Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		try{
+			$auditLogs = Get-AzureADAuditDirectoryLogs -All $true -Filter "activityDateTime gt $After" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
+			$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+			
+			Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		}
+		catch{
+			Start-Sleep -Seconds 20
+			$auditLogs = Get-AzureADAuditDirectoryLogs -All $true -Filter "activityDateTime gt $After" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
+			$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+			
+			Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		}
 	}
 
 	elseif (($Before -ne "") -and ($After -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs logs on or before $Before"
 		
-		$auditLogs = Get-AzureADAuditDirectoryLogs -All $true -Filter "activityDateTime lt $Before" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
-		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-		
-		Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		try{
+			$auditLogs = Get-AzureADAuditDirectoryLogs -All $true -Filter "activityDateTime lt $Before" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
+			$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+			
+			Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		}
+		catch{
+			Start-Sleep -Seconds 20
+			$auditLogs = Get-AzureADAuditDirectoryLogs -All $true -Filter "activityDateTime lt $Before" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
+			$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+			
+			Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		}
 	}
 
 	else {

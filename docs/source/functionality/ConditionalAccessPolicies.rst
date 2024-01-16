@@ -18,3 +18,7 @@ Parameters
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
+
+Output
+""""""""""""""""""""""""""
+The output will be saved to the 'UserInfo' directory within the 'Output' directory.
