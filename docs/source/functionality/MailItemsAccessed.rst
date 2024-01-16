@@ -62,7 +62,7 @@ Collects all sessions for all users between 1/4/2023 and 5/4/2023.
 Collects all sessions for the user HR@invictus-ir.com.
 ::
 
-   Get-MessageIDs Get-Sessions -StartDate 1/4/2023 -EndDate 5/4/2023 -UserIds HR@invictus-ir.com
+   Get-MessageIDs -StartDate 1/4/2023 -EndDate 5/4/2023 -UserIds HR@invictus-ir.com
 
 Parameters
 """"""""""""""""""""""""""
