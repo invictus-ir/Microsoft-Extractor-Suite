@@ -161,6 +161,7 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 		# Get all existing OAuth2 permission grants, get the client, resource and scope details
 		Write-Verbose "Retrieving OAuth2PermissionGrants..."
 		GetOAuth2PermissionGrants -FastMode:$fastQueryMode | ForEach-Object {
+		#GetOAuth2PermissionGrants | ForEach-Object {
 			$grant = $_
 			GetAzureADServicePrincipal($grant.ClientId)
 			if ($grant.Scope) {
@@ -233,7 +234,6 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 			}
 
 			$sp = $_.Value
-
 			GetAzureADServicePrincipal($sp.ObjectId)
 
 			Get-AzureADServiceAppRoleAssignedTo -ObjectId $sp.ObjectId -All $true `

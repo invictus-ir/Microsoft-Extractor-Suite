@@ -13,7 +13,7 @@ Running the script without any parameters will gather the maibox audit logs for 
 Get mailbox audit log entries for the user HR[@]invictus-ir.com:
 ::
 
-  Get-MailboxAuditLog -UserIds HR[@]invictus-ir.com
+   Get-MailboxAuditLog -UserIds HR[@]invictus-ir.com
 
 Get mailbox audit log entries for the users HR[@]invictus-ir.com and test[@]invictus-ir.com:
 ::

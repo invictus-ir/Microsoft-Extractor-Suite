@@ -5,4 +5,6 @@ We are an incident response company and we ❤️ the cloud and specialise in su
 
 🆘 Incident Response support reach out to cert@invictus-ir.com or go to https://www.invictus-ir.com/247
 
+📘 You can support our work by signing up for our cloud incident response trainings, go to https://academy.invictus-ir.com/
+
 📧 Questions or suggestions contact us at info@invictus-ir.com
