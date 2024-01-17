@@ -22,6 +22,9 @@ function Get-ADSignInLogs {
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the JSON output file.
 	Default: UTF8
+
+	.PARAMETER UserIds
+    UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
     
     .EXAMPLE
     Get-ADSignInLogs
@@ -40,11 +43,12 @@ function Get-ADSignInLogs {
 		[string]$After,
 		[string]$Before,
 		[string]$outputDir,
+		[string]$UserIds,
 		[string]$Encoding
 	)
 
 	try {
-		$areYouConnected = Get-AzureADAuditDirectoryLogs -ErrorAction stop
+		$areYouConnected = Get-AzureADAuditSignInLogs -ErrorAction stop
 	}
 	catch {
 		Write-logFile -Message "[WARNING] You must call Connect-Azure before running this script" -Color "Red"
@@ -59,7 +63,7 @@ function Get-ADSignInLogs {
 	
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\AzureAD\$date\"
+		$OutputDir = "Output\AzureAD\$date"
 		if (!(test-path $OutputDir)) {
 			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
 			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
@@ -71,54 +75,105 @@ function Get-ADSignInLogs {
 	if (($After -eq "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs"
 
-		try{
-			$signInLogs = Get-AzureADAuditSignInLogs -All $true
-			$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+		if ($Userids){
+			try{
+				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$Userids'"
+				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
-			Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			}
+			catch{
+				Start-Sleep -Seconds 20
+				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$Userids'"
+				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+
+				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			}
 		}
-		catch{
-			Start-Sleep -Seconds 20
-			$signInLogs = Get-AzureADAuditSignInLogs -All $true
-			$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+		else{
+			try{
+				$signInLogs = Get-AzureADAuditSignInLogs -All $true
+				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
-			Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			}
+			catch{
+				Start-Sleep -Seconds 20
+				$signInLogs = Get-AzureADAuditSignInLogs -All $true
+				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+
+				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			}
 		}
 	}
 
 	elseif (($After -ne "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs on or after $After"
 
-		try{
-			$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime gt $After"
-			$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+		if ($Userids){
+			try{
+				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$Userids' and createdDateTime gt $After"
+				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
-			Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			}
+			catch{
+				Start-Sleep -Seconds 20
+				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$Userids' and createdDateTime gt $After"
+				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+
+				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			}
 		}
-		catch{
-			Start-Sleep -Seconds 20
-			$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime gt $After"
-			$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+		else{
+			try{
+				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime gt $After"
+				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
-			Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			}
+			catch{
+				Start-Sleep -Seconds 20
+				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime gt $After"
+				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+
+				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			}
 		}
 	}
 
 	elseif (($Before -ne "") -and ($After -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs on or before $Before"
+		if ($Userids){
+			try{
+				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$Userids' and createdDateTime lt $Before"
+				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
-		try{
-			$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $Before"
-			$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			}
+			catch{
+				Start-Sleep -Seconds 20
+				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter -Filter "UserPrincipalName eq '$Userids' and createdDateTime lt $Before"
+				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
-			Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			}
 		}
-		catch{
-			Start-Sleep -Seconds 20
-			$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $Before"
-			$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+		else{
+			try{
+				-Filter 
+				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $Before"
+				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
-			Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			}
+			catch{
+				Start-Sleep -Seconds 20
+				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $Before"
+				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+
+				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+			}
 		}
 	}
 

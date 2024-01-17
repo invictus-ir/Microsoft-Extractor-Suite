@@ -35,7 +35,7 @@ function Get-Users {
 		[string]$Encoding
 	)
 
-    Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, User.ReadWrite.All, Directory.Read.All, Directory.ReadWrite.All -NoWelcome
+    Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All -NoWelcome
 
     try {
         $areYouConnected = Get-MgUser -ErrorAction stop
@@ -136,7 +136,7 @@ Function Get-AdminUsers {
 		[string]$Encoding
 	)
 
-    Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, User.ReadWrite.All, Directory.Read.All, Directory.ReadWrite.All -NoWelcome
+    Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All -NoWelcome
 
     try {
         $areYouConnected = Get-MgDirectoryRole -ErrorAction stop
@@ -192,14 +192,19 @@ Function Get-AdminUsers {
                     
                     else {
                         $count = $count +1
-                        $getUserName = Get-MgUser -Filter ("Id eq '$userid'")
-                        $userName = $getUserName.UserPrincipalName
+                        try{
+                            $getUserName = Get-MgUser -Filter ("Id eq '$userid'")
+                            $userName = $getUserName.UserPrincipalName
 
-                        $myObject.UserName = $userName
-                        $myObject.UserId = $userid
-                        $myObject.Role = $roleName
+                            $myObject.UserName = $userName
+                            $myObject.UserId = $userid
+                            $myObject.Role = $roleName
 
-                        $results+= $myObject;
+                            $results+= $myObject;
+                        }
+                        catch{
+                            Write-logFile -Message "[INFO] Resource $userid does not exist or one of its queried reference-property objects are not present." -Color "Yellow"
+                        }
                     }
                 }
 
