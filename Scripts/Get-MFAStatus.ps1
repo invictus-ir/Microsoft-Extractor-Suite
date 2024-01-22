@@ -75,7 +75,7 @@ function Get-MFA {
 
         $myObject = [PSCustomObject]@{
             user               = "-"
-            MFAstatus          = "_"
+            MFAstatus          = "Disabled"  # Default to 'Disabled'
             email              = "-"
             fido2              = "-"
             app                = "-"
@@ -92,58 +92,58 @@ function Get-MFA {
         ForEach ($method in $MFAData) {
       
             Switch ($method.AdditionalProperties["@odata.type"]) {
-                "#microsoft.graph.emailAuthenticationMethod"  { 
+                "#microsoft.graph.emailAuthenticationMethod" { 
                 $myObject.email = $true 
                 $myObject.MFAstatus = "Enabled"
-                $MFAEmail = $MFAEmail + 1
+                $MFAEmail++
               }
 
-                "#microsoft.graph.fido2AuthenticationMethod"                   { 
+                "#microsoft.graph.fido2AuthenticationMethod" { 
                 $myObject.fido2 = $true 
                 $myObject.MFAstatus = "Enabled"
-                $MFAfido2 = $MFAfido2 + 1
+                $MFAEmail++
               }
 
-                "#microsoft.graph.microsoftAuthenticatorAuthenticationMethod"  { 
+                "#microsoft.graph.microsoftAuthenticatorAuthenticationMethod" { 
                 $myObject.app = $true 
                 $myObject.MFAstatus = "Enabled"
-                $MFAapp = $MFAapp + 1
+                $MFAapp++
               }
 
-                "#microsoft.graph.passwordAuthenticationMethod"                {              
+                "#microsoft.graph.passwordAuthenticationMethod" {              
                 $myObject.password = $true 
                 if($myObject.MFAstatus -ne "Enabled"){
                     $myObject.MFAstatus = "Disabled"
                 }                
               }
 
-                "#microsoft.graph.phoneAuthenticationMethod"  { 
+                "#microsoft.graph.phoneAuthenticationMethod" { 
                 $myObject.phone = $true 
                 $myObject.MFAstatus = "Enabled"
-                $MFAphone = $MFAphone + 1
+                $MFAphone++
               }
 
-                "#microsoft.graph.softwareOathAuthenticationMethod"  { 
+                "#microsoft.graph.softwareOathAuthenticationMethod" { 
                 $myObject.softwareoath = $true 
                 $myObject.MFAstatus = "Enabled"
-                $MFAsoftwareoath = $MFAsoftwareoath + 1
+                $MFAsoftwareoath++
               }
 
-                "#microsoft.graph.temporaryAccessPassAuthenticationMethod"  { 
+                "#microsoft.graph.temporaryAccessPassAuthenticationMethod" { 
                 $myObject.tempaccess = $true 
                 $myObject.MFAstatus = "Enabled"
-                $MFAtempaccess = $MFAtempaccess + 1
+                $MFAtempaccess++
               }
 
-                "#microsoft.graph.windowsHelloForBusinessAuthenticationMethod"  { 
+                "#microsoft.graph.windowsHelloForBusinessAuthenticationMethod" { 
                 $myObject.hellobusiness = $true 
                 $myObject.MFAstatus = "Enabled"
-                $MFAhellobusiness = $MFAhellobusiness + 1
+                $MFAhellobusiness++
               }  
             
             }
             if($myObject.MFAstatus -eq "Enabled") {
-                $MFAstatusAmount = $MFAstatusAmount + 1
+                $MFAstatusAmount++
             }
         }
 
