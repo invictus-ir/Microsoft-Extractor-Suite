@@ -22,7 +22,7 @@ Retrieves an email and the attachment from fortunahodan@bonacu.onmicrosoft.com w
 
    Get-Email -userIds fortunahodan@bonacu.onmicrosoft.com -internetMessageId "<d6f15b97-e3e3-4871-adb2-e8d999d51f34@az.westeurope.microsoft.com>" -attachment True
 
-Retrieves an email and saves it to C:\Windows\Temp folder.	
+Retrieves an email and saves it to C:\\Windows\\Temp folder.	
 ::
 
    Get-Email -userIds fortunahodan@bonacu.onmicrosoft.com -internetMessageId "<d6f15b97-e3e3-4871-adb2-e8d999d51f34@az.westeurope.microsoft.com>" -OutputDir C:\Windows\Temp
