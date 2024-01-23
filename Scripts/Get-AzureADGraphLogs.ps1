@@ -188,6 +188,8 @@ function Get-ADAuditLogsGraph {
 	if ($Encoding -eq "" ){
 		$Encoding = "UTF8"
 	}
+	
+	Connect-MgGraph -Scopes AuditLog.Read.All, Directory.Read.All -NoWelcome
 
 	Write-logFile -Message "[INFO] Running Get-ADAuditLogsGraph" -Color "Green"
 	
