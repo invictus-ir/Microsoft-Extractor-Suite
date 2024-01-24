@@ -95,19 +95,16 @@ function Get-MFA {
                 "#microsoft.graph.emailAuthenticationMethod" { 
                 $myObject.email = $true 
                 $myObject.MFAstatus = "Enabled"
-                $MFAEmail++
-              }
+                }
 
                 "#microsoft.graph.fido2AuthenticationMethod" { 
                 $myObject.fido2 = $true 
                 $myObject.MFAstatus = "Enabled"
-                $MFAEmail++
               }
 
                 "#microsoft.graph.microsoftAuthenticatorAuthenticationMethod" { 
                 $myObject.app = $true 
                 $myObject.MFAstatus = "Enabled"
-                $MFAapp++
               }
 
                 "#microsoft.graph.passwordAuthenticationMethod" {              
@@ -120,35 +117,46 @@ function Get-MFA {
                 "#microsoft.graph.phoneAuthenticationMethod" { 
                 $myObject.phone = $true 
                 $myObject.MFAstatus = "Enabled"
-                $MFAphone++
               }
 
                 "#microsoft.graph.softwareOathAuthenticationMethod" { 
                 $myObject.softwareoath = $true 
                 $myObject.MFAstatus = "Enabled"
-                $MFAsoftwareoath++
               }
 
                 "#microsoft.graph.temporaryAccessPassAuthenticationMethod" { 
                 $myObject.tempaccess = $true 
                 $myObject.MFAstatus = "Enabled"
-                $MFAtempaccess++
               }
 
                 "#microsoft.graph.windowsHelloForBusinessAuthenticationMethod" { 
                 $myObject.hellobusiness = $true 
                 $myObject.MFAstatus = "Enabled"
-                $MFAhellobusiness++
               }  
             
             }
-            if($myObject.MFAstatus -eq "Enabled") {
-                $MFAstatusAmount++
-            }
+        }
+		
+		if($myObject.MFAstatus -eq "Enabled") {
+            $MFAstatusAmount++
         }
 
         $results+= $myObject;
     }
+	
+	$filePath = "$OutputDir\MFAStatus.csv"
+    $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+    Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
+	
+	$MFAEmail = (Import-Csv -Path "$filePath" -Delimiter "," | Where-Object { $_.email -eq "True" } | Measure-Object).Count
+	$MFAfido2 = (Import-Csv -Path "$filePath" -Delimiter "," | Where-Object { $_.fido2 -eq "True" } | Measure-Object).Count
+	$MFAapp = (Import-Csv -Path "$filePath" -Delimiter "," | Where-Object { $_.app -eq "True" } | Measure-Object).Count
+	$MFAphone = (Import-Csv -Path "$filePath" -Delimiter "," | Where-Object { $_.phone -eq "True" } | Measure-Object).Count
+	$MFAsoftwareoath = (Import-Csv -Path "$filePath" -Delimiter "," | Where-Object { $_.softwareoath -eq "True" } | Measure-Object).Count
+	$MFAtempaccess = (Import-Csv -Path "$filePath" -Delimiter "," | Where-Object { $_.tempaccess -eq "True" } | Measure-Object).Count
+	$MFApassword = (Import-Csv -Path "$filePath" -Delimiter "," | Where-Object { $_.password -eq "True" } | Measure-Object).Count
+	$MFAhellobusiness = (Import-Csv -Path "$filePath" -Delimiter "," | Where-Object { $_.hellobusiness -eq "True" } | Measure-Object).Count
+	$MFAstatusAmount = (Import-Csv -Path "$filePath" -Delimiter "," | Where-Object { $_.MFAstatus -eq "Enabled" } | Measure-Object).Count
 
     write-host "$MFAstatusAmount out of $($users.count) users have MFA enabled:"
     write-host "  - $MFAEmail x Email"
@@ -157,9 +165,5 @@ function Get-MFA {
     write-host "  - $MFAphone x Phone"
     write-host "  - $MFAsoftwareoath x SoftwareOAuth"
     write-host "  - $MFAtempaccess x TempAccess"
-    write-host "  - $MFAhellobusiness x HelloBusiness"
-
-    $filePath = "$OutputDir\MFAStatus.csv"
-    $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
-    Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
+    write-host "  - $MFAhellobusiness x HelloBusiness"  
 }
