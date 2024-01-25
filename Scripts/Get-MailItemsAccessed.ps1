@@ -102,7 +102,7 @@ Function Get-Sessions {
          }
 
         if (($output -ne "N") -And ($output -ne "No")) {
-            $filePath = "$OutputDir\Sessions-$User.csv"
+            $filePath = "$OutputDir\Sessions-$UserIds.csv"
             $Results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
             Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
         }  
@@ -177,7 +177,7 @@ Function Get-Sessions {
             }
 
             if (($output -ne "N") -And ($output -ne "No")) {
-                $filePath = "$OutputDir\Sessions-$User-$IP.csv"
+                $filePath = "$OutputDir\Sessions-$UserIds-$IP.csv"
                 $Results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
                 Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
             }   
@@ -605,7 +605,7 @@ function Get-MessageIDs {
     }                       
 }
 
-function DownloadMails($iMessageID,$User){
+function DownloadMails($iMessageID,$UserIds){
 
     $onlyMessageID = $iMessageID.Split(" ")[0]
     if ($outputDir -eq "" ){
