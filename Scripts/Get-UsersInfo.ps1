@@ -20,6 +20,10 @@ function Get-Users {
     .EXAMPLE
     Get-Users
 	Retrieves the creation time and date of the last password change for all users.
+
+    .EXAMPLE
+    Get-Users -Application
+    Retrieves the creation time and date of the last password change for all users via application authentication.
 	
 	.EXAMPLE
 	Get-Users -Encoding utf32
@@ -32,10 +36,13 @@ function Get-Users {
     [CmdletBinding()]
 	param(
 		[string]$OutputDir,
-		[string]$Encoding
+		[string]$Encoding,
+        [switch]$Application
 	)
 
-    Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All -NoWelcome
+    if (!($Application.IsPresent)) {
+        Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All -NoWelcome
+    }
 
     try {
         $areYouConnected = Get-MgUser -ErrorAction stop
@@ -59,7 +66,7 @@ function Get-Users {
         }
     }
 
-    $selectobjects = "Id","AccountEnabled","UserPrincipalName","Mail","CreatedDateTime","LastPasswordChangeDateTime","DeletedDateTime"
+    $selectobjects = "Id","AccountEnabled","DisplayName","UserPrincipalName","Mail","CreatedDateTime","LastPasswordChangeDateTime","DeletedDateTime","JobTitle","Department","OfficeLocation","City","State","Country"
     $mgUsers = Get-MgUser -All -Select $selectobjects 
     write-host "A total of $($mgUsers.count) users found:" 
 
@@ -94,7 +101,7 @@ function Get-Users {
     write-host "  - $($sixmonthold.count) users created within the last 1 year."
 
     Get-MgUser | Get-Member | out-null
-    $filePath = "$OutputDir\Userinformation.csv"
+    $filePath = "$OutputDir\Users.csv"
     $mgUsers | select-object $selectobjects | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
     
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
