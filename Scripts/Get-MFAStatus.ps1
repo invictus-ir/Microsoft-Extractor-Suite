@@ -15,6 +15,10 @@ function Get-MFA {
     .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
     Default: UTF8
+
+    .PARAMETER Application
+    Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
+    Default: Delegated access (access on behalf a user)
     
     .EXAMPLE
     Get-MFA

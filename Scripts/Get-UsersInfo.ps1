@@ -7,38 +7,42 @@ function Get-Users {
 
     .DESCRIPTION
     Retrieves the creation time and date of the last password change for all users.
-	The output will be written to: Output\UserInfo\
+    The output will be written to: Output\UserInfo\
 
-	.PARAMETER OutputDir
-	OutputDir is the parameter specifying the output directory.
-	Default: Output\UserInfo
+    .PARAMETER OutputDir
+    OutputDir is the parameter specifying the output directory.
+    Default: Output\UserInfo
 
-	.PARAMETER Encoding
+    .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
-	Default: UTF8
+    Default: UTF8
+
+    .PARAMETER Application
+    Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
+    Default: Delegated access (access on behalf a user)
     
     .EXAMPLE
     Get-Users
-	Retrieves the creation time and date of the last password change for all users.
+    Retrieves the creation time and date of the last password change for all users.
 
     .EXAMPLE
     Get-Users -Application
     Retrieves the creation time and date of the last password change for all users via application authentication.
 	
-	.EXAMPLE
-	Get-Users -Encoding utf32
-	Retrieves the creation time and date of the last password change for all users and exports the output to a CSV file with UTF-32 encoding.
+    .EXAMPLE
+    Get-Users -Encoding utf32
+    Retrieves the creation time and date of the last password change for all users and exports the output to a CSV file with UTF-32 encoding.
 		
-	.EXAMPLE
-	Get-Users -OutputDir C:\Windows\Temp
-	Retrieves the creation time and date of the last password change for all users and saves the output to the C:\Windows\Temp folder.	
+    .EXAMPLE
+    Get-Users -OutputDir C:\Windows\Temp
+    Retrieves the creation time and date of the last password change for all users and saves the output to the C:\Windows\Temp folder.	
 #>
     [CmdletBinding()]
-	param(
-		[string]$OutputDir,
-		[string]$Encoding,
+    param(
+        [string]$OutputDir,
+        [string]$Encoding,
         [switch]$Application
-	)
+    )
 
     if (!($Application.IsPresent)) {
         Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All -NoWelcome
@@ -123,11 +127,19 @@ Function Get-AdminUsers {
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
 	Default: UTF8
+
+    .PARAMETER Application
+    Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
+    Default: Delegated access (access on behalf a user)
     
     .EXAMPLE
     Get-AdminUsers
 	Retrieves Administrator directory roles, including the identification of users associated with each specific role.
 	
+    .EXAMPLE
+    Get-AdminUsers -Application
+    Retrieves Administrator directory roles, including the identification of users associated with each specific role via application authentication.
+
 	.EXAMPLE
 	Get-AdminUsers -Encoding utf32
 	Retrieves Administrator directory roles, including the identification of users associated with each specific role and exports the output to a CSV file with UTF-32 encoding.
@@ -138,12 +150,15 @@ Function Get-AdminUsers {
 #>    
 
     [CmdletBinding()]
-	param(
-		[string]$outputDir,
-		[string]$Encoding
-	)
+    param(
+        [string]$outputDir,
+        [string]$Encoding,
+        [switch]$Application
+    )
 
-    Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All -NoWelcome
+    if (!($Application.IsPresent)) {
+        Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All -NoWelcome
+    }
 
     try {
         $areYouConnected = Get-MgDirectoryRole -ErrorAction stop

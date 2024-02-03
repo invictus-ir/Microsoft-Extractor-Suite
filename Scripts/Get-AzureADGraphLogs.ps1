@@ -21,6 +21,10 @@ function Get-ADSignInLogsGraph {
 	Encoding is the parameter specifying the encoding of the JSON output file.
 	Default: UTF8
 
+	.PARAMETER Application
+    Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
+    Default: Delegated access (access on behalf a user)
+
 	.PARAMETER UserIds
 	UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
     
@@ -163,6 +167,10 @@ function Get-ADAuditLogsGraph {
 	.PARAMETER Encoding
 	Encoding is the parameter specifying the encoding of the JSON output file.
 	Default: UTF8
+
+	.PARAMETER Application
+    Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
+    Default: Delegated access (access on behalf a user)
     
 	.EXAMPLE
 	Get-ADAuditLogsGraph

@@ -14,6 +14,10 @@ function Get-RiskyUsers {
     .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
     Default: UTF8
+
+    .PARAMETER Application
+    Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
+    Default: Delegated access (access on behalf a user)
     
     .EXAMPLE
     Get-RiskyUsers
@@ -119,6 +123,10 @@ function Get-RiskyDetections {
     .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
     Default: UTF8
+
+    .PARAMETER Application
+    Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
+    Default: Delegated access (access on behalf a user)
         
     .EXAMPLE
     Get-RiskyDetections
@@ -226,6 +234,3 @@ function Get-RiskyDetections {
     Write-logFile -Message "[INFO] A total of $count Risky Detections found"
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
 }
-
-
-
