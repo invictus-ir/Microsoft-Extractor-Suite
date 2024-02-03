@@ -6,39 +6,46 @@ Function Get-ConditionalAccessPolicies {
 
     .DESCRIPTION
     Retrieves the risky users from the Entra ID Identity Protection, which marks an account as being at risk based on the pattern of activity for the account.
-	The output will be written to: Output\UserInfo\
+    The output will be written to: Output\UserInfo\
 
-	.PARAMETER OutputDir
-	OutputDir is the parameter specifying the output directory.
-	Default: Output\UserInfo
+    .PARAMETER OutputDir
+    OutputDir is the parameter specifying the output directory.
+    Default: Output\UserInfo
 
-	.PARAMETER Encoding
+    .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
-	Default: UTF8
+    Default: UTF8
     
     .EXAMPLE
     Get-ConditionalAccess
     Retrieves all the conditional access policies.
+
+    .EXAMPLE
+    Get-ConditionalAccess -Application
+    Retrieves all the conditional access policies via application authentication.
 	
     .EXAMPLE
-	Get-ConditionalAccess -Encoding utf32
-	Retrieves all the conditional access policies and exports the output to a CSV file with UTF-32 encoding.
+    Get-ConditionalAccess -Encoding utf32
+    Retrieves all the conditional access policies and exports the output to a CSV file with UTF-32 encoding.
 		
-	.EXAMPLE
-	Get-ConditionalAccess -OutputDir C:\Windows\Temp
-	Retrieves all the conditional access policies and saves the output to the C:\Windows\Temp folder.	
+    .EXAMPLE
+    Get-ConditionalAccess -OutputDir C:\Windows\Temp
+    Retrieves all the conditional access policies and saves the output to the C:\Windows\Temp folder.	
 #>
     [CmdletBinding()]
     param(
         [string]$OutputDir,
-        [string]$Encoding
+        [string]$Encoding,
+        [switch]$Application
     )
 
     if ($Encoding -eq "" ){
         $Encoding = "UTF8"
     }
 
-    Connect-MgGraph -Scopes Policy.Read.All -NoWelcome
+    if (!($Application.IsPresent)) {
+        Connect-MgGraph -Scopes Policy.Read.All -NoWelcome
+    }
 
     try {
         $areYouConnected = get-MgIdentityConditionalAccessPolicy -ErrorAction stop
