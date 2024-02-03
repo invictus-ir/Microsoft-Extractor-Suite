@@ -1,40 +1,47 @@
 function Get-MFA {
 <#
-	.SYNOPSIS
-	Retrieves the MFA status for all users.
-	Script inspired by: https://activedirectorypro.com/mfa-status-powershell/
+    .SYNOPSIS
+    Retrieves the MFA status for all users.
+    Script inspired by: https://activedirectorypro.com/mfa-status-powershell/
 
-	.DESCRIPTION
-	Retrieves the MFA status for all users.
-	The output will be written to: Output\UserInfo\
+    .DESCRIPTION
+    Retrieves the MFA status for all users.
+    The output will be written to: Output\UserInfo\
 
-	.PARAMETER OutputDir
-	OutputDir is the parameter specifying the output directory.
-	Default: Output\UserInfo
+    .PARAMETER OutputDir
+    OutputDir is the parameter specifying the output directory.
+    Default: Output\UserInfo
 
-	.PARAMETER Encoding
-	Encoding is the parameter specifying the encoding of the CSV output file.
-	Default: UTF8
+    .PARAMETER Encoding
+    Encoding is the parameter specifying the encoding of the CSV output file.
+    Default: UTF8
     
-	.EXAMPLE
-	Get-MFA
-	Retrieves the MFA status for all users.
+    .EXAMPLE
+    Get-MFA
+    Retrieves the MFA status for all users.
+
+    .EXAMPLE
+    Get-MFA
+    Retrieves the MFA status for all users via application authentication.
 	
-	.EXAMPLE
-	Get-MFA -Encoding utf32
-	Retrieves the MFA status for all users and exports the output to a CSV file with UTF-32 encoding.
+    .EXAMPLE
+    Get-MFA -Encoding utf32
+    Retrieves the MFA status for all users and exports the output to a CSV file with UTF-32 encoding.
 		
-	.EXAMPLE
-	Get-MFA -OutputDir C:\Windows\Temp
-	Retrieves the MFA status for all users and saves the output to the C:\Windows\Temp folder.	
+    .EXAMPLE
+    Get-MFA -OutputDir C:\Windows\Temp
+    Retrieves the MFA status for all users and saves the output to the C:\Windows\Temp folder.	
 #>
     [CmdletBinding()]
     param(
         [string]$OutputDir,
-        [string]$Encoding
+        [string]$Encoding,
+        [switch]$Application
     )
 
-    Connect-MgGraph -Scopes UserAuthenticationMethod.Read.All,User.Read.All -NoWelcome
+    if (!($Application.IsPresent)) {
+        Connect-MgGraph -Scopes UserAuthenticationMethod.Read.All,User.Read.All -NoWelcome
+    }
 
     try {
         $areYouConnected = Get-MgUser -ErrorAction stop 
