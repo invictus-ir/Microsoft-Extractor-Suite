@@ -1,39 +1,43 @@
 function Get-ADSignInLogsGraph {
 <#
     .SYNOPSIS
-    Gets of sign ins logs.
+	Gets of sign ins logs.
 
-    .DESCRIPTION
-    The Get-ADSignInLogsGraph GraphAPI cmdlet collects the contents of the Azure Active Directory sign-in logs.
+	.DESCRIPTION
+	The Get-ADSignInLogsGraph GraphAPI cmdlet collects the contents of the Azure Active Directory sign-in logs.
 	The output will be written to: Output\AzureAD\SignInLogsGraph.json
 
 	.PARAMETER After
 	The After parameter specifies the date from which all logs need to be collected.
 
 	.PARAMETER Before
-    The Before parameter specifies the date before which all logs need to be collected.
+	The Before parameter specifies the date before which all logs need to be collected.
 
 	.PARAMETER OutputDir
-    outputDir is the parameter specifying the output directory.
+	outputDir is the parameter specifying the output directory.
 	Default: Output\AzureAD
 
 	.PARAMETER Encoding
-    Encoding is the parameter specifying the encoding of the JSON output file.
+	Encoding is the parameter specifying the encoding of the JSON output file.
 	Default: UTF8
 
 	.PARAMETER UserIds
-    UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
+	UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
     
-    .EXAMPLE
-    Get-ADSignInLogsGraph
+	.EXAMPLE
+	Get-ADSignInLogsGraph
 	Get all audit logs of sign ins.
 
 	.EXAMPLE
-    Get-ADSignInLogsGraph -Before 2023-04-12
+	Get-ADSignInLogsGraph -Application
+	Get all audit logs of sign ins via application authentication.
+
+	.EXAMPLE
+	Get-ADSignInLogsGraph -Before 2023-04-12
 	Get audit logs before 2023-04-12.
 
 	.EXAMPLE
-    Get-ADSignInLogsGraph -After 2023-04-12
+	Get-ADSignInLogsGraph -After 2023-04-12
 	Get audit logs after 2023-04-12.
 #>
 	[CmdletBinding()]
@@ -42,10 +46,13 @@ function Get-ADSignInLogsGraph {
 		[string]$Before,
 		[string]$outputDir,
 		[string]$UserIds,
-		[string]$Encoding
+		[string]$Encoding,
+		[switch]$Application
 	)
 
-	Connect-MgGraph -Scopes AuditLog.Read.All, Directory.Read.All -NoWelcome
+	if (!($Application.IsPresent)) {
+		Connect-MgGraph -Scopes AuditLog.Read.All, Directory.Read.All -NoWelcome
+	}
 
 	try {
 		$areYouConnected = Get-MgBetaAuditLogSignIn -ErrorAction stop
@@ -136,37 +143,41 @@ function Get-ADSignInLogsGraph {
 
 function Get-ADAuditLogsGraph {
 <#
-    .SYNOPSIS
-    Get directory audit logs.
+	.SYNOPSIS
+	Get directory audit logs.
 
-    .DESCRIPTION
-    The Get-ADAuditLogsGraph GraphAPI cmdlet to collect the contents of the Azure Active Directory Audit logs.
+	.DESCRIPTION
+	The Get-ADAuditLogsGraph GraphAPI cmdlet to collect the contents of the Azure Active Directory Audit logs.
 	The output will be written to: "Output\AzureAD\AuditlogsGraph.json
 
 	.PARAMETER After
 	The After parameter specifies the date from which all logs need to be collected.
 
 	.PARAMETER Before
-    The Before parameter specifies the date before which all logs need to be collected.
+	The Before parameter specifies the date before which all logs need to be collected.
 
 	.PARAMETER OutputDir
-    outputDir is the parameter specifying the output directory.
+	outputDir is the parameter specifying the output directory.
 	Default: Output\AzureAD
 
 	.PARAMETER Encoding
-    Encoding is the parameter specifying the encoding of the JSON output file.
+	Encoding is the parameter specifying the encoding of the JSON output file.
 	Default: UTF8
     
-    .EXAMPLE
-    Get-ADAuditLogsGraph
+	.EXAMPLE
+	Get-ADAuditLogsGraph
 	Get directory audit logs.
 
 	.EXAMPLE
-    Get-ADAuditLogsGraph -Before 2023-04-12
+	Get-ADAuditLogsGraph -Application
+	Get directory audit logs via application authentication.
+
+	.EXAMPLE
+	Get-ADAuditLogsGraph -Before 2023-04-12
 	Get directory audit logs before 2023-04-12.
 
 	.EXAMPLE
-    Get-ADAuditLogsGraph -After 2023-04-12
+	Get-ADAuditLogsGraph -After 2023-04-12
 	Get directory audit logs after 2023-04-12.
 #>
 	[CmdletBinding()]
@@ -174,7 +185,8 @@ function Get-ADAuditLogsGraph {
 		[string]$After,
 		[string]$Before,
 		[string]$OutputDir,
-		[string]$Encoding
+		[string]$Encoding,
+		[switch]$Application
 	)
 
 	try {
@@ -189,7 +201,9 @@ function Get-ADAuditLogsGraph {
 		$Encoding = "UTF8"
 	}
 	
-	Connect-MgGraph -Scopes AuditLog.Read.All, Directory.Read.All -NoWelcome
+	if (!($Application.IsPresent)) {
+		Connect-MgGraph -Scopes AuditLog.Read.All, Directory.Read.All -NoWelcome
+	}
 
 	Write-logFile -Message "[INFO] Running Get-ADAuditLogsGraph" -Color "Green"
 	
