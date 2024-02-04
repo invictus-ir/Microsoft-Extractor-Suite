@@ -35,6 +35,10 @@ Parameters
     - OutputDir is the parameter specifying the output directory.
     - Default: Output\AzureAD
 
+-Application (optional)
+    - Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
+    - Default: Delegated access (access on behalf a user)
+
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the JSON output file.
     - Default: UTF8
