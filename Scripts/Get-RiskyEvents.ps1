@@ -5,39 +5,50 @@ function Get-RiskyUsers {
 
     .DESCRIPTION
     Retrieves the risky users from the Entra ID Identity Protection, which marks an account as being at risk based on the pattern of activity for the account.
-	The output will be written to: Output\UserInfo\
+    The output will be written to: Output\UserInfo\
 
-	.PARAMETER OutputDir
-	OutputDir is the parameter specifying the output directory.
-	Default: Output\UserInfo
+    .PARAMETER OutputDir
+    OutputDir is the parameter specifying the output directory.
+    Default: Output\UserInfo
 
-	.PARAMETER Encoding
+    .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
-	Default: UTF8
+    Default: UTF8
+
+    .PARAMETER Application
+    Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
+    Default: Delegated access (access on behalf a user)
     
     .EXAMPLE
     Get-RiskyUsers
     Retrieves all risky users.
+
+    .EXAMPLE
+    Get-RiskyUsers -Application
+    Retrieves all risky users via application authentication.
 	
     .EXAMPLE
-	Get-RiskyUsers -Encoding utf32
-	Retrieves all risky users and exports the output to a CSV file with UTF-32 encoding.
+    Get-RiskyUsers -Encoding utf32
+    Retrieves all risky users and exports the output to a CSV file with UTF-32 encoding.
 		
-	.EXAMPLE
-	Get-RiskyUsers -OutputDir C:\Windows\Temp
-	Retrieves all risky users and saves the output to the C:\Windows\Temp folder.	
+    .EXAMPLE
+    Get-RiskyUsers -OutputDir C:\Windows\Temp
+    Retrieves all risky users and saves the output to the C:\Windows\Temp folder.	
 #>
     [CmdletBinding()]
     param(
         [string]$OutputDir,
-        [string]$Encoding
+        [string]$Encoding,
+        [switch]$Application
     )
 
     if ($Encoding -eq "" ){
         $Encoding = "UTF8"
     }
 
-    Connect-MgGraph -Scopes IdentityRiskEvent.Read.All -NoWelcome
+    if (!($Application.IsPresent)) {
+        Connect-MgGraph -Scopes IdentityRiskEvent.Read.All -NoWelcome
+    }
 
     try {
         $areYouConnected = Get-MgRiskyUser -ErrorAction stop
@@ -103,7 +114,7 @@ function Get-RiskyDetections {
 
     .DESCRIPTION
     Retrieves the risky detections from the Entra ID Identity Protection.
-	The output will be written to: Output\UserInfo\
+    The output will be written to: Output\UserInfo\
 
     .PARAMETER OutputDir
     OutputDir is the parameter specifying the output directory.
@@ -112,26 +123,37 @@ function Get-RiskyDetections {
     .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
     Default: UTF8
+
+    .PARAMETER Application
+    Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
+    Default: Delegated access (access on behalf a user)
         
     .EXAMPLE
     Get-RiskyDetections
     Retrieves all the risky detections.
+
+    .EXAMPLE
+    Get-RiskyDetections -Application
+    Retrieves all the risky detections via application authentication.
 	
-	.EXAMPLE
-	Get-RiskyDetections -Encoding utf32
-	Retrieves the risky detections and exports the output to a CSV file with UTF-32 encoding.
+    .EXAMPLE
+    Get-RiskyDetections -Encoding utf32
+    Retrieves the risky detections and exports the output to a CSV file with UTF-32 encoding.
 		
-	.EXAMPLE
-	Get-RiskyDetections -OutputDir C:\Windows\Temp
-	Retrieves the risky detections and saves the output to the C:\Windows\Temp folder.	
+    .EXAMPLE
+    Get-RiskyDetections -OutputDir C:\Windows\Temp
+    Retrieves the risky detections and saves the output to the C:\Windows\Temp folder.	
 #>
     [CmdletBinding()]
     param(
         [string]$OutputDir,
-        [string]$Encoding
+        [string]$Encoding,
+        [switch]$Application
     )
 
-    Connect-MgGraph -Scopes IdentityRiskEvent.Read.All -NoWelcome
+    if (!($Application.IsPresent)) {
+        Connect-MgGraph -Scopes IdentityRiskEvent.Read.All -NoWelcome
+    }
 
     try {
         $areYouConnected = Get-MgRiskDetection -ErrorAction stop
@@ -212,6 +234,3 @@ function Get-RiskyDetections {
     Write-logFile -Message "[INFO] A total of $count Risky Detections found"
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
 }
-
-
-
