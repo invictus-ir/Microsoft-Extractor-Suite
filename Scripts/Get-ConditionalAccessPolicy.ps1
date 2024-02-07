@@ -21,19 +21,19 @@ Function Get-ConditionalAccessPolicies {
     Default: Delegated access (access on behalf a user)
     
     .EXAMPLE
-    Get-ConditionalAccess
+    Get-ConditionalAccessPolicies
     Retrieves all the conditional access policies.
 
     .EXAMPLE
-    Get-ConditionalAccess -Application
+    Get-ConditionalAccessPolicies -Application
     Retrieves all the conditional access policies via application authentication.
 	
     .EXAMPLE
-    Get-ConditionalAccess -Encoding utf32
+    Get-ConditionalAccessPolicies -Encoding utf32
     Retrieves all the conditional access policies and exports the output to a CSV file with UTF-32 encoding.
 		
     .EXAMPLE
-    Get-ConditionalAccess -OutputDir C:\Windows\Temp
+    Get-ConditionalAccessPolicies -OutputDir C:\Windows\Temp
     Retrieves all the conditional access policies and saves the output to the C:\Windows\Temp folder.	
 #>
     [CmdletBinding()]

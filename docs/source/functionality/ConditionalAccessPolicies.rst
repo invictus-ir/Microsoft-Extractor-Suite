@@ -7,7 +7,7 @@ Usage
 Retrieves all the conditional access policies.
 ::
 
-   Get-ConditionalAccess
+   Get-ConditionalAccessPolicies
 
 Parameters
 """"""""""""""""""""""""""
