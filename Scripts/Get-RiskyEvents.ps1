@@ -195,6 +195,8 @@ function Get-RiskyDetections {
             RiskDetail                      = "-"
             RiskEventType                   = "-"
             RiskLevel                       = "-"
+            riskState                       = "-"
+            detectionTimingType             = "-"
             Source                          = "-"
             TokenIssuerType                 = "-"
             UserDisplayName                 = "-"
@@ -218,6 +220,8 @@ function Get-RiskyDetections {
         $myobject.RiskDetail = $_.RiskDetail
         $myobject.RiskEventType = $_.RiskEventType
         $myobject.RiskLevel = $_.RiskLevel
+        $myobject.riskState = $_.riskState
+        $myobject.detectionTimingType = $_.detectionTimingType
         $myobject.Source = $_.Source
         $myobject.TokenIssuerType = $_.TokenIssuerType
         $myobject.UserDisplayName = $_.UserDisplayName
