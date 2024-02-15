@@ -649,8 +649,8 @@ function DownloadMails($iMessageID,$UserIds){
         }
     }
     catch {
-        #Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.ReadBasic.All before running the -Download flag" -Color "Red"
-        #Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.ReadBasic.All before running the -Download flag" -Color "Red"
+        Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
         Write-Host "[WARNING] Error Message: $($_.Exception.Message)" -Color "Red"
         break
     }

@@ -121,7 +121,7 @@ Function Get-Attachment {
     Write-logFile -Message "[INFO] Running Get-Attachment" -Color "Green"
 
     try {
-        $areYouConnected = Get-MgUserMessage -ErrorAction stop
+        $areYouConnected = Get-MgUserMessage -Filter "internetMessageId eq '$internetMessageId'" -UserId $userIds -ErrorAction stop
     }
     catch {
         Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.Read, Mail.ReadBasic, Mail.ReadBasic.All, Mail.ReadWrite before running this script" -Color "Red"
@@ -187,7 +187,7 @@ Function Show-Email {
     Write-logFile -Message "[INFO] Running Show-Email" -Color "Green"
 
     try {
-        $areYouConnected = Get-MgUserMessage -ErrorAction stop
+        $areYouConnected = Get-MgUserMessage -Filter "internetMessageId eq '$internetMessageId'" -UserId $userIds -ErrorAction stop
     }
     catch {
         Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.Read, Mail.ReadBasic, Mail.ReadBasic.All, Mail.ReadWrite before running this script" -Color "Red"
