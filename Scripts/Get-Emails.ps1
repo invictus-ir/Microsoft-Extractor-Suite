@@ -66,14 +66,18 @@ Function Get-Email {
 
     $getMessage = Get-MgUserMessage -UserId $userIds -Filter "internetMessageId eq '$internetMessageId'"
     $messageId = $getMessage.Id
+
     $subject = $getMessage.Subject
+    $subject = $subject -replace '[\\/:*?"<>|]', '_'
+
+    $ReceivedDateTime = $getMessage.ReceivedDateTime.ToString("yyyyMMdd_HHmmss")
 
     if ($output -eq "txt") {
-        $filePath = "$outputDir\$subject.txt"
+        $filePath = "$outputDir\$ReceivedDateTime-$subject.txt"
     }
     
     else {
-        $filePath = "$outputDir\$subject.msg"
+        $filePath = "$outputDir\$ReceivedDateTime-$subject.msg"
     }
 
     Get-MgUserMessageContent -MessageId $messageId -UserId $userIds -OutFile $filePath
@@ -140,6 +144,7 @@ Function Get-Attachment {
     $getMessage = Get-MgUserMessage -Filter "internetMessageId eq '$internetMessageId'" -UserId $userIds
     $messageId = $getMessage.Id
     $hasAttachment = $getMessage.HasAttachments
+    $ReceivedDateTime = $getMessage.ReceivedDateTime.ToString("yyyyMMdd_HHmmss")
     $subject = $getMessage.Subject
 
     if ($hasAttachment -eq "True"){
@@ -153,8 +158,9 @@ Function Get-Attachment {
         $base64B = ($attachment).AdditionalProperties.contentBytes
         $decoded = [System.Convert]::FromBase64String($base64B)
 
-        $filePath = "$OutputDir\'$subject-$filename'"
-        Set-Content $filePath -Value $decoded -Encoding Byte
+        $filename = $filename -replace '[\\/:*?"<>|]', '_'
+        $filePath = Join-Path -Path $outputDir -ChildPath "$ReceivedDateTime-$filename"
+        Set-Content -Path $filePath -Value $decoded -Encoding Byte
     
         Write-logFile -Message "[INFO] Output written to '$subject-$filename'" -Color "Green"
     }
