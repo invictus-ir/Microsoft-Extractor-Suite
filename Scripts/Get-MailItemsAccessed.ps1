@@ -620,8 +620,11 @@ function DownloadMails($iMessageID,$UserIds){
         $getMessage = Get-MgUserMessage -Filter "internetMessageId eq '$onlyMessageID'" -UserId $userId -ErrorAction stop
         $messageId = $getMessage.Id
         $attachment = $getMessage.Attachments
+        $ReceivedDateTime = $getMessage.ReceivedDateTime.ToString("yyyyMMdd_HHmmss")
 
-        $filePath = "$outputDir\$messageId.msg"
+        $subject = $getMessage.Subject
+        $subject = $subject -replace '[\\/:*?"<>|]', '_'
+        $filePath = "$outputDir\$ReceivedDateTime-$subject.msg"
 
         Get-MgUserMessageContent -MessageId $messageId -UserId $userId -OutFile $filePath
         Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
@@ -638,15 +641,17 @@ function DownloadMails($iMessageID,$UserIds){
             $base64B = ($attachment).AdditionalProperties.contentBytes
             $decoded = [System.Convert]::FromBase64String($base64B)
 
-            $filePath = "$OutputDir\'$messageId-$filename'"
-            Set-Content $filePath -Value $decoded -Encoding Byte
+            $filename = $filename -replace '[\\/:*?"<>|]', '_'
+            $filePath = Join-Path -Path $outputDir -ChildPath "$ReceivedDateTime-$filename"
+            Set-Content -Path $filePath -Value $decoded -Encoding Byte
 
             Write-logFile -Message "[INFO] File Attachment Successfully Written to $filePath" -Color "Green"
         }
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.Read, Mail.ReadBasic, Mail.ReadBasic.All, Mail.ReadWrite before running the -Download flag" -Color "Red"
-        Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
+        #Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.ReadBasic.All before running the -Download flag" -Color "Red"
+        #Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
+        Write-Host "[WARNING] Error Message: $($_.Exception.Message)" -Color "Red"
         break
     }
 
