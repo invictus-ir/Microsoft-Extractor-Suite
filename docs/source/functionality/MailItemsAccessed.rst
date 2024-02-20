@@ -83,8 +83,8 @@ Parameters
     - To specifiy whether the messages and their attachments should be saved.
     - Default: No
 
--SessionID (optional)
-    - The sessionsID parameter is used to filter the logs by specifying the desired session id.
+-Session (optional)
+    - The session parameter is used to filter the logs by specifying the desired session id.
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
