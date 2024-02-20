@@ -524,7 +524,7 @@ function Get-MessageIDs {
         $results | Sort TimeStamp | Format-Table Timestamp, User, IPaddress, SessionID, InternetMessageId, SizeInBytes  
 
         if (($output -ne "N") -And ($output -ne "No")) {
-            $filePath = "$OutputDir\MessageIDs-$SessionId.csv"
+            $filePath = "$OutputDir\MessageIDs-$Sessions.csv"
             $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
             Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
         }
