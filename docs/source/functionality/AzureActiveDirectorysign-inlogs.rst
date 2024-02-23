@@ -30,7 +30,7 @@ Parameters
     - After is the parameter specifying the start date of the date range. The time format supported is limited to yyyy-mm-dd only.
 
 -Before (optional)
-    - EndDate is the parameter specifying the end date of the date range. The time format supported is limited to yyyy-mm-dd only.
+    - Before is the parameter specifying the end date of the date range. The time format supported is limited to yyyy-mm-dd only.
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.

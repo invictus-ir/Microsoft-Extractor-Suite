@@ -131,10 +131,6 @@ Function Get-AdminUsers {
     .PARAMETER Application
     Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
     Default: Delegated access (access on behalf a user)
-
-    .PARAMETER MergeCSVOutput
-    MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file
-    Default: n
     
     .EXAMPLE
     Get-AdminUsers
@@ -157,7 +153,6 @@ Function Get-AdminUsers {
     param(
         [string]$outputDir,
         [string]$Encoding,
-        [string]$MergeCSVOutput,
         [switch]$Application
     )
 
@@ -178,13 +173,6 @@ Function Get-AdminUsers {
     if ($Encoding -eq "" ){
         $Encoding = "UTF8"
     }
-
-    if ( $MergeCSVOutput -eq "y") {
-    	Write-LogFile -Message "[INFO] MergeCSVOutput set to y"
-    } 
-    else {
-		$MergeCSVOutput = "n"
-	}
 
     if ($OutputDir -eq "" ){
         $OutputDir = "Output\UserInfo"
@@ -251,15 +239,12 @@ Function Get-AdminUsers {
         }
     }
 
-    if ($MergeCSVOutput -eq "y")
-	{
-        $outputDirMerged = "$OutputDir\Merged\"
-        If (!(test-path $outputDirMerged)) {
-            Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
-            New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
-        }
-    
-        Write-LogFile -Message "[INFO] Merging Administrator CSV Ouput Files" -Color "Green"
-        Get-ChildItem $OutputDir -Filter "*Administrator.csv" | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/All-Administrators.csv" -NoTypeInformation -Append
+    $outputDirMerged = "$OutputDir\Merged\"
+    If (!(test-path $outputDirMerged)) {
+        Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
+        New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
     }
+    
+    Write-LogFile -Message "[INFO] Merging Administrator CSV Ouput Files" -Color "Green"
+    Get-ChildItem $OutputDir -Filter "*Administrator.csv" | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/All-Administrators.csv" -NoTypeInformation -Append  
 }
