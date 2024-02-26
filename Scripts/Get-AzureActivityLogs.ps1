@@ -173,7 +173,7 @@ function Get-ActivityLogs {
 							
 							$backup = $tempInterval
 							$tempStartDate = $tempStartDate.AddHours($tempInterval)
-							$amountResults = Get-AzActivityLog -StartTime $tempStartDate -EndTime $currentEnd -MaxRecord 1000 -WarningAction SilentlyContinue 
+							$amountResults = Get-AzActivityLog -StartTime $tempStartDate -EndTime $currentEnd -MaxRecord 1000 -WarningAction SilentlyContinue
 						}
 						
 						$amountResults = Get-AzActivityLog -StartTime $tempStartDate -EndTime $currentEnd -MaxRecord 1000 -WarningAction SilentlyContinue
