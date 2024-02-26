@@ -164,6 +164,9 @@ function Get-ADAuditLogsGraph {
 	outputDir is the parameter specifying the output directory.
 	Default: Output\AzureAD
 
+	.PARAMETER UserIds
+	UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
+
 	.PARAMETER Encoding
 	Encoding is the parameter specifying the encoding of the JSON output file.
 	Default: UTF8
@@ -194,6 +197,7 @@ function Get-ADAuditLogsGraph {
 		[string]$Before,
 		[string]$OutputDir,
 		[string]$Encoding,
+		[string]$UserIds,
 		[switch]$Application
 	)
 
@@ -218,41 +222,64 @@ function Get-ADAuditLogsGraph {
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 
 	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\AzureAD\$date\"
+		$OutputDir = "Output\AzureAD\$date"
 		if (!(test-path $OutputDir)) {
 			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
 			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
 	}
 
+	$filePath = "$OutputDir\AuditlogsGraph.json"
+
 	if (($After -eq "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs"
-		$filePath = "$OutputDir\AuditlogsGraph.json"
-		
-		$auditLogs = Get-MgAuditLogDirectoryAudit -All | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
-		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-		
-		Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+
+		if ($Userids){
+			$auditLogs = Get-MgAuditLogDirectoryAudit -All -Filter "initiatedBy/user/userPrincipalName eq '$Userids'" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
+			$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+			
+			Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		}
+		else {
+			$auditLogs = Get-MgAuditLogDirectoryAudit -All | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
+			$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+			
+			Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		}
 	}
 
 	elseif (($After -ne "") -and ($Before -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs on or after $After"
-		$filePath = "$OutputDir\AuditlogsGraph.json"
-		
-		$auditLogs = Get-MgAuditLogDirectoryAudit -All -Filter "activityDateTime gt $After" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
-		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-		
-		Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+
+		if ($Userids){
+			$auditLogs = Get-MgAuditLogDirectoryAudit -All -Filter "initiatedBy/user/userPrincipalName eq '$Userids' and activityDateTime gt $After" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
+			$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+			
+			Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		}
+		else {
+			$auditLogs = Get-MgAuditLogDirectoryAudit -All -Filter "activityDateTime gt $After" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
+			$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+			
+			Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		}
 	}
 
 	elseif (($Before -ne "") -and ($After -eq "")) {
 		Write-logFile -Message "[INFO] Collecting the Directory audit logs logs on or before $Before"
-		$filePath = "$OutputDir\$date\AuditlogsGraph.json"
-		
-		$auditLogs = Get-MgAuditLogDirectoryAudit -All -Filter "activityDateTime lt $Before" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
-		$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-		
-		Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+
+		if ($Userids){
+			$auditLogs = Get-MgAuditLogDirectoryAudit -All -Filter "initiatedBy/user/userPrincipalName eq '$Userids' and activityDateTime lt $Before" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
+			$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+			
+			Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		}
+		else {
+			$auditLogs = Get-MgAuditLogDirectoryAudit -All -Filter "activityDateTime lt $Before" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
+			$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
+			
+			Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
+		}
 	}
 
 	else {
