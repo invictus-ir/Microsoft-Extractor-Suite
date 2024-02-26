@@ -157,7 +157,7 @@ function Get-ADSignInLogs {
 			}
 			catch{
 				Start-Sleep -Seconds 20
-				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter -Filter "UserPrincipalName eq '$Userids' and createdDateTime lt $Before"
+				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$Userids' and createdDateTime lt $Before"
 				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
 				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
@@ -308,7 +308,7 @@ function Get-ADAuditLogs {
             }
             catch{
                 Start-Sleep -Seconds 20
-				$auditLogs = Get-AzureADAuditDirectoryLogs -All $true -Filter -Filter "initiatedBy/user/userPrincipalName eq '$Userids' and activityDateTime lt $Before" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
+				$auditLogs = Get-AzureADAuditDirectoryLogs -All $true -Filter "initiatedBy/user/userPrincipalName eq '$Userids' and activityDateTime lt $Before" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
 				$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
 				Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
@@ -343,7 +343,7 @@ function Get-ADAuditLogs {
             }
             catch{
                 Start-Sleep -Seconds 20
-				$auditLogs = Get-AzureADAuditDirectoryLogs -All $true -Filter -Filter "initiatedBy/user/userPrincipalName eq '$Userids' and createdDateTime lt $Before" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
+				$auditLogs = Get-AzureADAuditDirectoryLogs -All $true -Filter "initiatedBy/user/userPrincipalName eq '$Userids' and createdDateTime lt $Before" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
 				$auditLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
 
 				Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
