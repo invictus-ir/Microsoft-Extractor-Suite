@@ -1,6 +1,7 @@
 ![alt text](https://github.com/invictus-ir/Microsoft-Extractor-Suite/blob/main/docs/source/Images/Invictus-Incident-Response.jpg?raw=true)
 
 [![Documentation](https://img.shields.io/badge/Read%20the%20Docs-Documentation-blue)](https://microsoft-365-extractor-suite.readthedocs.io/en/latest/)
+[![Latest Version](https://img.shields.io/powershellgallery/v/Microsoft-Extractor-Suite?label=Latest%20Version&color=brightgreen)](https://www.powershellgallery.com/packages/Microsoft-Extractor-Suite)
 ![GitHub stars](https://img.shields.io/github/stars/invictus-ir/Microsoft-Extractor-Suite?style=social)
 ![Contributors](https://img.shields.io/github/contributors/invictus-ir/Microsoft-Extractor-Suite)
 ![PS Gallery Downloads](https://img.shields.io/powershellgallery/dt/Microsoft-Extractor-Suite?label=PS%20Gallery%20Downloads)
