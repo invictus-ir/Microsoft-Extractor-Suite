@@ -179,7 +179,7 @@ function Get-ActivityLogs {
 						$amountResults = Get-AzActivityLog -StartTime $tempStartDate -EndTime $currentEnd -MaxRecord 1000 -WarningAction SilentlyContinue
 						Write-LogFile -Message "[INFO] Successfully retrieved $($amountResults.count) Activity logs between $tempStartDate and $currentEnd" -Color "Green"
 
-						$amountResults | Select-Object @{N='EventTimestamp';E={$_.EventTimestamp.ToString()}},EventName,EventDataId,TenantId,CorrelationId,SubStatus,SubscriptionId,@{N='SubmissionTimestamp';E={$_.SubmissionTimestamp.ToString()}},Status,ResourceType,ResourceProviderName,ResourceId,ResourceGroupName,OperationName,OperationId,Level,Id,Description,Category,Caller, Authorization, claim.ipaddr, claim.name, @{Name='Claim';expression={$_.Claims -join ";"}}, HttpRequest.ClientId, Http.Request.Method, Http.Request.ClientIpAddress, Http.Request.Url, Properties | Convert-ToJSON -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
+						$amountResults | Select-Object @{N='EventTimestamp';E={$_.EventTimestamp.ToString()}},EventName,EventDataId,TenantId,CorrelationId,SubStatus,SubscriptionId,@{N='SubmissionTimestamp';E={$_.SubmissionTimestamp.ToString()}},Status,ResourceType,ResourceProviderName,ResourceId,ResourceGroupName,OperationName,OperationId,Level,Id,Description,Category,Caller,Authorization,Claims,HttpRequest,Properties | ConvertTo-Json -Depth 100 | Convert-ToJSON -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
 						
 						if ($tempStartDate -eq $currentEnd) {
 							$timeLeft = ($currentEnd - $start).TotalHours							
@@ -192,7 +192,7 @@ function Get-ActivityLogs {
 				
 				else {
 					Write-LogFile -Message "[INFO] Successfully retrieved $($amountResults.count) Activity logs for $formattedDate. Moving on!" -Color "Green"
-					Get-AzActivityLog -StartTime $start -EndTime $end -MaxRecord 1000 -WarningAction silentlyContinue | Select-Object @{N='EventTimestamp';E={$_.EventTimestamp.ToString()}},EventName,EventDataId,TenantId,CorrelationId,SubStatus,SubscriptionId,@{N='SubmissionTimestamp';E={$_.SubmissionTimestamp.ToString()}},Status,ResourceType,ResourceProviderName,ResourceId,ResourceGroupName,OperationName,OperationId,Level,Id,Description,Category,Caller, Authorization, claim.ipaddr, claim.name, @{Name='Claim';expression={$_.Claims -join ";"}},HttpRequest.ClientId, Http.Request.Method, Http.Request.ClientIpAddress, Http.Request.Url, Properties | ConvertTo-Json -Depth 100	| Out-File -FilePath $filePath -Append -Encoding $Encoding
+					Get-AzActivityLog -StartTime $start -EndTime $end -MaxRecord 1000 -WarningAction silentlyContinue | Select-Object @{N='EventTimestamp';E={$_.EventTimestamp.ToString()}},EventName,EventDataId,TenantId,CorrelationId,SubStatus,SubscriptionId,@{N='SubmissionTimestamp';E={$_.SubmissionTimestamp.ToString()}},Status,ResourceType,ResourceProviderName,ResourceId,ResourceGroupName,OperationName,OperationId,Level,Id,Description,Category,Caller,Authorization,Claims,HttpRequest,Properties | ConvertTo-Json -Depth 100	| Out-File -FilePath $filePath -Append -Encoding $Encoding
 				}					
 			}
 			
