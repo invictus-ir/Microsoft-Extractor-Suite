@@ -37,7 +37,13 @@ Install the Powershell module Graph Beta module for the Azure Active Directory s
 
 .. note::
    
-   Connect-GraphAPI to sign in with the required scopes. The first time you'll need to sign in with an admin account to consent to the required scopes.
+   Due to known `issues<https://github.com/microsoftgraph/msgraph-sdk-powershell/issues/134>` with PowerShellGet for PowerShell version 5.1, the Microsoft.Graph.Beta commandlet may take a long time to install. Using the following command will upgrade PowerShellGet to the latest `beta<https://devblogs.microsoft.com/powershell/powershellget-3-0-preview-20/>`, which fixes this issue on Windows 11. For windows 10, you may need to install the PowerShellGet module with -allowclobber prior:
+   ::
+
+       Install-Module PowerShellGet -Force -AllowPrerelease;
+
+   Use Connect-GraphAPI to sign in with the required scopes. The first time you'll need to sign in with an admin account to consent to the required scopes.
+
    
 Getting Started
 -------
