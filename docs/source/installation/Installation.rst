@@ -66,5 +66,6 @@ To sign in, use the following cmdlets:
    Connect-M365
    Connect-Azure
    Connect-AzureAZ
+   Connect-GraphAPI
 
 
