@@ -41,7 +41,7 @@ Install the Powershell module Graph Beta module for the Azure Active Directory s
    
    ::
 
-       Install-Module PowerShellGet -Force -AllowPrerelease;
+       Install-Module PowerShellGet -Force -AllowPrerelease
 
    Use Connect-GraphAPI to sign in with the required scopes. The first time you'll need to sign in with an admin account to consent to the required scopes.
 
