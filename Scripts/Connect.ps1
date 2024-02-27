@@ -12,8 +12,3 @@ Function Connect-AzureAZ
 {
 	Connect-AzAccount | Out-Null
 }
-
-Function Connect-GraphAPI
-{
-	Connect-MgGraph -Scopes AuditLog.Read.All, Directory.Read.All -NoWelcome
-}
