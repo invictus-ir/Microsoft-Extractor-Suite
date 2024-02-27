@@ -62,7 +62,7 @@ function Get-ADSignInLogsGraph {
 		$areYouConnected = Get-MgBetaAuditLogSignIn -ErrorAction stop
 	}
 	catch {
-		write-logFile -Message "[WARNING] You must call Connect-GraphAPI -Scopes AuditLog.Read.All, Directory.Read.All before running this script" -Color "Red"
+		write-logFile -Message "[WARNING] You must call Connect-GraphAPI before running this script" -Color "Red"
 		break
 	}
 
