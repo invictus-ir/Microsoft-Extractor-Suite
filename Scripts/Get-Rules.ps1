@@ -1,7 +1,6 @@
 # This contains functions to display or collect the inbox and transport rules.
 
 $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-$curDir = Get-Location
 
 function Show-TransportRules
 {
@@ -59,21 +58,28 @@ function Get-TransportRules
 	)
 
 	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\Rules\"
+		$OutputDir = "Output\Rules"	
 		if (!(test-path $OutputDir)) {
 			write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
 			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
-		$filename = "\Output\Rules\"+$date+"_"+"TransportRules.csv"
-		$outputDirectory = Join-Path $curDir $filename
-	}
-
-	if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
 	}
 
 	else{
-		$outputDirectory = $OutputDir+"TransportRules.csv"
+		if (Test-Path -Path $OutputDir) {
+  			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+     		}
+
+       		else {
+	 		write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
+    			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+	 	}
+   	}
+    	$filename = "$($date)_TransportRules.csv"
+	$outputDirectory = Join-Path $OutputDir $filename
+
+	if ($Encoding -eq "" ){
+		$Encoding = "UTF8"
 	}
 		
 	$transportRules = Get-TransportRule | Select-Object -Property Name,Description,CreatedBy,WhenChanged,State
@@ -219,13 +225,21 @@ function Get-MailboxRules
 			write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
 			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
-		$filename = "\Output\Rules\"+$date+"_"+"MailboxRules.csv"
-		$outputDirectory = Join-Path $curDir $filename
 	}
 
 	else{
-		$outputDirectory = $OutputDir+"MailboxRules.csv"
-	}
+		if (Test-Path -Path $OutputDir) {
+  			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+     		}
+
+       		else {
+	 		write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
+    			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+	 	}
+   	}
+    
+	$filename = "$($date)_MailboxRules.csv"
+	$outputDirectory = Join-Path $OutputDir $filename
 	
 	$amountofRules = 0
 	if ($UserIds -eq "") {		
