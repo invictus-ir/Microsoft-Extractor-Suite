@@ -71,8 +71,8 @@ function Get-TransportRules
      		}
 
        		else {
-	 		write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
     			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+       			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
 	 	}
    	}
     	$filename = "$($date)_TransportRules.csv"
@@ -222,8 +222,8 @@ function Get-MailboxRules
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\Rules"	
 		if (!(test-path $OutputDir)) {
+  			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 			write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
-			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
 	}
 
