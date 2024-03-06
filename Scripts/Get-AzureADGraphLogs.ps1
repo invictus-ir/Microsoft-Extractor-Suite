@@ -82,10 +82,21 @@ function Get-ADSignInLogsGraph {
 		}
 	}
 
+	else {
+		if (Test-Path -Path $OutputDir) {
+			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+		}
+	
+		else {
+			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
+		}
+	}
+
 	$filePath = "$outputDir\SignInLogsGraph.json"
 
 	if (($After -eq "") -and ($Before -eq "")) {
-		write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs"
+		write-logFile -Message "[INFO] Collecting the Azure Active Directory sign-in logs"
 
 		if ($Userids){
 			$signInLogs = Get-MgBetaAuditLogSignIn -ExpandProperty * -All -Filter "userPrincipalName eq '$Userids'" | Select-Object AppDisplayName,AppId,AppTokenProtectionStatus,AppliedConditionalAccessPolicies,ConditionsNotSatisfied,ConditionsSatisfied,AppliedConditionalAccessPoliciesDisplayName,EnforcedGrantControls,EnforcedSessionControls,AppliedConditionalAccessPoliciesId,AppliedConditionalAccessPoliciesResult,AppliedConditionalAccessPolicies2,AppliedEventListeners,AuthenticationAppDeviceDetails,AppVersion,ClientApp,DeviceId,OperatingSystem,AuthenticationAppPolicyEvaluationDetails,AdminConfiguration,AuthenticationEvaluation,AuthenticationAppPolicyEvaluationDetailsPolicyName,AuthenticationAppPolicyEvaluationDetailsStatus,AuthenticationContextClassReferences,AuthenticationDetails,AuthenticationMethodsUsed,AuthenticationProcessingDetails,AuthenticationProtocol,AuthenticationRequirement,AuthenticationRequirementPolicies,Detail,RequirementProvider,AutonomousSystemNumber,AzureResourceId,ClientAppUsed,ClientCredentialType,ConditionalAccessStatus,CorrelationId,@{N='CreatedDateTime';E={$_.CreatedDateTime.ToString()}},CrossTenantAccessType,DeviceDetail,Browser,DeviceDetailDeviceId,DisplayName,IsCompliant,IsManaged,DeviceDetailOperatingSystem,TrustType,FederatedCredentialId,FlaggedForReview,HomeTenantId,HomeTenantName,IPAddress,IPAddressFromResourceProvider,Id,IncomingTokenType,IsInteractive,IsTenantRestricted,Location,City,CountryOrRegion,State,ManagedServiceIdentity,AssociatedResourceId,FederatedTokenId,FederatedTokenIssuer,MsiType,MfaDetail,AuthDetail,AuthMethod,NetworkLocationDetails,OriginalRequestId,OriginalTransferMethod,PrivateLinkDetails,PolicyId,PolicyName,PolicyTenantId,PrivateLinkDetailsResourceId,ProcessingTimeInMilliseconds,ResourceDisplayName,ResourceId,ResourceServicePrincipalId,ResourceTenantId,RiskDetail,RiskEventTypesV2,RiskLevelAggregated,RiskLevelDuringSignIn,RiskState,ServicePrincipalCredentialKeyId,ServicePrincipalCredentialThumbprint,ServicePrincipalId,ServicePrincipalName,SessionLifetimePolicies,SignInEventTypes,SignInIdentifier,SignInIdentifierType,SignInTokenProtectionStatus,Status,StatusAdditionalDetails,TokenIssuerName,TokenIssuerType,UniqueTokenIdentifier,UserAgent,UserDisplayName,UserId,UserPrincipalName,UserType,AdditionalProperties
@@ -224,8 +235,19 @@ function Get-ADAuditLogsGraph {
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\AzureAD\$date"
 		if (!(test-path $OutputDir)) {
-			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
 			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
+		}
+	}
+
+	else {
+		if (Test-Path -Path $OutputDir) {
+			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+		}
+	
+		else {
+			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
 		}
 	}
 

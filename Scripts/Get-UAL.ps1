@@ -131,6 +131,17 @@ function Get-UALAll
 			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
 	}
+
+	else {
+		if (Test-Path -Path $OutputDir) {
+			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+		}
+	
+		else {
+			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
+		}
+	}
 	
 	$resetInterval = $Interval
 	
@@ -390,6 +401,17 @@ function Get-UALGroup
 		if (!(test-path $OutputDir)) {
 			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
 			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+		}
+	}
+
+	else {
+		if (Test-Path -Path $OutputDir) {
+			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+		}
+	
+		else {
+			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
 		}
 	}
 
@@ -665,6 +687,17 @@ function Get-UALSpecific
 				}
 			}
 
+			else {
+				if (Test-Path -Path $OutputDir) {
+					write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+				}
+			
+				else {
+					write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+					write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
+				}
+			}
+
 			$number = $specificResult.tostring().split(":")[1]
 			write-logFile -Message "[INFO]$($number) Records found for $record" -Color "Green"
 			
@@ -902,6 +935,17 @@ function Get-UALSpecificActivity
 				if (!(test-path $OutputDir)) {
 					write-logFile -Message "[INFO] Creating the following output directory: $OutputDir"
 					New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null 
+				}
+			}
+
+			else {
+				if (Test-Path -Path $OutputDir) {
+					write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+				}
+			
+				else {
+					write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+					write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
 				}
 			}
 

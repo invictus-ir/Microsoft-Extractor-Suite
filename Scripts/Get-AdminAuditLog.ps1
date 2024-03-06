@@ -44,24 +44,29 @@ function Get-AdminAuditLog {
 
     write-logFile -Message "[INFO] Running Get-AdminAuditLog" -Color "Green"
 
-    $outputFile = "AdminAuditLog.csv"
-	$date = [datetime]::Now.ToString('yyyyMMddHHmmss')
+	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
+    $outputFile = "$($date)_AdminAuditLog.csv"
 
 	if ($OutputDir -eq "" ){
-		$OutputDir = "\Output\AdminAuditLog"
+		$OutputDir = "Output\AdminAuditLog"
 		if (!(test-path $OutputDir)) {
-			write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
 			New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+			write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
 		}
-
-		$outputFile = "$OutputDir\"+$date+"-"+$outputFile
-   		$outputDirectory = Join-Path $curDir $outputFile
+	}
+	
+	else {
+		if (Test-Path -Path $OutputDir) {
+			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+		}
+	
+		else {
+			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
+		}
 	}
 
-	else{
-		write-logFile -Message "[INFO] Output directory set to: $outputDir" -Color "Green"
-		$outputDirectory = "$outputDir\"+$date+"-"+$outputFile
-	}
+	$outputDirectory = Join-Path $OutputDir $outputFile
 
 	StartDate
 	EndDate
@@ -71,5 +76,5 @@ function Get-AdminAuditLog {
     $results = Search-AdminAuditLog -ResultSize 250000 -StartDate $script:startDate -EndDate $script:EndDate
     $results | Export-Csv $outputDirectory -NoTypeInformation -Append -Encoding UTF8
 
-    write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
+    write-logFile -Message "[INFO] Output is written to: $outputDirectory" -Color "Green"
 }

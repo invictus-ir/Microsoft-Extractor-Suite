@@ -107,15 +107,22 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\OAuthPermissions\"
 		if (!(test-path $OutputDir)) {
-			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
 			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
 		}
 	}
 
-	else{
-		write-LogFile -Message "[INFO] OAuth applications are collected and writen to: $OutputDir" -Color "Green"
+	else {
+		if (Test-Path -Path $OutputDir) {
+			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+		}
+	
+		else {
+			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
+		}
 	}
-
+	
 	$report = @(
 	Write-Verbose ("TenantId: {0}, InitialDomain: {1}" -f `
 					$tenant_details.ObjectId, `

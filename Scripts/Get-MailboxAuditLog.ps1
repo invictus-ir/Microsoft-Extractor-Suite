@@ -65,8 +65,19 @@ function Get-MailboxAuditLog
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\MailboxAuditLog"
 		If (!(test-path $OutputDir)){
-			write-logFile -Message "[INFO] Creating the following directory: $OutputDir" 
 			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+			write-logFile -Message "[INFO] Creating the following directory: $OutputDir" 
+		}
+	}
+
+	else {
+		if (Test-Path -Path $OutputDir) {
+			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+		}
+	
+		else {
+			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
 		}
 	}
 

@@ -74,10 +74,21 @@ function Get-ADSignInLogs {
 		}
 	}
 
+	else {
+		if (Test-Path -Path $OutputDir) {
+			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+		}
+	
+		else {
+			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
+		}
+	}
+
 	$filePath = "$OutputDir\SignInLogs.json"
 
 	if (($After -eq "") -and ($Before -eq "")) {
-		Write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs"
+		Write-logFile -Message "[INFO] Collecting the Azure Active Directory sign-in logs"
 
 		if ($Userids){
 			try{
@@ -254,8 +265,19 @@ function Get-ADAuditLogs {
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\AzureAD\$date"
 		if (!(test-path $OutputDir)) {
-			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
 			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
+		}
+	}
+
+	else {
+		if (Test-Path -Path $OutputDir) {
+			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+		}
+	
+		else {
+			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
 		}
 	}
 

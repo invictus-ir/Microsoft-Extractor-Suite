@@ -60,22 +60,23 @@ function Get-TransportRules
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\Rules"	
 		if (!(test-path $OutputDir)) {
-			write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
 			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+			write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
 		}
 	}
 
 	else{
 		if (Test-Path -Path $OutputDir) {
   			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
-     		}
+     	}
 
-       		else {
-    			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-       			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
+       	else {
+    		write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+       		write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
 	 	}
    	}
-    	$filename = "$($date)_TransportRules.csv"
+    
+	$filename = "$($date)_TransportRules.csv"
 	$outputDirectory = Join-Path $OutputDir $filename
 
 	if ($Encoding -eq "" ){
@@ -222,19 +223,19 @@ function Get-MailboxRules
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\Rules"	
 		if (!(test-path $OutputDir)) {
-  			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 			write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 		}
 	}
 
 	else{
 		if (Test-Path -Path $OutputDir) {
   			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
-     		}
+     	}
 
-       		else {
+       	else {
 	 		write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
-    			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+    		write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
 	 	}
    	}
     
@@ -267,7 +268,6 @@ function Get-MailboxRules
 					$amountofRules = $amountofRules + 1
 					$totalRules = $totalRules + 1
 					$RuleList | export-CSV $outputDirectory -Append -NoTypeInformation -Encoding UTF8
-					
 				}
 
 				write-LogFile -Message "[INFO] Found $amountofRules InboxRule(s) for: $($_.UserPrincipalName)..." -Color "Yellow"
@@ -308,6 +308,7 @@ function Get-MailboxRules
 				}
 			}
 		}
+
 		else {
 			Write-Output ('[INFO] Checking {0}...' -f $UserIds)
 			$inboxrule = get-inboxrule -Mailbox $UserIds 

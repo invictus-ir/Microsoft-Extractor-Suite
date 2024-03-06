@@ -65,10 +65,21 @@ function Get-Users {
     if ($OutputDir -eq "" ){
         $OutputDir = "Output\UserInfo"
         if (!(test-path $OutputDir)) {
-            write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
             New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+            write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
         }
     }
+
+    else {
+		if (Test-Path -Path $OutputDir) {
+			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+		}
+	
+		else {
+			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
+		}
+	}
 
     $selectobjects = "Id","AccountEnabled","DisplayName","UserPrincipalName","Mail","CreatedDateTime","LastPasswordChangeDateTime","DeletedDateTime","JobTitle","Department","OfficeLocation","City","State","Country"
     $mgUsers = Get-MgUser -All -Select $selectobjects 
@@ -177,10 +188,21 @@ Function Get-AdminUsers {
     if ($OutputDir -eq "" ){
         $OutputDir = "Output\UserInfo"
         if (!(test-path $OutputDir)) {
-            write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
             New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+            write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
         }
     }
+
+    else {
+		if (Test-Path -Path $OutputDir) {
+			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+		}
+	
+		else {
+			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
+		}
+	}
 
     $getRoles = Get-MgDirectoryRole -all
     foreach ($role in $getRoles) {

@@ -64,6 +64,17 @@ Function Get-Email {
         }
     }
 
+    else {
+		if (Test-Path -Path $OutputDir) {
+			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+		}
+	
+		else {
+			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
+		}
+	}
+
     $getMessage = Get-MgUserMessage -UserId $userIds -Filter "internetMessageId eq '$internetMessageId'"
     $messageId = $getMessage.Id
 
@@ -136,10 +147,21 @@ Function Get-Attachment {
     if ($outputDir -eq "" ){
         $outputDir = "Output\EmailExport"
         if (!(test-path $outputDir)) {
-            write-logFile -Message "[INFO] Creating the following directory: $outputDir"
             New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+            write-logFile -Message "[INFO] Creating the following directory: $outputDir"
         }
     }
+
+    else {
+		if (Test-Path -Path $OutputDir) {
+			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+		}
+	
+		else {
+			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
+		}
+	}
 
     $getMessage = Get-MgUserMessage -Filter "internetMessageId eq '$internetMessageId'" -UserId $userIds
     $messageId = $getMessage.Id
