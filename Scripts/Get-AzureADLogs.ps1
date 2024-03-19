@@ -137,16 +137,16 @@ function Get-ADSignInLogs {
 			
 			Write-LogFile -Message "[INFO] Found $currentCount Directory Sign In Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
 				
-
+			$filePath = "$OutputDir\SignInLogs-$($CurrentStart.ToString("yyyyMMdd"))-$($CurrentEnd.ToString("yyyyMMdd"))"
 			$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
 
-			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range."
-			[Array]$results = @()							
+			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range."							
 		}
+		[Array]$results = @()
 		$CurrentStart = $CurrentEnd
   		$currentDay++
 	}
-	Write-LogFile -Message "[INFO] Acquisition complete, check the $($filePath) directory for your files.." -Color "Green"		
+	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		
 }
 
 function Get-ADAuditLogs {
