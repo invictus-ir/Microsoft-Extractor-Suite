@@ -128,8 +128,8 @@ function Get-ADSignInLogs {
 			Write-LogFile -Message "[WARNING] Empty data set returned between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd")). Moving On!"				
 		}
 		else {					
-			$currentTotal = $currentCount + $results.Count
 			$currentCount = $results.Count
+   			$currentTotal = $currentCount + $results.Count
 			
 			Write-LogFile -Message "[INFO] Found $currentCount Directory Sign In Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
 				
