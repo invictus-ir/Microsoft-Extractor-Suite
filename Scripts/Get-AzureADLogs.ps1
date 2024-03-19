@@ -104,7 +104,7 @@ function Get-ADSignInLogs {
 
 	while ($currentStart -lt $script:EndDate) {			
 		$currentEnd = $currentStart.AddMinutes($Interval)  
-		$currentTries = 0       
+		$currentDay = 0       
 		if ($UserIds){
 			Write-LogFile -Message "[INFO] Collecting Directory Sign In logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))."
 			try{
@@ -129,7 +129,12 @@ function Get-ADSignInLogs {
 		}
 		else {					
 			$currentCount = $results.Count
-   			$currentTotal = $currentCount + $results.Count
+			if ($currentDay -ne 0){
+				$currentTotal = $currentCount + $results.Count
+			}
+			else {
+				$currentTotal = $currentCount 
+			}
 			
 			Write-LogFile -Message "[INFO] Found $currentCount Directory Sign In Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
 				
@@ -140,6 +145,7 @@ function Get-ADSignInLogs {
 			[Array]$results = @()							
 		}
 		$CurrentStart = $CurrentEnd
+  		$currentDay++
 	}
 	Write-LogFile -Message "[INFO] Acquisition complete, check the $($filePath) directory for your files.." -Color "Green"		
 }
