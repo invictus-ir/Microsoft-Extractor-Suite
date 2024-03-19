@@ -102,7 +102,7 @@ function Get-ADSignInLogs {
 		return
 	}
 
-		while ($currentStart -lt $script:EndDate) {			
+	while ($currentStart -lt $script:EndDate) {			
 		$currentEnd = $currentStart.AddMinutes($Interval)  
 		$currentTries = 0       
 		if ($UserIds){
@@ -136,7 +136,7 @@ function Get-ADSignInLogs {
 
 			$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
 
-			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range." -Color "Green"
+			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range."
 			[Array]$results = @()							
 		}
 		$CurrentStart = $CurrentEnd
