@@ -38,6 +38,21 @@ Function StartDate
 	}
 }
 
+Function StartDateAz
+{
+	if (($startDate -eq "") -Or ($null -eq $startDate)) {
+		$script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-30)
+		write-LogFile -Message "[INFO] No start date provived by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-dd"))" -Color "Yellow"
+	}
+	else
+	{
+		$script:startDate = $startDate -as [datetime]
+		if (!$script:startDate ) { 
+			write-LogFile -Message "[WARNING] Not A valid start date and time, make sure to use YYYY-MM-DD" -Color "Red"
+		} 
+	}
+}
+
 function EndDate
 {
 	if (($endDate -eq "") -Or ($null -eq $endDate)) {
