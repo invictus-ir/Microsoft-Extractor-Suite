@@ -1,4 +1,4 @@
-Unified Audit Log (Graph API BETA functionality)
+Unified Audit Log via Graph API (BETA functionality)
 =======
 
 The UAL is a critical piece of evidence in a BEC investigation because it is a centralized source for
@@ -69,7 +69,7 @@ Parameters
 
 -RecordType (optional)
     - The RecordType parameter filters the log entries by record type.
-	- Options are: ExchangeItem, ExchangeAdmin, etc. A total of 236 RecordTypes are supported.
+    - Options are: ExchangeItem, ExchangeAdmin, etc. A total of 236 RecordTypes are supported.
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
@@ -80,10 +80,8 @@ Parameters
     - Default: UTF8
 
 
-.. note::
-
-  **Important note** regarding the StartDate and EndDate variables. 
-
+Permissions
+""""""""""""""""""""""""""
 - When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
 - If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2023-01-01 08:15:00 will be converted to 2023-01-01 06:15:00 in UTC.
 - To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2023-01-01T08:15:00Z). This format will retrieve data from January 1st, 2023, starting from a quarter past 8 in the morning until the specified end date.
@@ -92,10 +90,8 @@ Output
 """"""""""""""""""""""""""
 The output will be saved to the 'UnifiedAuditLog' directory within the 'Output' directory, with the file name '$date-UnifiedAuditLog.json'.
 
-.. note::
-
-  **Important note** Permission Requirement. 
-
+Permissions
+""""""""""""""""""""""""""
 - Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application or user to authenticate with specific scopes that grant the necessary access levels.
 - Make sure to connect using the following permission: "AuditLogsQuery.Read.All".
 - Your command would look like this: Connect-MgGraph -Scopes 'AuditLogsQuery.Read.All'
