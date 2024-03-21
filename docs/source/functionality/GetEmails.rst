@@ -51,10 +51,8 @@ Output
 """"""""""""""""""""""""""
 The output will be saved to the 'EmailExport' directory within the 'Output' directory.
 
-.. note::
-
-  **Important note** Permission Requirement. 
-
+Permissions
+""""""""""""""""""""""""""
 - Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application to authenticate with specific scopes that grant the necessary access levels.
 - Make sure to connect using the following permission: 'Mail.ReadBasic.All'.
 - For instance, if you choose to use User.Read.All, your command would look like this: Connect-MgGraph -Scopes 'Mail.ReadBasic.All'
@@ -91,10 +89,8 @@ Output
 """"""""""""""""""""""""""
 The output will be saved to the 'EmailExport' directory within the 'Output' directory.
 
-.. note::
-
-  **Important note** Permission Requirement. 
-
+Permissions
+""""""""""""""""""""""""""
 - Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application to authenticate with specific scopes that grant the necessary access levels.
 - Make sure to connect using the following permission: 'Mail.ReadBasic.All'.
 - For instance, if you choose to use User.Read.All, your command would look like this: Connect-MgGraph -Scopes 'Mail.ReadBasic.All'

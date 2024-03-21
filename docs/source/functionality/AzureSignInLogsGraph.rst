@@ -50,10 +50,8 @@ Output
 """"""""""""""""""""""""""
 The output will be saved to the 'AzureAD' directory within the 'Output' directory, with the file name 'SignInLogsGraph.json'. Each time an acquisition is performed, the output JSON file will be overwritten. Therefore, if you perform multiple acquisitions, the JSON file will only contain the results from the latest acquisition.
 
-.. note::
-
-  **Important note** Permission Requirement. 
-
+Permissions
+""""""""""""""""""""""""""
 - Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application or user to authenticate with specific scopes that grant the necessary access levels.
 - Make sure to connect using at least one of the following permissions: "AuditLog.Read.All", "Directory.Read.All".
 - For instance, if you choose to use User.Read.All, your command would look like this: Connect-MgGraph -Scopes "Directory.Read.All"

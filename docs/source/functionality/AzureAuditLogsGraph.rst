@@ -52,7 +52,8 @@ The output will be saved to the 'AzureAD' directory within the 'Output' director
 
 .. note::
 
-  **Important note** Permission Requirement. 
+Permissions
+""""""""""""""""""""""""""
 
 - Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application or user to authenticate with specific scopes that grant the necessary access levels.
 - Make sure to connect using at least one of the following permissions: "AuditLog.Read.All", "Directory.Read.All".

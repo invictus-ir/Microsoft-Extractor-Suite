@@ -41,10 +41,8 @@ Output
 """"""""""""""""""""""""""
 The output will be saved to the 'UserInfo' directory within the 'Output' directory.
 
-.. note::
-
-  **Important note** Permission Requirement. 
-
+Permissions
+""""""""""""""""""""""""""
 - Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application or user to authenticate with specific scopes that grant the necessary access levels.
 - Make sure to connect using at least one of the following permissions: "User.Read.All", "Directory.AccessAsUser.All", "Directory.Read.All".
 - For instance, if you choose to use User.Read.All, your command would look like this: Connect-MgGraph -Scopes 'User.Read.All'
@@ -88,10 +86,8 @@ Output
 """"""""""""""""""""""""""
 The output will be saved to the 'UserInfo' directory within the 'Output' directory.
 
-.. note::
-
-  **Important note** Permission Requirement. 
-
+Permissions
+""""""""""""""""""""""""""
 - Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application or user to authenticate with specific scopes that grant the necessary access levels.
 - Make sure to connect using at least one of the following permissions: "User.Read.All", "Directory.AccessAsUser.All", "Directory.Read.All".
 - For instance, if you choose to use User.Read.All, your command would look like this: Connect-MgGraph -Scopes 'User.Read.All'
@@ -130,10 +126,8 @@ Output
 """"""""""""""""""""""""""
 The output will be saved to the 'UserInfo' directory within the 'Output' directory.
 
-.. note::
-
-  **Important note** Permission Requirement. 
-
+Permissions
+""""""""""""""""""""""""""
 - Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application or user to authenticate with specific scopes that grant the necessary access levels.
 - Make sure to connect using both of the following permissions: "UserAuthenticationMethod.Read.All",'User.Read.All".
 - Your command would look like this: Connect-MgGraph -Scopes 'User.Read.All','UserAuthenticationMethod.Read.All'
@@ -167,10 +161,8 @@ Output
 """"""""""""""""""""""""""
 The output will be saved to the 'UserInfo' directory within the 'Output' directory.
 
-.. note::
-
-  **Important note** Permission Requirement. 
-
+Permissions
+""""""""""""""""""""""""""
 - Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application or user to authenticate with specific scopes that grant the necessary access levels.
 - Make sure to connect using the following permission: "IdentityRiskyUser.Read.All".
 - Your command would look like this: Connect-MgGraph -Scopes 'IdentityRiskyUser.Read.All'
@@ -204,10 +196,8 @@ Output
 """"""""""""""""""""""""""
 The output will be saved to the 'UserInfo' directory within the 'Output' directory.
 
-.. note::
-
-  **Important note** Permission Requirement. 
-
+Permissions
+""""""""""""""""""""""""""
 - Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application or user to authenticate with specific scopes that grant the necessary access levels.
 - Make sure to connect using the following permission: "IdentityRiskEvent.Read.All".
 - Your command would look like this: Connect-MgGraph -Scopes 'IdentityRiskEvent.Read.All'
