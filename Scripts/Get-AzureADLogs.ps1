@@ -35,36 +35,46 @@ function Get-ADSignInLogs {
     Get sign-in logs for the user Test@invictus-ir.com.
 
 	.EXAMPLE
-    Get-ADSignInLogs -Before 2023-04-12
+    Get-ADSignInLogs -endDate 2023-04-12
 	Get sign-in logs before 2023-04-12.
 
 	.EXAMPLE
-    Get-ADSignInLogs -After 2023-04-12
+    Get-ADSignInLogs -startDate 2023-04-12
 	Get sign-in logs after 2023-04-12.
 #>
 	[CmdletBinding()]
 	param(
-		[string]$After,
-		[string]$Before,
+		[string]$startDate,
+		[string]$endDate,
 		[string]$outputDir,
 		[string]$UserIds,
-		[string]$Encoding
+		[string]$Encoding,
+		[string]$Interval
 	)
 
 	try {
+		import-module AzureADPreview -force -ErrorAction stop
 		$areYouConnected = Get-AzureADAuditSignInLogs -ErrorAction stop
 	}
 	catch {
-		Write-logFile -Message "[WARNING] You must call Connect-Azure before running this script" -Color "Red"
+		Write-logFile -Message "[WARNING] You must call Connect-Azure or install AzureADPreview before running this script" -Color "Red"
 		break
 	}
 
 	Write-logFile -Message "[INFO] Running Get-AADSignInLogs" -Color "Green"
 
+	StartDateAz
+	EndDate
+
+	if ($Interval -eq "") {
+		$Interval = 1440
+		Write-LogFile -Message "[INFO] Setting the Interval to the default value of 1440"
+	}
+
 	if ($Encoding -eq "" ){
 		$Encoding = "UTF8"
 	}
-	
+
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\AzureAD\$date"
@@ -74,126 +84,69 @@ function Get-ADSignInLogs {
 		}
 	}
 
-	else {
-		if (Test-Path -Path $OutputDir) {
-			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
-		}
-	
-		else {
-			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
-		}
+	if ($UserIds){
+		Write-LogFile -Message "[INFO] UserID's eq $($UserIds)"
 	}
+
 
 	$filePath = "$OutputDir\SignInLogs.json"
+		
+	[DateTime]$currentStart = $script:StartDate
+	[DateTime]$currentEnd = $script:EndDate
+	[DateTime]$lastLog = $script:EndDate
+	$currentDay = 0  
 
-	if (($After -eq "") -and ($Before -eq "")) {
-		Write-logFile -Message "[INFO] Collecting the Azure Active Directory sign-in logs"
-
-		if ($Userids){
-			try{
-				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$Userids'"
-				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-
-				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
-			}
-			catch{
-				Start-Sleep -Seconds 20
-				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$Userids'"
-				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-
-				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
-			}
-		}
-		else{
-			try{
-				$signInLogs = Get-AzureADAuditSignInLogs -All $true
-				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-
-				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
-			}
-			catch{
-				Start-Sleep -Seconds 20
-				$signInLogs = Get-AzureADAuditSignInLogs -All $true
-				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-
-				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
-			}
-		}
+	Write-LogFile -Message "[INFO] Extracting all available Directory Sign In Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
+	if($currentStart -gt $script:EndDate){
+		Write-LogFile -Message "[ERROR] $($currentStart.ToString("yyyy-MM-dd")) is greather than $($script:EndDate.ToString("yyyy-MM-dd")) - are you sure you put in the correct year? Exiting!" -Color "Red"
+		return
 	}
 
-	elseif (($After -ne "") -and ($Before -eq "")) {
-		Write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs on or after $After"
-
-		if ($Userids){
+	while ($currentStart -lt $script:EndDate) {			
+		$currentEnd = $currentStart.AddMinutes($Interval)       
+		if ($UserIds){
+			Write-LogFile -Message "[INFO] Collecting Directory Sign In logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))."
 			try{
-				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$Userids' and createdDateTime gt $After"
-				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-
-				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$($Userids)' and createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))"
 			}
 			catch{
 				Start-Sleep -Seconds 20
-				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$Userids' and createdDateTime gt $After"
-				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-
-				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$($Userids)' and createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))"
 			}
 		}
-		else{
+		else {
 			try{
-				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime gt $After"
-				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-
-				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))"
 			}
 			catch{
 				Start-Sleep -Seconds 20
-				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime gt $After"
-				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-
-				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
+				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))"
 			}
 		}
+		if ($null -eq $results -or $results.Count -eq 0) {
+			Write-LogFile -Message "[WARNING] Empty data set returned between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd")). Moving On!"				
+		}
+		else {					
+			$currentCount = $results.Count
+			if ($currentDay -ne 0){
+				$currentTotal = $currentCount + $results.Count
+			}
+			else {
+				$currentTotal = $currentCount 
+			}
+			
+			Write-LogFile -Message "[INFO] Found $currentCount Directory Sign In Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
+				
+			$filePath = "$OutputDir\SignInLogs-$($CurrentStart.ToString("yyyyMMdd"))-$($CurrentEnd.ToString("yyyyMMdd"))"
+			$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
+
+			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range."							
+		}
+		[Array]$results = @()
+		$CurrentStart = $CurrentEnd
+  		$currentDay++
 	}
-
-	elseif (($Before -ne "") -and ($After -eq "")) {
-		Write-logFile -Message "[INFO] Collecting the Azure Active Directory sign in logs on or before $Before"
-		if ($Userids){
-			try{
-				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$Userids' and createdDateTime lt $Before"
-				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-
-				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
-			}
-			catch{
-				Start-Sleep -Seconds 20
-				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$Userids' and createdDateTime lt $Before"
-				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-
-				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
-			}
-		}
-		else{
-			try{
-				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $Before"
-				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-
-				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
-			}
-			catch{
-				Start-Sleep -Seconds 20
-				$signInLogs = Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $Before"
-				$signInLogs | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Encoding $Encoding
-
-				Write-logFile -Message "[INFO] Sign-in logs written to $filePath" -Color "Green"
-			}
-		}
-	}
-
-	else {
-		Write-logFile -Message "[WARNING] Please only provide a start date or end date" -Color "Red"
-	}
+	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		
 }
 
 function Get-ADAuditLogs {
