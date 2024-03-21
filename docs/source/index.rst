@@ -85,6 +85,7 @@ Have a bug report or feature request? Open an issue on the Github repository.
    :caption: Functionality
    
    functionality/UnifiedAuditLog
+   functionality/UnifiedAuditLogGraph
    functionality/AdminAuditLog
    functionality/MailboxAuditLog
    functionality/MessageTraceLog
