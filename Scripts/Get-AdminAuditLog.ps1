@@ -45,7 +45,7 @@ function Get-AdminAuditLog {
     write-logFile -Message "[INFO] Running Get-AdminAuditLog" -Color "Green"
 
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-    $outputFile = "$($date)_AdminAuditLog.csv"
+    $outputFile = "$($date)-AdminAuditLog.csv"
 
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\AdminAuditLog"

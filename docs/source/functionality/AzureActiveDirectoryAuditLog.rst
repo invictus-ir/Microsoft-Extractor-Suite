@@ -16,20 +16,20 @@ Running the script without any parameters will gather the Azure Active Directory
 Get the Azure Active Directory Audit Log before 2023-04-12:
 ::
 
-   Get-ADAuditLogs -Before 2023-04-12
+   Get-ADAuditLogs -endDate 2023-04-12
 
 Get the Azure Active Directory Audit Log after 2023-04-12:
 ::
 
-   Get-ADAuditLogs -After 2023-04-12
+   Get-ADAuditLogs -startDate 2023-04-12
 
 Parameters
 """"""""""""""""""""""""""
--After (optional)
-    - After is the parameter specifying the start date of the date range. The time format supported is limited to yyyy-mm-dd only.
+-startDate (optional)
+    - startDate is the parameter specifying the start date of the date range. The time format supported is limited to yyyy-mm-dd only.
 
--Before (optional)
-    - Before is the parameter specifying the end date of the date range. The time format supported is limited to yyyy-mm-dd only.
+-endDate (optional)
+    - endDate is the parameter specifying the end date of the date range. The time format supported is limited to yyyy-mm-dd only.
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.

@@ -112,7 +112,8 @@ function Get-RiskyUsers {
         $count = $count +1
     }
 
-    $filePath = "$OutputDir\RiskyUsers.csv"
+    $date = Get-Date -Format "yyyyMMddHHmm"
+    $filePath = "$OutputDir\$($date)RiskyUsers.csv"
     $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
     Write-logFile -Message "[INFO] A total of $count Risky Users found"
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
@@ -255,7 +256,8 @@ function Get-RiskyDetections {
         $count = $count +1
     }
 
-    $filePath = "$OutputDir\RiskyDetections.csv"
+    $date = Get-Date -Format "yyyyMMddHHmm"
+    $filePath = "$OutputDir\$($date)-RiskyDetections.csv"
     $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
     Write-logFile -Message "[INFO] A total of $count Risky Detections found"
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"

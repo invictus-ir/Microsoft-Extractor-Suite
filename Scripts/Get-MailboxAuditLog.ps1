@@ -93,7 +93,7 @@ function Get-MailboxAuditLog
 		Get-mailbox -resultsize unlimited  |
 		ForEach-Object {
 			$date = Get-Date -Format "yyyyMMddHHmm"
-			$outputFile = "$OutputDir\mailboxAuditLog_$($_.UserPrincipalName)_$($date).csv"
+			$outputFile = "$OutputDir\$($date)-mailboxAuditLog-$($_.UserPrincipalName).csv"
 
 			write-logFile -Message "[INFO] Collecting the MailboxAuditLog for $($_.UserPrincipalName)"
 			$result = Search-MailboxAuditlog -Identity $_.UserPrincipalName -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 
@@ -107,7 +107,7 @@ function Get-MailboxAuditLog
 		$UserIds.Split(",") | Foreach {
 			$user = $_
 			$date = Get-Date -Format "yyyyMMddHHmm"
-			$outputFile = "$OutputDir\mailboxAuditLog_$($user)_$($date).csv"
+			$outputFile = "$OutputDir\$($date)-mailboxAuditLog-$($user).csv"
 
 			write-logFile -Message "[INFO] Collecting the MailboxAuditLog for $user"
 			$result = Search-MailboxAuditlog -Identity $user -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 
@@ -119,7 +119,7 @@ function Get-MailboxAuditLog
 
 	else {		
 		$date = Get-Date -Format "yyyyMMddHHmm"
-		$outputFile = "$OutputDir\mailboxAuditLog_$($UserIds)_$($date).csv"
+		$outputFile = "$OutputDir\$($date)-mailboxAuditLog-$($UserIds).csv"
 
 		write-logFile -Message "[INFO] Collecting the MailboxAuditLog for $UserIds"
 		$result = Search-MailboxAuditlog -Identity $UserIds -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 

@@ -115,7 +115,7 @@ Parameters
 
 -MergeCSVOutput (optional)
     - MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
-    - Default: n
+    - Default: No
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
@@ -271,7 +271,7 @@ Parameters
 
 -MergeCSVOutput (optional)
     - MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
-    - Default: n
+    - Default: No
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
@@ -351,7 +351,7 @@ Parameters
 
 -MergeCSVOutput (optional)
     - MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
-    - Default: n
+    - Default: No
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.

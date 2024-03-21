@@ -51,7 +51,7 @@ Function Get-Email {
         $areYouConnected = Get-MgUserMessage -UserId $userIds -Filter "internetMessageId eq '$internetMessageId'"
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.Read, Mail.ReadBasic, Mail.ReadBasic.All, Mail.ReadWrite before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.Read, Mail.ReadBasic, Mail.ReadBasic.All before running this script" -Color "Red"
         Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
         break
     }
@@ -139,7 +139,7 @@ Function Get-Attachment {
         $areYouConnected = Get-MgUserMessage -Filter "internetMessageId eq '$internetMessageId'" -UserId $userIds -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.Read, Mail.ReadBasic, Mail.ReadBasic.All, Mail.ReadWrite before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.Read, Mail.ReadBasic, Mail.ReadBasic.All before running this script" -Color "Red"
         Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
         break
     }

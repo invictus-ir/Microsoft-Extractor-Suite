@@ -118,7 +118,8 @@ Function Get-ConditionalAccessPolicies {
         $results+= $myObject;
     }
 
-    $filePath = "$OutputDir\ConditionalAccessPolicy.csv"
+    $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
+    $filePath = "$OutputDir\$($date)-ConditionalAccessPolicy.csv"
     $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green" 
 }

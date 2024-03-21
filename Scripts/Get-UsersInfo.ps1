@@ -1,4 +1,3 @@
-
 function Get-Users {
 <#
     .SYNOPSIS
@@ -52,11 +51,9 @@ function Get-Users {
         $areYouConnected = Get-MgUser -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, User.ReadWrite.All, Directory.Read.All, Directory.ReadWrite.All' before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All' before running this script" -Color "Red"
         break
     }
-
-    Write-logFile -Message "[INFO] Running Get-Users" -Color "Green"
 
     if ($Encoding -eq "" ){
 		$Encoding = "UTF8"
@@ -80,6 +77,8 @@ function Get-Users {
 			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
 		}
 	}
+
+    Write-logFile -Message "[INFO] Running Get-Users" -Color "Green"
 
     $selectobjects = "Id","AccountEnabled","DisplayName","UserPrincipalName","Mail","CreatedDateTime","LastPasswordChangeDateTime","DeletedDateTime","JobTitle","Department","OfficeLocation","City","State","Country"
     $mgUsers = Get-MgUser -All -Select $selectobjects 
@@ -116,7 +115,10 @@ function Get-Users {
     write-host "  - $($sixmonthold.count) users created within the last 1 year."
 
     Get-MgUser | Get-Member | out-null
-    $filePath = "$OutputDir\Users.csv"
+
+    $date = Get-Date -Format "yyyyMMddHHmm"
+    $filePath = "$OutputDir\$($date)-Users.csv"
+    
     $mgUsers | select-object $selectobjects | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
     
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
@@ -168,19 +170,17 @@ Function Get-AdminUsers {
     )
 
     if (!($Application.IsPresent)) {
-        Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All -NoWelcome
+        Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, Directory.Read.All -NoWelcome
     }
 
     try {
         $areYouConnected = Get-MgDirectoryRole -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, User.ReadWrite.All, Directory.Read.All, Directory.ReadWrite.All' before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, Directory.Read.All' before running this script" -Color "Red"
         break
     }
     
-    Write-logFile -Message "[INFO] Running Get-AdminUsers" -Color "Green"
-
     if ($Encoding -eq "" ){
         $Encoding = "UTF8"
     }
@@ -203,6 +203,8 @@ Function Get-AdminUsers {
 			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
 		}
 	}
+    
+    Write-logFile -Message "[INFO] Running Get-AdminUsers" -Color "Green"
 
     $getRoles = Get-MgDirectoryRole -all
     foreach ($role in $getRoles) {
@@ -253,8 +255,7 @@ Function Get-AdminUsers {
                 }
 
                 Write-logFile -Message "[info] $roleName - $count users found" -Color "Yellow"
-
-                $filePath = "$OutputDir\$roleName.csv"
+                $filePath = "$OutputDir\$($date)-$roleName.csv"
                 $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
                 Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
             }

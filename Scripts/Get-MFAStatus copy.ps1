@@ -106,8 +106,6 @@ function Get-MFA {
             softwareoath       = "-"
             tempaccess         = "-"
             hellobusiness      = "-"
-            temporaryAccessPassAuthenticationMethod = "-"
-            certificateBasedAuthConfiguration = "-"
         }
 
         $MFAData= Get-MgUserAuthenticationMethod -UserId $user.UserPrincipalName
@@ -156,19 +154,7 @@ function Get-MFA {
                 "#microsoft.graph.windowsHelloForBusinessAuthenticationMethod" { 
                 $myObject.hellobusiness = $true 
                 $myObject.MFAstatus = "Enabled"
-              }
-
-                "#microsoft.graph.temporaryAccessPassAuthenticationMethod" { 
-                $myObject.temporaryAccessPassAuthenticationMethod = $true 
-                $myObject.MFAstatus = "Enabled"
-              }
-                
-                "#microsoft.graph.certificateBasedAuthConfiguration" { 
-                $myObject.certificateBasedAuthConfiguration = $true 
-                $myObject.MFAstatus = "Enabled"
-              }
-
-             
+              }  
             
             }
         }
@@ -194,17 +180,13 @@ function Get-MFA {
 	$MFApassword = (Import-Csv -Path "$filePath" -Delimiter "," | Where-Object { $_.password -eq "True" } | Measure-Object).Count
 	$MFAhellobusiness = (Import-Csv -Path "$filePath" -Delimiter "," | Where-Object { $_.hellobusiness -eq "True" } | Measure-Object).Count
 	$MFAstatusAmount = (Import-Csv -Path "$filePath" -Delimiter "," | Where-Object { $_.MFAstatus -eq "Enabled" } | Measure-Object).Count
-    $temporaryAccessPassAuthenticationMethod = (Import-Csv -Path "$filePath" -Delimiter "," | Where-Object { $_.temporaryAccessPassAuthenticationMethod -eq "True" } | Measure-Object).Count
-	$certificateBasedAuthConfiguration = (Import-Csv -Path "$filePath" -Delimiter "," | Where-Object { $_.certificateBasedAuthConfiguration -eq "Enabled" } | Measure-Object).Count
 
     write-host "$MFAstatusAmount out of $($users.count) users have MFA enabled:"
     write-host "  - $MFAEmail x Email"
     write-host "  - $MFAfido2 x Fido2"
-    write-host "  - $MFAapp x Microsoft Authenticator App"
+    write-host "  - $MFAapp x App"
     write-host "  - $MFAphone x Phone"
     write-host "  - $MFAsoftwareoath x SoftwareOAuth"
     write-host "  - $MFAtempaccess x TempAccess"
-    write-host "  - $MFAhellobusiness x HelloBusiness"
-    write-host "  - $temporaryAccessPassAuthenticationMethod x Temporary Access Pass (TAP)"
-    write-host "  - $certificateBasedAuthConfiguration x certificate Based Auth Configuration"  
+    write-host "  - $MFAhellobusiness x HelloBusiness"  
 }

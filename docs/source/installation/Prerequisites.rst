@@ -7,7 +7,7 @@ Prerequisites
 
 3. Powershell module: AzureADPreview for the Azure Active Directory functionalities.
 
-4. Powershell module: Microsoft.Graph for the Graph API Beta functionalities.
+4. Powershell module: Microsoft.Graph for the Graph API functionalities.
 
 5. Powershell module: Az for the Azure Activity log functionality.
 
@@ -37,6 +37,8 @@ Each functionality requires one of the following permissions:
 | Functionality             | Roles needed                            |
 +===========================+=========================================+
 | Unified Audit Log         | AuditLogs                               |
+|                           +-----------------------------------------+
+|                           | AuditLogsQuery.Read.All                 |
 +---------------------------+-----------------------------------------+
 | Admin Audit Log           | AuditLogs                               |
 +---------------------------+-----------------------------------------+
@@ -91,8 +93,6 @@ Each functionality requires one of the following permissions:
 | E-mails/Attachments       | Mail.Read                               |
 |                           +-----------------------------------------+
 |                           | Mail.ReadBasic.All (Application only)   |
-|                           +-----------------------------------------+
-|                           | Mail.ReadWrite                          |
 +---------------------------+-----------------------------------------+
 | User/Admin information    | User.Read.All                           |
 |                           +-----------------------------------------+
@@ -100,11 +100,7 @@ Each functionality requires one of the following permissions:
 |                           +-----------------------------------------+
 |                           | User.ReadBasic.all                      |
 |                           +-----------------------------------------+
-|                           | User.ReadWrite.All                      |
-|                           +-----------------------------------------+
 |                           | Directory.Read.All                      |
-|                           +-----------------------------------------+
-|                           | Directory.ReadWrite.All                 |
 +---------------------------+-----------------------------------------+
 
 Our preference

@@ -1,7 +1,6 @@
 # This contains functions to display or collect the inbox and transport rules.
 
-$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-
+$date = Get-Date -Format "yyyyMMddHHmm"
 function Show-TransportRules
 {
 <#
@@ -76,7 +75,7 @@ function Get-TransportRules
 	 	}
    	}
     
-	$filename = "$($date)_TransportRules.csv"
+	$filename = "$($date)-TransportRules.csv"
 	$outputDirectory = Join-Path $OutputDir $filename
 
 	if ($Encoding -eq "" ){
@@ -239,7 +238,7 @@ function Get-MailboxRules
 	 	}
    	}
     
-	$filename = "$($date)_MailboxRules.csv"
+	$filename = "$($date)-MailboxRules.csv"
 	$outputDirectory = Join-Path $OutputDir $filename
 	
 	$amountofRules = 0

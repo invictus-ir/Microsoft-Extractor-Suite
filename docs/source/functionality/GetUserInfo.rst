@@ -41,6 +41,14 @@ Output
 """"""""""""""""""""""""""
 The output will be saved to the 'UserInfo' directory within the 'Output' directory.
 
+.. note::
+
+  **Important note** Permission Requirement. 
+
+- Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application or user to authenticate with specific scopes that grant the necessary access levels.
+- Make sure to connect using at least one of the following permissions: "User.Read.All", "Directory.AccessAsUser.All", "Directory.Read.All".
+- For instance, if you choose to use User.Read.All, your command would look like this: Connect-MgGraph -Scopes 'User.Read.All'
+
 Retrieve all Administrator directory roles.
 ^^^^^^^^^^^
 Retrieves Administrator directory roles, including the identification of users associated with each specific role.
@@ -80,6 +88,14 @@ Output
 """"""""""""""""""""""""""
 The output will be saved to the 'UserInfo' directory within the 'Output' directory.
 
+.. note::
+
+  **Important note** Permission Requirement. 
+
+- Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application or user to authenticate with specific scopes that grant the necessary access levels.
+- Make sure to connect using at least one of the following permissions: "User.Read.All", "Directory.AccessAsUser.All", "Directory.Read.All".
+- For instance, if you choose to use User.Read.All, your command would look like this: Connect-MgGraph -Scopes 'User.Read.All'
+
 Retrieves MFA status
 ^^^^^^^^^^^
 Retrieves the MFA status for all users.
@@ -114,6 +130,14 @@ Output
 """"""""""""""""""""""""""
 The output will be saved to the 'UserInfo' directory within the 'Output' directory.
 
+.. note::
+
+  **Important note** Permission Requirement. 
+
+- Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application or user to authenticate with specific scopes that grant the necessary access levels.
+- Make sure to connect using both of the following permissions: "UserAuthenticationMethod.Read.All",'User.Read.All".
+- Your command would look like this: Connect-MgGraph -Scopes 'User.Read.All','UserAuthenticationMethod.Read.All'
+
 Retrieves the risky users
 ^^^^^^^^^^^
 Retrieves the risky users from the Entra ID Identity Protection, which marks an account as being at risk based on the pattern of activity for the account.
@@ -143,6 +167,14 @@ Output
 """"""""""""""""""""""""""
 The output will be saved to the 'UserInfo' directory within the 'Output' directory.
 
+.. note::
+
+  **Important note** Permission Requirement. 
+
+- Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application or user to authenticate with specific scopes that grant the necessary access levels.
+- Make sure to connect using the following permission: "IdentityRiskyUser.Read.All".
+- Your command would look like this: Connect-MgGraph -Scopes 'IdentityRiskyUser.Read.All'
+
 Retrieves the risky detections
 ^^^^^^^^^^^
 Retrieves the risky detections from the Entra ID Identity Protection.
@@ -171,3 +203,11 @@ Parameters
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'UserInfo' directory within the 'Output' directory.
+
+.. note::
+
+  **Important note** Permission Requirement. 
+
+- Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application or user to authenticate with specific scopes that grant the necessary access levels.
+- Make sure to connect using the following permission: "IdentityRiskEvent.Read.All".
+- Your command would look like this: Connect-MgGraph -Scopes 'IdentityRiskEvent.Read.All'

@@ -75,3 +75,21 @@ function Write-LogFile([String]$message,$color)
 	$logToWrite = [DateTime]::Now.ToString() + ": " + $message
 	$logToWrite | Out-File $LogFile -Append
 }
+
+function versionCheck{
+	$moduleName = "Microsoft-Extractor-Suite"
+	$currentVersionString  = "1.3.0"
+
+	$currentVersion = [Version]$currentVersionString
+    $latestVersionString = (Find-Module -Name $moduleName).Version.ToString()
+    $latestVersion = [Version]$latestVersionString
+
+
+	$latestVersion = (Find-Module -Name $moduleName).Version.ToString()
+
+	if ($currentVersion -lt $latestVersion) {
+		write-LogFile -Message "`n[INFO] You are running an outdated version ($currentVersion) of $moduleName. The latest version is ($latestVersion), please update to the latest version." -Color "Yellow"
+	}
+}
+
+versionCheck

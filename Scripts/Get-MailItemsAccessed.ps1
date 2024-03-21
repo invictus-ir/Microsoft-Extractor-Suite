@@ -391,7 +391,7 @@ function Get-MessageIDs {
         
         if (($output -ne "N") -And ($output -ne "No")) {
             $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-            $filePath = "$OutputDir\MessageIDs-$date.csv"
+            $filePath = "$OutputDir\$date-MessageIDs.csv"
             $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
             Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
         } 
@@ -471,7 +471,7 @@ function Get-MessageIDs {
 
         if (($output -ne "N") -And ($output -ne "No")) {
             $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-            $filePath = "$OutputDir\MessageIDs-$date.csv"
+            $filePath = "$OutputDir\$date-MessageIDs.csv"
             $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
             Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
         }
@@ -620,7 +620,7 @@ function Get-MessageIDs {
 
         if (($output -ne "N") -And ($output -ne "No")) {
             $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-            $filePath = "$OutputDir\MessageIDs-$date.csv"
+            $filePath = "$OutputDir\$date-MessageIDs.csv"
             $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
             Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
         }

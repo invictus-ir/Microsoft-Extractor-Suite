@@ -8,7 +8,7 @@ Author = 'Joey Rentenaar & Korstiaan Stam'
 CompanyName = 'Invictus-IR'
 
 # Version number of this module.
-ModuleVersion = '1.2.4' 
+ModuleVersion = '1.3.0' 
 
 # ID used to uniquely identify this module
 GUID = '4376306b-0078-4b4d-b565-e22804e3be01'
@@ -37,6 +37,7 @@ NestedModules = @(
 	".\Scripts\Get-ConditionalAccessPolicy.ps1"
 	".\Scripts\Get-Emails.ps1"
 	".\Scripts\Get-MailItemsAccessed.ps1"
+	".\Scripts\Get-UALGraph.ps1"
 )
 
 FunctionsToExport = @(
@@ -50,6 +51,9 @@ FunctionsToExport = @(
 	"Get-UALGroup"
 	"Get-UALSpecific"
 	"Get-UALSpecificActivity"
+	
+	# Get-UALGraph
+	"Get-UALGraph"
 	
 	# Get-UALStatistics.ps1
 	"Get-UALStatistics"

@@ -89,7 +89,7 @@ function Get-ActivityLogs {
 	)
 
 	try {
-		$areYouConnected = Get-AzActivityLog -ErrorAction stop -WarningAction silentlyContinue
+		$areYouConnected = Get-AzSubscription -ErrorAction stop -WarningAction silentlyContinue
 	}
 	catch {
 		write-logFile -Message "[WARNING] You must call Connect-AzureAZ before running this script" -Color "Red"
@@ -99,14 +99,12 @@ function Get-ActivityLogs {
 	StartDateAzure
 	EndDateAzure
 	
-	$date = [datetime]::Now.ToString('yyyyMMddHHmmss')
-
 	if ($Encoding -eq "" ){
 		$Encoding = "UTF8"
 	}
 
 	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\AzureActivityLogs\$date\"
+		$OutputDir = "Output\AzureActivityLogs"
 		if (!(test-path $OutputDir)) {
 			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
@@ -124,6 +122,8 @@ function Get-ActivityLogs {
 		}
 	}
 
+	$validSubscriptions = @()
+
 	if ($SubscriptionID -eq "") {
 		write-logFile -Message "[INFO] Retrieving all subscriptions linked to the logged-in user account" -Color "Green"
 		$subScription = Get-AzSubscription
@@ -134,19 +134,39 @@ function Get-ActivityLogs {
 	}
 	
 	else {
-		
 		$subScription = Get-AzSubscription -SubscriptionId $SubscriptionID
 	}
-	
-	foreach ($sub in $Subscription) {	
+
+	foreach ($sub in $subScription) {
+        try {
+            Set-AzContext -Subscription $sub.Id | Out-Null
+            $logs = Get-AzActivityLog -StartTime (Get-Date).AddDays(-89) -EndTime (Get-Date) -ErrorAction Stop -WarningAction SilentlyContinue
+            
+            if ($logs) {
+                $validSubscriptions += $sub
+                Write-Host "[INFO] Activity logs found in subscription: $($sub.Id)" -ForegroundColor Green
+            }
+        }
+        catch {
+            Write-Host "[WARNING] No Activity logs in subscription: $($sub.Id), or an error occurred." -ForegroundColor Yellow
+        }
+    }
+
+	if ($validSubscriptions.Count -eq 0) {
+        Write-Host "[WARNING] No valid subscriptions with logs found." -ForegroundColor Red
+        return
+    }
+
+	foreach ($sub in $validSubscriptions) {	
 		$name = $sub.Name
 		$iD = $sub.Id
 		
 		write-logFile -Message "[INFO] Retrieving all Activity Logs for $sub" -Color "Green"	
 		Set-AzContext -Subscription $iD | Out-Null
 		
-		write-logFile -Message "[INFO] Connected to $iD" -Color "Green"	
-		$filePath = "$OutputDir\$iD-ActivityLog.json"
+		write-logFile -Message "[INFO] Connected to Subscription $iD" -Color "Green"
+		$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
+		$filePath = "$OutputDir\$($date)-$iD-ActivityLog.json"
 				
 		[DateTime]$currentStart = $script:StartDate
 		[DateTime]$currentEnd = $script:EndDate		

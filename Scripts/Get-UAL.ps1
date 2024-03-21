@@ -36,7 +36,7 @@ function Get-UALAll
 
  	.PARAMETER MergeCSVOutput
     MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file
-    Default: n
+    Default: No
 
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.
@@ -63,7 +63,7 @@ function Get-UALAll
 	Gets all the unified audit log entries with a time interval of 720.
 
  	.EXAMPLE
-	Get-UALAll -UserIds Test@invictus-ir.com -MergeCSVOutput y
+	Get-UALAll -UserIds Test@invictus-ir.com -MergeCSVOutput
 	Gets all the unified audit log entries for the user Test@invictus-ir.com and adds a combined output csv file at the end of acquisition
 	
 	.EXAMPLE
@@ -78,11 +78,11 @@ function Get-UALAll
 		[string]$UserIds,
 		[string]$Interval,
 		[string]$Output,
-  		[string]$MergeCSVOutput,
+		[switch]$MergeCSVOutput,
 		[string]$OutputDir,
 		[string]$Encoding
 	)
-
+	
 	try {
 		$areYouConnected = Get-AdminAuditLogConfig -ErrorAction stop
 	}
@@ -111,12 +111,6 @@ function Get-UALAll
 	} else {
 		$Output = "CSV"
 		Write-LogFile -Message "[INFO] Output set to CSV"
-  		if ( $MergeCSVOutput -eq "y") 
-    		{
-    			Write-LogFile -Message "[INFO] MergeCSVOutput set to y"
-      		} else {
-			$MergeCSVOutput = "n"
-		}
 	}
 
 	if ($Encoding -eq "" ){
@@ -234,17 +228,18 @@ function Get-UALAll
 		}
 	}
 
-	if ($Output -eq "CSV" -and $MergeCSVOutput -eq "y")
+	if ($Output -eq "CSV" -and ($MergeCSVOutput.IsPresent))
 	{
-	  $outputDirMerged = "$OutputDir\Merged\"
-	  If (!(test-path $outputDirMerged)) {
-		  Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
-		  New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
-	  }
+		Write-LogFile -Message "[INFO] MergeCSVOutput set to y"
+	  	$outputDirMerged = "$OutputDir\Merged\"
+	  	If (!(test-path $outputDirMerged)) {
+			Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
+		  	New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
+	  	}
   
 	    Get-ChildItem $OutputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/UAL-Combined.csv" -NoTypeInformation -Append
 		Write-LogFile -Message "[INFO] Merging UAL Files" -Color "Green"
-	  }
+	}
 
 	Write-LogFile -Message "[INFO] Acquisition complete, check the Output directory for your files.." -Color "Green"
 }
@@ -289,7 +284,7 @@ function Get-UALGroup
  
  	.PARAMETER MergeCSVOutput
     MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file
-    Default: n
+    Default: No
     
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.
@@ -316,7 +311,7 @@ function Get-UALGroup
 	Gets all the Defender related unified audit log entries for the user Test@invictus-ir.com in JSON format with a time interval of 720.
 
   	.EXAMPLE
-	Get-UALGroup -Group Exchange -MergeCSVOutput y
+	Get-UALGroup -Group Exchange -MergeCSVOutput
 	Gets the Azure related unified audit log entries and adds a combined output csv file at the end of acquisition
 #>
 	[CmdletBinding()]
@@ -384,12 +379,6 @@ function Get-UALGroup
 	} else {
 		$Output = "CSV"
 		Write-LogFile -Message "[INFO] Output set to CSV"
-  		if ( $MergeCSVOutput -eq "y") 
-    		{
-    			Write-LogFile -Message "[INFO] MergeCSVOutput set to y"
-      		} else {
-			$MergeCSVOutput = "n"
-		}
 	}
 
 	if ($Encoding -eq "" ){
@@ -522,7 +511,7 @@ function Get-UALGroup
 			Write-LogFile -message "[INFO] No Records found for $Record"
 		}
 	}
- 	if ($Output -eq "CSV" -and $MergeCSVOutput -eq "y")
+	if ($Output -eq "CSV" -and ($MergeCSVOutput.IsPresent))
   	{
 		$outputDirMerged = "$OutputDir\Merged\"
 		If (!(test-path $outputDirMerged)) {
@@ -532,7 +521,8 @@ function Get-UALGroup
 
  		Get-ChildItem $OutputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/UAL-Combined.csv" -NoTypeInformation -Append
    		Write-LogFile -Message "[INFO] Merging UAL Files" -Color "Green"
-        }
+    }
+	
 	Write-LogFile -Message "[INFO] Acquisition complete, check the Output directory for your files.." -Color "Green"
 }
 
@@ -580,7 +570,7 @@ function Get-UALSpecific
 
   	.PARAMETER MergeCSVOutput
     MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file
-    Default: n
+    Default: No
 
 	.EXAMPLE
 	Get-UALSpecific -RecordType ExchangeItem
@@ -603,7 +593,7 @@ function Get-UALSpecific
 	Gets all the MicrosoftFlow logging from the unified audit log for the user Test@invictus-ir.com in JSON format with a time interval of 720.
 
   	.EXAMPLE
-	Get-UALSpecific -RecordType MipAutoLabelExchangeItem -MergeCSVOutput y
+	Get-UALSpecific -RecordType MipAutoLabelExchangeItem -MergeCSVOutput
 	Gets the ExchangeItem logging from the unified audit log and adds a combined output csv file at the end of acquisition
 #>
 	[CmdletBinding()]
@@ -651,12 +641,6 @@ function Get-UALSpecific
 	else {
 		$Output = "CSV"
 		Write-LogFile -Message "[INFO] Output set to CSV"
-  		if ( $MergeCSVOutput -eq "y") 
-  		{
-    			Write-LogFile -Message "[INFO] MergeCSVOutput set to y"
-      		} else {
-			$MergeCSVOutput = "n"
-		}
 	}
 
 	if ($Encoding -eq "" ){
@@ -785,7 +769,7 @@ function Get-UALSpecific
 		}
 	}
 
-	if ($Output -eq "CSV" -and $MergeCSVOutput -eq "y")
+	if ($Output -eq "CSV" -and ($MergeCSVOutput.IsPresent))
 	{
 	  $outputDirMerged = "$OutputDir\Merged\"
 	  write-host $outputDirMerged
@@ -1014,7 +998,7 @@ function Get-UALSpecificActivity
 
 							if ($Output -eq "JSON")
 							{
-								$results = $results|Select-Object AuditData -ExpandProperty AuditData
+								$results = $results | Select-Object AuditData -ExpandProperty AuditData
 								$results | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
 								Write-LogFile -Message $message
 							}
