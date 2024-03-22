@@ -52,7 +52,7 @@ function Get-ADSignInLogsGraph {
         [string]$UserIds,
         [string]$Encoding = "UTF8",
         [switch]$Application,
-		[string]$Interval
+	[string]$Interval
     )
 
     if (!($Application.IsPresent)) {
@@ -125,7 +125,6 @@ function Get-ADSignInLogsGraph {
 	while ($currentStart -lt $script:EndDate) {			
 		$currentEnd = $currentStart.AddMinutes($Interval)       
 		if ($UserIds){
-			Write-LogFile -Message "[DEBUG] Start Of Day"
 			Write-LogFile -Message "[INFO] Collecting Directory Sign In logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))."
 			try{
 				[Array]$results =  Get-MgBetaAuditLogSignIn -ExpandProperty * -All -Filter "UserPrincipalName eq '$($Userids)' and createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))"
@@ -166,7 +165,6 @@ function Get-ADSignInLogsGraph {
 
 			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range."							
 		}
-		Write-LogFile -Message "[DEBUG] End Of Day"
 		[Array]$results = @()
 		$CurrentStart = $CurrentEnd
   		$currentDay++
