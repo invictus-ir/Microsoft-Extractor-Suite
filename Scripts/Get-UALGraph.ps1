@@ -161,8 +161,7 @@ Function Get-UALGraph {
 		} 
 		elseif ($auditLogQuery.Status -eq "succeeded") {
             write-logFile -Message "[INFO] Unified Audit Log search succeeded." -Color "Green"
-			#DownloadUAL($scanId)
-            DownloadUAL $scanId $searchName $OutputDir $Encoding
+            DownloadUAL $scanId $searchName $Encoding $OutputDir
 		}
 		else {
 			write-logFile -Message "[INFO] Unified Audit Log search is stil running. Waiting..."
