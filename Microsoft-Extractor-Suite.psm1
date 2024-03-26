@@ -42,7 +42,7 @@ Function StartDateAz
 {
 	if (($startDate -eq "") -Or ($null -eq $startDate)) {
 		$script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-30)
-		write-LogFile -Message "[INFO] No start date provived by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-dd"))" -Color "Yellow"
+		write-LogFile -Message "[INFO] No start date provived by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
 	}
 	else
 	{
@@ -93,7 +93,7 @@ function Write-LogFile([String]$message,$color)
 
 function versionCheck{
 	$moduleName = "Microsoft-Extractor-Suite"
-	$currentVersionString  = "1.3.0"
+	$currentVersionString  = "1.3.2"
 
 	$currentVersion = [Version]$currentVersionString
     $latestVersionString = (Find-Module -Name $moduleName).Version.ToString()

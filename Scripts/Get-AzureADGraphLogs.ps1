@@ -1,7 +1,7 @@
 function Get-ADSignInLogsGraph {
     <#
     .SYNOPSIS
-    Gets of sign ins logs.
+    Gets of sign-ins logs.
 
     .DESCRIPTION
     The Get-ADSignInLogsGraph GraphAPI cmdlet collects the contents of the Azure Active Directory sign-in logs.
@@ -25,16 +25,20 @@ function Get-ADSignInLogsGraph {
     Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
     Default: Delegated access (access on behalf a user)
 
+	.PARAMETER MergeOutput
+    MergeOutput is the parameter specifying if you wish to merge outputs to a single file
+    Default: No
+
     .PARAMETER UserIds
     UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
     .EXAMPLE
     Get-ADSignInLogsGraph
-    Get all audit logs of sign ins.
+    Get all audit logs of sign-ins.
 
     .EXAMPLE
     Get-ADSignInLogsGraph -Application
-    Get all audit logs of sign ins via application authentication.
+    Get all audit logs of sign-ins via application authentication.
 
     .EXAMPLE
     Get-ADSignInLogsGraph -endDate 2023-04-12
@@ -47,12 +51,13 @@ function Get-ADSignInLogsGraph {
     [CmdletBinding()]
     param(
         [string]$startDate,
-	[string]$endDate,
+		[string]$endDate,
+		[switch]$MergeOutput,
         [string]$OutputDir,
         [string]$UserIds,
         [string]$Encoding = "UTF8",
         [switch]$Application,
-	[string]$Interval
+		[string]$Interval
     )
 
     if (!($Application.IsPresent)) {
@@ -70,7 +75,6 @@ function Get-ADSignInLogsGraph {
     if ($Encoding -eq "" ){
 		$Encoding = "UTF8"
 	}
-
 	
 	if ($Interval -eq "") {
 		$Interval = 1440
@@ -107,7 +111,6 @@ function Get-ADSignInLogsGraph {
 	StartDateAz
 	EndDate
 
-
     $date = Get-Date -Format 'yyyyMMddHHmmss'
     $filePath = Join-Path -Path $outputDir -ChildPath "$($date)-SignInLogsGraph.json"
 
@@ -116,7 +119,7 @@ function Get-ADSignInLogsGraph {
 	[DateTime]$lastLog = $script:EndDate
 	$currentDay = 0  
 
-	Write-LogFile -Message "[INFO] Extracting all available Directory Sign In Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
+	Write-LogFile -Message "[INFO] Extracting all available Directory Sign-in Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
 	if($currentStart -gt $script:EndDate){
 		Write-LogFile -Message "[ERROR] $($currentStart.ToString("yyyy-MM-dd")) is greather than $($script:EndDate.ToString("yyyy-MM-dd")) - are you sure you put in the correct year? Exiting!" -Color "Red"
 		return
@@ -125,7 +128,7 @@ function Get-ADSignInLogsGraph {
 	while ($currentStart -lt $script:EndDate) {			
 		$currentEnd = $currentStart.AddMinutes($Interval)       
 		if ($UserIds){
-			Write-LogFile -Message "[INFO] Collecting Directory Sign In logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))."
+			Write-LogFile -Message "[INFO] Collecting Directory Sign-in logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))."
 			try{
 				[Array]$results =  Get-MgBetaAuditLogSignIn -ExpandProperty * -All -Filter "UserPrincipalName eq '$($Userids)' and createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))"
 			}
@@ -155,13 +158,10 @@ function Get-ADSignInLogsGraph {
 				$currentTotal = $currentCount 
 			}
 			
-			Write-LogFile -Message "[INFO] Found $currentCount Directory Sign In Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
+			Write-LogFile -Message "[INFO] Found $currentCount Directory Sign-in Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
 				
-			$filePath = "$OutputDir\SignInLogsGraph-$($CurrentStart.ToString("yyyyMMdd"))-$($CurrentEnd.ToString("yyyyMMdd")).json"
-			$results | Select-Object AppDisplayName,AppId,AppTokenProtectionStatus,AppliedConditionalAccessPolicies,ConditionsNotSatisfied,ConditionsSatisfied,AppliedConditionalAccessPoliciesDisplayName,EnforcedGrantControls,EnforcedSessionControls,AppliedConditionalAccessPoliciesId,AppliedConditionalAccessPoliciesResult,AppliedConditionalAccessPolicies2,AppliedEventListeners,AuthenticationAppDeviceDetails,AppVersion,ClientApp,DeviceId,OperatingSystem,AuthenticationAppPolicyEvaluationDetails,AdminConfiguration,AuthenticationEvaluation,AuthenticationAppPolicyEvaluationDetailsPolicyName,AuthenticationAppPolicyEvaluationDetailsStatus,AuthenticationContextClassReferences,AuthenticationDetails,AuthenticationMethodsUsed,AuthenticationProcessingDetails,AuthenticationProtocol,AuthenticationRequirement,AuthenticationRequirementPolicies,Detail,RequirementProvider,AutonomousSystemNumber,AzureResourceId,ClientAppUsed,ClientCredentialType,ConditionalAccessStatus,CorrelationId,@{N='CreatedDateTime';E={$_.CreatedDateTime.ToString()}},CrossTenantAccessType,DeviceDetail,Browser,DeviceDetailDeviceId,DisplayName,IsCompliant,IsManaged,DeviceDetailOperatingSystem,TrustType,FederatedCredentialId,FlaggedForReview,HomeTenantId,HomeTenantName,IPAddress,IPAddressFromResourceProvider,Id,IncomingTokenType,IsInteractive,IsTenantRestricted,Location,City,CountryOrRegion,State,ManagedServiceIdentity,AssociatedResourceId,FederatedTokenId,FederatedTokenIssuer,MsiType,MfaDetail,AuthDetail,AuthMethod,NetworkLocationDetails,OriginalRequestId,OriginalTransferMethod,PrivateLinkDetails,PolicyId,PolicyName,PolicyTenantId,PrivateLinkDetailsResourceId,ProcessingTimeInMilliseconds,ResourceDisplayName,ResourceId,ResourceServicePrincipalId,ResourceTenantId,RiskDetail,RiskEventTypesV2,RiskLevelAggregated,RiskLevelDuringSignIn,RiskState,ServicePrincipalCredentialKeyId,ServicePrincipalCredentialThumbprint,ServicePrincipalId,ServicePrincipalName,SessionLifetimePolicies,SignInEventTypes,SignInIdentifier,SignInIdentifierType,SignInTokenProtectionStatus,Status,StatusAdditionalDetails,TokenIssuerName,TokenIssuerType,UniqueTokenIdentifier,UserAgent,UserDisplayName,UserId,UserPrincipalName,UserType,AdditionalProperties |
-				ForEach-Object {
-					$_ | ConvertTo-Json -Depth 100
-				} |	Out-File -FilePath $filePath -Encoding $Encoding
+			$filePath = "$OutputDir\SignInLogsGraph-$($CurrentStart.ToString("yyyyMMdd"))-$($CurrentEnd.ToString("yyyyMMdd")).json"	
+			$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
 
 			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range."							
 		}
@@ -169,6 +169,27 @@ function Get-ADSignInLogsGraph {
 		$CurrentStart = $CurrentEnd
   		$currentDay++
 	}
+
+	if ($MergeOutput.IsPresent)
+	{
+		Write-LogFile -Message "[INFO] Merging output files into one file"
+	  	$outputDirMerged = "$OutputDir\Merged\"
+	  	If (!(test-path $outputDirMerged)) {
+			Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
+		  	New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
+	  	}
+
+		$allJsonObjects = @()
+
+		Get-ChildItem $OutputDir -Filter *.json | ForEach-Object {
+			$content = Get-Content -Path $_.FullName -Raw
+			$jsonObjects = $content | ConvertFrom-Json
+			$allJsonObjects += $jsonObjects
+		}
+	
+		$allJsonObjects | ConvertTo-Json -Depth 100 | Set-Content "$outputDirMerged\SignInLogs-Combined.json"
+	}
+
 	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		
 }
 

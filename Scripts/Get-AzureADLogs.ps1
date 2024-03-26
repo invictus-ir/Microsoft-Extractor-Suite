@@ -23,6 +23,10 @@ function Get-ADSignInLogs {
     Encoding is the parameter specifying the encoding of the JSON output file.
 	Default: UTF8
 
+	.PARAMETER MergeOutput
+    MergeOutput is the parameter specifying if you wish to merge outputs to a single file
+    Default: No
+
 	.PARAMETER UserIds
     UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
     
@@ -48,6 +52,7 @@ function Get-ADSignInLogs {
 		[string]$endDate,
 		[string]$outputDir,
 		[string]$UserIds,
+		[switch]$MergeOutput,
 		[string]$Encoding,
 		[string]$Interval
 	)
@@ -96,7 +101,7 @@ function Get-ADSignInLogs {
 	[DateTime]$lastLog = $script:EndDate
 	$currentDay = 0  
 
-	Write-LogFile -Message "[INFO] Extracting all available Directory Sign In Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
+	Write-LogFile -Message "[INFO] Extracting all available Directory Sign-in Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
 	if($currentStart -gt $script:EndDate){
 		Write-LogFile -Message "[ERROR] $($currentStart.ToString("yyyy-MM-dd")) is greather than $($script:EndDate.ToString("yyyy-MM-dd")) - are you sure you put in the correct year? Exiting!" -Color "Red"
 		return
@@ -105,7 +110,7 @@ function Get-ADSignInLogs {
 	while ($currentStart -lt $script:EndDate) {			
 		$currentEnd = $currentStart.AddMinutes($Interval)       
 		if ($UserIds){
-			Write-LogFile -Message "[INFO] Collecting Directory Sign In logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))."
+			Write-LogFile -Message "[INFO] Collecting Directory Sign-in logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))."
 			try{
 				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$($Userids)' and createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))"
 			}
@@ -135,9 +140,9 @@ function Get-ADSignInLogs {
 				$currentTotal = $currentCount 
 			}
 			
-			Write-LogFile -Message "[INFO] Found $currentCount Directory Sign In Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
+			Write-LogFile -Message "[INFO] Found $currentCount Directory Sign-in Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
 				
-			$filePath = "$OutputDir\SignInLogs-$($CurrentStart.ToString("yyyyMMdd"))-$($CurrentEnd.ToString("yyyyMMdd"))"
+			$filePath = "$OutputDir\SignInLogs-$($CurrentStart.ToString("yyyyMMdd"))-$($CurrentEnd.ToString("yyyyMMdd")).json"
 			$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
 
 			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range."							
@@ -146,6 +151,27 @@ function Get-ADSignInLogs {
 		$CurrentStart = $CurrentEnd
   		$currentDay++
 	}
+	
+	if ($MergeOutput.IsPresent)
+	{
+		Write-LogFile -Message "[INFO] Merging output files into one file"
+	  	$outputDirMerged = "$OutputDir\Merged\"
+	  	If (!(test-path $outputDirMerged)) {
+			Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
+		  	New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
+	  	}
+
+		$allJsonObjects = @()
+
+		Get-ChildItem $OutputDir -Filter *.json | ForEach-Object {
+			$content = Get-Content -Path $_.FullName -Raw
+			$jsonObjects = $content | ConvertFrom-Json
+			$allJsonObjects += $jsonObjects
+		}
+	
+		$allJsonObjects | ConvertTo-Json -Depth 100 | Set-Content "$outputDirMerged\SignInLogs-Combined.json"
+	}
+	
 	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		
 }
 

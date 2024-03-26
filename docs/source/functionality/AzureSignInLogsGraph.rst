@@ -43,6 +43,10 @@ Parameters
     - Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
     - Default: Delegated access (access on behalf a user)
 
+-MergeOutput (optional)
+    - MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
+    - Default: No
+
 -UserIds (optional)
     - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 

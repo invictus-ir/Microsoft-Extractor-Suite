@@ -113,8 +113,8 @@ Parameters
     - Output is the parameter specifying the CSV or JSON output type.
     - Default: CSV
 
--MergeCSVOutput (optional)
-    - MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
+-MergeOutput (optional)
+    - MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
     - Default: No
 
 -OutputDir (optional)
@@ -269,8 +269,8 @@ Parameters
     - Output is the parameter specifying the CSV or JSON output type.
     - Default: CSV
 
--MergeCSVOutput (optional)
-    - MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
+-MergeOutput (optional)
+    - MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
     - Default: No
 
 -OutputDir (optional)
@@ -349,8 +349,8 @@ Parameters
     - Output is the parameter specifying the CSV or JSON output type.
     - Default: CSV
 
--MergeCSVOutput (optional)
-    - MergeCSVOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
+-MergeOutput (optional)
+    - MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
     - Default: No
 
 -OutputDir (optional)
