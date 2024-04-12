@@ -178,7 +178,7 @@ function Get-MFA {
     }
 	
     $date = Get-Date -Format "yyyyMMddHHmm"
-    $filePath = "$OutputDir\$($date)-AuthenticationMethods.csv"
+    $filePath = "$OutputDir\$($date)-MFA-AuthenticationMethods.csv"
     $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
     
@@ -208,7 +208,7 @@ function Get-MFA {
 
     $results=@();
     $date = Get-Date -Format "yyyyMMddHHmm"
-    $filePath = "$OutputDir\$($date)-UserRegistrationDetails.csv"
+    $filePath = "$OutputDir\$($date)-MFA-UserRegistrationDetails.csv"
   
     Get-MgReportAuthenticationMethodUserRegistrationDetail -all | ForEach-Object {
         $myObject = [PSCustomObject]@{
