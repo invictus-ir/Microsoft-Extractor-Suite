@@ -86,13 +86,13 @@ Function Get-Sessions {
     if ($UserIds -And !$IP){
         $Results = @()
 
-        $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
+        $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -UserIds $UserIds -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
 
         if($amountResults -gt 4999){
             write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly provide more specific details, such as specifying a user or IP address." -Color "Red"
         }
 
-        else{   
+        else {   
             $mailItemRecords = (Search-UnifiedAuditLog -UserIds $UserIds -StartDate $StartDate -EndDate $EndDate -ResultSize 5000 -Operations "MailItemsAccessed")
             
             foreach($rec in $mailItemRecords) {
@@ -122,14 +122,14 @@ Function Get-Sessions {
         elseif($IP -And !$UserIds){
             $Results = @()
 
-            $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
+            $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
 
             if($amountResults -gt 4999){
                 write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly provide more specific details, such as specifying a user." -Color "Red"
             }
 
             else{              
-                $MailItemRecords = (Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -ResultSize 5000 -Operations "MailItemsAccessed")
+                $MailItemRecords = (Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -ResultSize 5000 -Operations "MailItemsAccessed")
 
                 ForEach($Rec in $MailItemRecords){
                     $AuditData = ConvertFrom-Json $Rec.Auditdata
@@ -160,13 +160,13 @@ Function Get-Sessions {
         elseif($IP -And $UserIds){
             $Results = @()
 
-            $amountResults = (Search-UnifiedAuditLog -UserIds $UserIds -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
+            $amountResults = (Search-UnifiedAuditLog -UserIds $UserIds -FreeText $IP -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
             if($amountResults -gt 4999){
                 write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly provide a more specific time window." -Color "Red"
             }
 
             else{
-                $MailItemRecords = (Search-UnifiedAuditLog -UserIds $UserIds -StartDate $StartDate -EndDate $EndDate -ResultSize 5000 -Operations "MailItemsAccessed")
+                $MailItemRecords = (Search-UnifiedAuditLog -UserIds $UserIds -FreeText $IP -StartDate $StartDate -EndDate $EndDate -ResultSize 5000 -Operations "MailItemsAccessed")
         
                 foreach($Rec in $MailItemRecords){
                 $AuditData = ConvertFrom-Json $Rec.Auditdata
@@ -398,14 +398,14 @@ function Get-MessageIDs {
     }
 
     elseif ($IP -And $Sessions){
-        $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+        $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 		
         if ($amountResults -gt 4999){
             write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly lower the time window." -Color "Red"
         }
 
         else {
-            $MailItemRecords = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -ResultSize 5000 -Operations "MailItemsAccessed"
+            $MailItemRecords = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -ResultSize 5000 -Operations "MailItemsAccessed"
         
             forEach ($Rec in $MailItemRecords){
                 $AuditData = ConvertFrom-Json $Rec.Auditdata
@@ -478,14 +478,14 @@ function Get-MessageIDs {
     }
 
     elseif ($Sessions -And !$IP){
-        $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+        $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $Sessions -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 		
         if ($amountResults -gt 4999){
             write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly lower the time window." -Color "Red"
         }
 
         else {
-            $MailItemRecords = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -ResultSize 5000 -Operations "MailItemsAccessed"
+            $MailItemRecords = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -ResultSize 5000 -FreeText $Sessions -Operations "MailItemsAccessed"
         
             forEach ($Rec in $MailItemRecords){
                 $AuditData = ConvertFrom-Json $Rec.Auditdata
@@ -553,21 +553,21 @@ function Get-MessageIDs {
     }
         
     elseif (!$Sessions -And $IP){
-        $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
-        
+        $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
         if ($amountResults -gt 4999){
             write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly lower the time window." -Color "Red"
         }
 
         else {
-            $MailItemRecords = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -ResultSize 5000 -Operations "MailItemsAccessed"
-        
+            $MailItemRecords = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -ResultSize 5000 -Operations "MailItemsAccessed"
+
             forEach ($Rec in $MailItemRecords){
                 $AuditData = ConvertFrom-Json $Rec.Auditdata
                 $InternetMessageId = $AuditData.Folders.FolderItems
                 $TimeStamp = $AuditData.CreationTime
                 $SessionId = $AuditData.SessionId
                 $ClientIP = $AuditData.ClientIPAddress
+
                 $userId = $AuditData.UserId
                   
                 if($ClientIP -eq $IP){

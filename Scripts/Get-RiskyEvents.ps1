@@ -113,7 +113,7 @@ function Get-RiskyUsers {
     }
 
     $date = Get-Date -Format "yyyyMMddHHmm"
-    $filePath = "$OutputDir\$($date)RiskyUsers.csv"
+    $filePath = "$OutputDir\$($date)-RiskyUsers.csv"
     $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
     Write-logFile -Message "[INFO] A total of $count Risky Users found"
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"

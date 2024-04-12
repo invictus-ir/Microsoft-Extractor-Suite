@@ -173,7 +173,8 @@ Function Get-UALGraph {
 Function DownloadUAL($scanId, $searchName, $Encoding, $OutputDir) {
     $date = Get-Date -Format "yyyyMMddHHmm"
     $outputFilePath = "$($date)-$searchName-UnifiedAuditLog.json"
-    
+    $customObjects = @()
+
     Get-MgBetaSecurityAuditLogQueryRecord -AuditLogQueryId $scanId -All |
         ForEach-Object {	
             $customObject = New-Object PSObject -Property @{
@@ -193,9 +194,10 @@ Function DownloadUAL($scanId, $searchName, $Encoding, $OutputDir) {
                 AdditionalProperties = $_.AdditionalProperties
             }
             
-            $customObject | ConvertTo-Json -Depth 100
-        } |
-        Out-File -Append "$OutputDir/$($date)-$searchName-UnifiedAuditLog.json" -Encoding $Encoding
+            $customObjects += $customObject
+        } 
+
+        $customObjects | ConvertTo-Json -Depth 100 | Out-File -Append "$OutputDir/$($date)-$searchName-UnifiedAuditLog.json" -Encoding $Encoding
 
     write-logFile -Message "[INFO] Audit log records have been saved to $outputFilePath" -Color "Green"
     $endTime = Get-Date

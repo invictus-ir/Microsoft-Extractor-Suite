@@ -93,7 +93,7 @@ function Write-LogFile([String]$message,$color)
 
 function versionCheck{
 	$moduleName = "Microsoft-Extractor-Suite"
-	$currentVersionString  = "1.3.2"
+	$currentVersionString  = $version
 
 	$currentVersion = [Version]$currentVersionString
     $latestVersionString = (Find-Module -Name $moduleName).Version.ToString()

@@ -157,77 +157,88 @@ function Get-ActivityLogs {
         return
     }
 
-	foreach ($sub in $validSubscriptions) {	
-		$name = $sub.Name
-		$iD = $sub.Id
-		
-		write-logFile -Message "[INFO] Retrieving all Activity Logs for $sub" -Color "Green"	
-		Set-AzContext -Subscription $iD | Out-Null
-		
-		write-logFile -Message "[INFO] Connected to Subscription $iD" -Color "Green"
-		$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-		$filePath = "$OutputDir\$($date)-$iD-ActivityLog.json"
+	try {
+
+		foreach ($sub in $validSubscriptions) {	
+			$name = $sub.Name
+			$iD = $sub.Id
+			
+			write-logFile -Message "[INFO] Retrieving all Activity Logs for $sub" -Color "Green"	
+			Set-AzContext -Subscription $iD | Out-Null
+			
+			write-logFile -Message "[INFO] Connected to Subscription $iD" -Color "Green"
+			$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
+			$filePath = "$OutputDir\$($date)-$iD-ActivityLog.json"
+					
+			[DateTime]$currentStart = $script:StartDate
+			[DateTime]$currentEnd = $script:EndDate		
+			
+			$totalDays = ($currentEnd - $currentStart).TotalDays
+
+			for ($i = 0; $i -lt $totalDays; $i++) {
+				$dagCounter = $currentStart.AddDays($i)
+				$formattedDate = $dagCounter.ToString("yyyy-MM-dd")
 				
-		[DateTime]$currentStart = $script:StartDate
-		[DateTime]$currentEnd = $script:EndDate		
-		
-		$totalDays = ($currentEnd - $currentStart).TotalDays
-
-		for ($i = 0; $i -lt $totalDays; $i++) {
-			$dagCounter = $currentStart.AddDays($i)
-			$formattedDate = $dagCounter.ToString("yyyy-MM-dd")
-			
-			[DateTime]$start = (Get-Date $formattedDate).Date  
-			[DateTime]$end = (Get-Date $formattedDate).Date.AddDays(1).AddSeconds(-1)
-			
-			$currentStartnew = $start
-			$currentEnd = $end
-			
-			$amountResults = Get-AzActivityLog -StartTime $start -EndTime $end -MaxRecord 1000 -WarningAction SilentlyContinue	
-			if ($amountResults.count -gt 0) {
-				if ($amountResults.count -gt 1000) {
-					while ($currentStartnew -lt $currentEnd) {				
-						Write-LogFile -Message "[WARNING] $formattedDate - We have exceeded the maximum allowable number of 100 logs, lowering the time interval.." -Color "Red"
-						Write-LogFile -Message "[INFO] $formattedDate - Temporary lowering time interval.." -Color "Yellow"
-						
-						$tempInterval = 24
-						$tempStartDate = $start
-						$amountResults = Get-AzActivityLog -StartTime $tempStartDate -EndTime $currentEnd -MaxRecord 1000 -WarningAction SilentlyContinue
-
-						while ($($amountResults.count) -gt 1000) {
-							$timeLeft = ($currentEnd - $tempStartDate).TotalHours
-							$tempInterval = $timeLeft / 2
+				[DateTime]$start = (Get-Date $formattedDate).Date  
+				[DateTime]$end = (Get-Date $formattedDate).Date.AddDays(1).AddSeconds(-1)
+				
+				$currentStartnew = $start
+				$currentEnd = $end
+				
+				$amountResults = Get-AzActivityLog -StartTime $start -EndTime $end -MaxRecord 1000 -WarningAction SilentlyContinue	
+				if ($amountResults.count -gt 0) {
+					if ($amountResults.count -gt 1000) {
+						while ($currentStartnew -lt $currentEnd) {				
+							Write-LogFile -Message "[WARNING] $formattedDate - We have exceeded the maximum allowable number of 100 logs, lowering the time interval.." -Color "Red"
+							Write-LogFile -Message "[INFO] $formattedDate - Temporary lowering time interval.." -Color "Yellow"
 							
-							$backup = $tempInterval
-							$tempStartDate = $tempStartDate.AddHours($tempInterval)
+							$tempInterval = 24
+							$tempStartDate = $start
 							$amountResults = Get-AzActivityLog -StartTime $tempStartDate -EndTime $currentEnd -MaxRecord 1000 -WarningAction SilentlyContinue
-						}
-						
-						$amountResults = Get-AzActivityLog -StartTime $tempStartDate -EndTime $currentEnd -MaxRecord 1000 -WarningAction SilentlyContinue
-						Write-LogFile -Message "[INFO] Successfully retrieved $($amountResults.count) Activity logs between $tempStartDate and $currentEnd" -Color "Green"
 
-						$amountResults | Select-Object @{N='EventTimestamp';E={$_.EventTimestamp.ToString()}},EventName,EventDataId,TenantId,CorrelationId,SubStatus,SubscriptionId,@{N='SubmissionTimestamp';E={$_.SubmissionTimestamp.ToString()}},Status,ResourceType,ResourceProviderName,ResourceId,ResourceGroupName,OperationName,OperationId,Level,Id,Description,Category,Caller,Authorization,Claims,HttpRequest,Properties | ConvertTo-Json -Depth 100 | Convert-ToJSON -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
-						
-						if ($tempStartDate -eq $currentEnd) {
-							$timeLeft = ($currentEnd - $start).TotalHours							
-							$tempStartDate = $start			
+							while ($($amountResults.count) -gt 1000) {
+								$timeLeft = ($currentEnd - $tempStartDate).TotalHours
+								$tempInterval = $timeLeft / 2
+								
+								$backup = $tempInterval
+								$tempStartDate = $tempStartDate.AddHours($tempInterval)
+								$amountResults = Get-AzActivityLog -StartTime $tempStartDate -EndTime $currentEnd -MaxRecord 1000 -WarningAction SilentlyContinue
+							}
+							
+							$amountResults = Get-AzActivityLog -StartTime $tempStartDate -EndTime $currentEnd -MaxRecord 1000 -WarningAction SilentlyContinue
+							Write-LogFile -Message "[INFO] Successfully retrieved $($amountResults.count) Activity logs between $tempStartDate and $currentEnd" -Color "Green"
+
+							$amountResults | Convert-ToJSON -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
+							
+							if ($tempStartDate -eq $currentEnd) {
+								$timeLeft = ($currentEnd - $start).TotalHours							
+								$tempStartDate = $start			
+							}
+							
+							$currentEnd = $tempStartDate
 						}
-						
-						$currentEnd = $tempStartDate
 					}
+					
+					else {
+						Write-LogFile -Message "[INFO] Successfully retrieved $($amountResults.count) Activity logs for $formattedDate. Moving on!" -Color "Green"
+						Get-AzActivityLog -StartTime $start -EndTime $end -MaxRecord 1000 -WarningAction silentlyContinue | Select-Object @{N='EventTimestamp';E={$_.EventTimestamp.ToString()}},EventName,EventDataId,TenantId,CorrelationId,SubStatus,SubscriptionId,@{N='SubmissionTimestamp';E={$_.SubmissionTimestamp.ToString()}},Status,ResourceType,ResourceProviderName,ResourceId,ResourceGroupName,OperationName,OperationId,Level,Id,Description,Category,Caller,Authorization,Claims,HttpRequest,Properties | ConvertTo-Json -Depth 100	| Out-File -FilePath $filePath -Append -Encoding $Encoding
+					}					
 				}
 				
 				else {
-					Write-LogFile -Message "[INFO] Successfully retrieved $($amountResults.count) Activity logs for $formattedDate. Moving on!" -Color "Green"
-					Get-AzActivityLog -StartTime $start -EndTime $end -MaxRecord 1000 -WarningAction silentlyContinue | Select-Object @{N='EventTimestamp';E={$_.EventTimestamp.ToString()}},EventName,EventDataId,TenantId,CorrelationId,SubStatus,SubscriptionId,@{N='SubmissionTimestamp';E={$_.SubmissionTimestamp.ToString()}},Status,ResourceType,ResourceProviderName,ResourceId,ResourceGroupName,OperationName,OperationId,Level,Id,Description,Category,Caller,Authorization,Claims,HttpRequest,Properties | ConvertTo-Json -Depth 100	| Out-File -FilePath $filePath -Append -Encoding $Encoding
-				}					
+					Write-LogFile -Message "[INFO] No Activity Logs found on $formattedDate. Moving on!"
+				}
 			}
 			
-			else {
-				Write-LogFile -Message "[INFO] No Activity Logs found on $formattedDate. Moving on!"
-			}
+			Write-LogFile -Message "[INFO] Done all logs are collected for $name" -Color "Green"
 		}
-		
-		Write-LogFile -Message "[INFO] Done all logs are collected for $name" -Color "Green"
 	}
+	catch [System.Management.Automation.ActionPreferenceStopException] {
+		write-logFile -Message "[WARNING] $sub contains no or null logs! moving on" -Color "Red"
+	}
+	catch {
+		write-logFile -Message "[ERROR] another error has occured $($error) please check the azure documentaion for further troubleshooting" -Color "Red"
+		return
+	}
+
 }

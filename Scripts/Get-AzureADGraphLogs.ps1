@@ -305,18 +305,10 @@ function Get-ADAuditLogsGraph {
 			if ($filter) {
 				$filter = " and $filter"
 			}
-			Get-MgAuditLogDirectoryAudit -ExpandProperty * -All -Filter "initiatedBy/user/userPrincipalName eq '$Userids' $filter" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties | 
-				ForEach-Object {
-					$_ | ConvertTo-Json -Depth 100
-				} |
-				Out-File -FilePath $filePath -Encoding $Encoding
+			Get-MgAuditLogDirectoryAudit -ExpandProperty * -All -Filter $filter | ConvertTo-Json -Depth 100 | out-File -FilePath $filePath -Encoding $Encoding
 		} 
 		else {
-			Get-MgAuditLogDirectoryAudit -ExpandProperty * -All -Filter $filter | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties |
-				ForEach-Object {
-					$_ | ConvertTo-Json -Depth 100
-				} |
-				Out-File -FilePath $filePath -Encoding $Encoding
+			Get-MgAuditLogDirectoryAudit -ExpandProperty * -All -Filter $filter | ConvertTo-Json -Depth 100 | out-File -FilePath $filePath -Encoding $Encoding
 		}	
 		
 		write-logFile -Message "[INFO] Audit logs written to $filePath" -Color "Green"

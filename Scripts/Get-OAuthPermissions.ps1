@@ -62,7 +62,7 @@ Script made by: https://gist.github.com/psignoret/41793f8c6211d2df5051d77ca3728c
 
 .DESCRIPTION
 Script to list all delegated permissions and application permissions in Azure AD
-The output will be written to a CSV file called "Output\OAuthPermissions\AADSPPermissions.csv".
+The output will be written to a CSV file.
 
 .PARAMETER OutputDir
 outputDir is the parameter specifying the output directory.

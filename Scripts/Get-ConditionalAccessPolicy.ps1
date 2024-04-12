@@ -55,7 +55,7 @@ Function Get-ConditionalAccessPolicies {
         $areYouConnected = get-MgIdentityConditionalAccessPolicy -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Policy.Read.All' before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Policy.Read.All before running this script" -Color "Red"
         break
     }
 
