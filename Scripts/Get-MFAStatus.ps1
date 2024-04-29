@@ -227,6 +227,7 @@ function Get-MFA {
             UserPreferredMethodForSecondaryAuthentication       = "-"
             UserPrincipalName                                   = "-"
             UserType                                            = "-"
+            LastUpdatedDateTime                                 = "-"
             AdditionalProperties                                = "-"
         }
 
@@ -245,6 +246,7 @@ function Get-MFA {
         $myobject.UserPreferredMethodForSecondaryAuthentication = $_.UserPreferredMethodForSecondaryAuthentication
         $myobject.UserPrincipalName = $_.UserPrincipalName
         $myobject.UserType = $_.UserType
+        $myobject.LastUpdatedDateTime = $_.LastUpdatedDateTime
         $myobject.AdditionalProperties = $_.AdditionalProperties | out-string
         $results+= $myObject;
     }

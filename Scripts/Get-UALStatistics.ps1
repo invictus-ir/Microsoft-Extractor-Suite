@@ -89,7 +89,7 @@ function Get-UALStatistics
 		$specificResult = Search-UnifiedAuditLog -Userids $UserIds -StartDate $script:StartDate -EndDate $script:EndDate -RecordType $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 		if ($specificResult) {
 			Write-LogFile -Message "$($record):$($specificResult)"
-			Write-Output "$record,$number" | Out-File $outputDirectory -Append
+			Write-Output "$record,$specificResult" | Out-File $outputDirectory -Append
 		}
 		else {
 		}

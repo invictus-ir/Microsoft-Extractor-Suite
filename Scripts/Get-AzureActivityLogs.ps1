@@ -221,7 +221,7 @@ function Get-ActivityLogs {
 					
 					else {
 						Write-LogFile -Message "[INFO] Successfully retrieved $($amountResults.count) Activity logs for $formattedDate. Moving on!" -Color "Green"
-						Get-AzActivityLog -StartTime $start -EndTime $end -MaxRecord 1000 -WarningAction silentlyContinue | Select-Object @{N='EventTimestamp';E={$_.EventTimestamp.ToString()}},EventName,EventDataId,TenantId,CorrelationId,SubStatus,SubscriptionId,@{N='SubmissionTimestamp';E={$_.SubmissionTimestamp.ToString()}},Status,ResourceType,ResourceProviderName,ResourceId,ResourceGroupName,OperationName,OperationId,Level,Id,Description,Category,Caller,Authorization,Claims,HttpRequest,Properties | ConvertTo-Json -Depth 100	| Out-File -FilePath $filePath -Append -Encoding $Encoding
+						Get-AzActivityLog -StartTime $start -EndTime $end -MaxRecord 1000 -WarningAction silentlyContinue | Select-Object @{N='EventTimestamp';E={$_.EventTimestamp.ToString()}},EventName,EventDataId,TenantId,CorrelationId,SubStatus,SubscriptionId,@{N='SubmissionTimestamp';E={$_.SubmissionTimestamp.ToString()}},Status,ResourceType,ResourceProviderName,ResourceId,ResourceGroupName,OperationName,OperationId,Level,Id,Description,Category,Caller,Authorization,Claims,HttpRequest,Properties | ConvertTo-Json -Depth 100| Out-File -FilePath $filePath -Append -Encoding $Encoding
 					}					
 				}
 				

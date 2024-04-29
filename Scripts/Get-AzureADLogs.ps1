@@ -280,18 +280,12 @@ function Get-ADAuditLogs {
 		if ($filter) {
 			$filter = " and $filter"
 		}
-		Get-AzureADAuditDirectoryLogs -All $true -Filter "initiatedBy/user/userPrincipalName eq '$Userids' $filter" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails |
-			ForEach-Object {
-				$_ | ConvertTo-Json -Depth 100
-			} |
-			Out-File -FilePath $filePath -Encoding $Encoding
+		$results = Get-AzureADAuditDirectoryLogs -All $true -Filter "initiatedBy/user/userPrincipalName eq '$Userids' $filter"	
+		$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
 	} 
 	else {
-		Get-AzureADAuditDirectoryLogs -All $true -Filter $filter | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails |
-			ForEach-Object {
-				$_ | ConvertTo-Json -Depth 100
-			} |
-			Out-File -FilePath $filePath -Encoding $Encoding
+		$results = Get-AzureADAuditDirectoryLogs -All $true -Filter $filter
+		$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
 	}
 	Write-logFile -Message "[INFO] Directory audit logs written to $filePath" -Color "Green"
 }

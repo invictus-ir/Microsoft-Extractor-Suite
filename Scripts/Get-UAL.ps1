@@ -36,7 +36,6 @@ function Get-UALAll
 
  	.PARAMETER MergeOutput
     MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file
-    Default: No
 
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.
@@ -283,7 +282,6 @@ function Get-UALGroup
  
  	.PARAMETER MergeOutput
     MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file
-    Default: No
     
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.
@@ -321,7 +319,7 @@ function Get-UALGroup
 		[string]$Interval,
 		[string]$Group,
 		[string]$Output,
-  		[string]$MergeOutput,
+  		[switch]$MergeOutput,
 		[string]$OutputDir,
 		[string]$Encoding
 	)
@@ -569,7 +567,6 @@ function Get-UALSpecific
 
   	.PARAMETER MergeOutput
     MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file
-    Default: No
 
 	.EXAMPLE
 	Get-UALSpecific -RecordType ExchangeItem
@@ -603,7 +600,7 @@ function Get-UALSpecific
 		[string]$Interval,
 		[Parameter(Mandatory=$true)]$RecordType,
 		[string]$Output,
-  		[string]$MergeOutput,
+  		[switch]$MergeOutput,
   		[string]$OutputDir,
 		[string]$Encoding
 	)

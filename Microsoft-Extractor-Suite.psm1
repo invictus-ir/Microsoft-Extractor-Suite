@@ -71,6 +71,10 @@ function EndDate
 $logFile = "Output\LogFile.txt"
 function Write-LogFile([String]$message,$color)
 {
+	$outputDir = "Output"
+	if (!(test-path $outputDir)) {
+		New-Item -ItemType Directory -Force -Name $Outputdir | Out-Null
+	}
 	if ($color -eq "Yellow")
 	{
 		Write-host $message -ForegroundColor Yellow

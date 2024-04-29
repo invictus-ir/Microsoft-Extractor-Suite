@@ -58,7 +58,7 @@ function Get-OAuthPermissions
 <#
 .SYNOPSIS
 Lists delegated permissions (OAuth2PermissionGrants) and application permissions (AppRoleAssignments).
-Script made by: https://gist.github.com/psignoret/41793f8c6211d2df5051d77ca3728c09
+Script inspired by: https://gist.github.com/psignoret/41793f8c6211d2df5051d77ca3728c09
 
 .DESCRIPTION
 Script to list all delegated permissions and application permissions in Azure AD
