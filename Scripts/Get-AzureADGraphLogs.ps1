@@ -264,13 +264,19 @@ function Get-ADAuditLogsGraph {
 			Connect-MgGraph -Scopes AuditLog.Read.All, Directory.Read.All -NoWelcome
 		}
 	
+		if ($Interval -eq "") {
+			$Interval = 1440
+			Write-LogFile -Message "[INFO] Setting the Interval to the default value of 1440"
+		}
+	
 		Write-logFile -Message "[INFO] Running Get-ADAuditLogsGraph" -Color "Green"
-		
+
+		$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 		if ($OutputDir -eq "" ){
-			$OutputDir = "Output\AzureAD"
+			$OutputDir = "Output\AzureAD\$date"
 			if (!(test-path $OutputDir)) {
-				New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 				write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
+				New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 			}
 		}
 	
@@ -288,29 +294,80 @@ function Get-ADAuditLogsGraph {
 		$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 		$filePath = "$OutputDir\$($date)-AuditlogsGraph.json"
 
-		if ($Before -and $After) {
-			write-logFile -Message "[WARNING] Please provide only one of either a start date or end date" -Color "Red"
+		[DateTime]$currentStart = $script:StartDate
+		[DateTime]$currentEnd = $script:EndDate
+		[DateTime]$lastLog = $script:EndDate
+		$currentDay = 0  
+
+		Write-LogFile -Message "[INFO] Extracting all available Directory Audit Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
+		if($currentStart -gt $script:EndDate){
+			Write-LogFile -Message "[ERROR] $($currentStart.ToString("yyyy-MM-dd")) is greather than $($script:EndDate.ToString("yyyy-MM-dd")) - are you sure you put in the correct year? Exiting!" -Color "Red"
 			return
 		}
 
-		$filter = ""
-		if ($endDate) {
-			$filter = "activityDateTime lt $endDate"
-		}
-		if ($startDate) {
-			$filter = "activityDateTime gt $startDate"
-		}
-
-		if ($UserIds) {
-			if ($filter) {
-				$filter = " and $filter"
+			while ($currentStart -lt $script:EndDate) {			
+		$currentEnd = $currentStart.AddMinutes($Interval)       
+		if ($UserIds){
+			Write-LogFile -Message "[INFO] Collecting Directory Sign-in logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))."
+			try{
+				[Array]$results =  Get-MgAuditLogDirectoryAudit -ExpandProperty * -All -Filter "initiatedBy/user/userPrincipalName eq '$Userids' $filter" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
 			}
-			Get-MgAuditLogDirectoryAudit -ExpandProperty * -All -Filter $filter | ConvertTo-Json -Depth 100 | out-File -FilePath $filePath -Encoding $Encoding
-		} 
+			catch{
+				Start-Sleep -Seconds 20
+				[Array]$results =  Get-MgAuditLogDirectoryAudit -ExpandProperty * -All -Filter "initiatedBy/user/userPrincipalName eq '$Userids' $filter" | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
+			}
+		}
 		else {
-			Get-MgAuditLogDirectoryAudit -ExpandProperty * -All -Filter $filter | ConvertTo-Json -Depth 100 | out-File -FilePath $filePath -Encoding $Encoding
-		}	
-		
-		write-logFile -Message "[INFO] Audit logs written to $filePath" -Color "Green"
+			try{
+				[Array]$results =  Get-MgAuditLogDirectoryAudit -ExpandProperty * -All -Filter $filter | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
+			}
+			catch{
+				Start-Sleep -Seconds 20
+				[Array]$results =  Get-MgAuditLogDirectoryAudit -ExpandProperty * -All -Filter $filter | Select-Object @{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},ActivityDisplayName,AdditionalDetails,Category,CorrelationId,Id,InitiatedBy,LoggedByService,OperationType,Result,ResultReason,TargetResources,AdditionalProperties
+			}
+		}
+		if ($null -eq $results -or $results.Count -eq 0) {
+			Write-LogFile -Message "[WARNING] Empty data set returned between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd")). Moving On!"				
+		}
+		else {					
+			$currentCount = $results.Count
+			if ($currentDay -ne 0){
+				$currentTotal = $currentCount + $results.Count
+			}
+			else {
+				$currentTotal = $currentCount 
+			}
+			
+			Write-LogFile -Message "[INFO] Found $currentCount Directory Audit Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
+				
+			$filePath = "$OutputDir\SignInLogsGraph-$($CurrentStart.ToString("yyyyMMdd"))-$($CurrentEnd.ToString("yyyyMMdd")).json"	
+			$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
+
+			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range."							
+		}
+		[Array]$results = @()
+		$CurrentStart = $CurrentEnd
+  		$currentDay++
 	}
+
+	if ($MergeOutput.IsPresent)
+	{
+		Write-LogFile -Message "[INFO] Merging output files into one file"
+	  	$outputDirMerged = "$OutputDir\Merged\"
+	  	If (!(test-path $outputDirMerged)) {
+			Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
+		  	New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
+	  	}
+
+		$allJsonObjects = @()
+
+		Get-ChildItem $OutputDir -Filter *.json | ForEach-Object {
+			$content = Get-Content -Path $_.FullName -Raw
+			$jsonObjects = $content | ConvertFrom-Json
+			$allJsonObjects += $jsonObjects
+		}
+	
+		$allJsonObjects | ConvertTo-Json -Depth 100 | Set-Content "$outputDirMerged\AuditLogs-Combined.json"
+	}
+}
 	
