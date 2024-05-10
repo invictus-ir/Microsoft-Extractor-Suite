@@ -115,7 +115,9 @@ function Get-ADSignInLogs {
 				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$($Userids)' and createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd HH:mm:ss")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd HH:mm:ss"))"
 			}
 			catch{
-				Start-Sleep -Seconds 20
+				Write-LogFile -Message "[WARNING] Failed to acquire logs $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")). Retrying after sleep " -Color "Yellow"
+				Start-Sleep -Seconds 30
+				Write-LogFile -Message "[INFO] Collecting Directory Sign-in logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))."
 				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$($Userids)' and createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd HH:mm:ss")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd HH:mm:ss"))"
 			}
 		}
@@ -124,7 +126,9 @@ function Get-ADSignInLogs {
 				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd HH:mm:ss")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd HH:mm:ss"))"
 			}
 			catch{
-				Start-Sleep -Seconds 20
+				Write-LogFile -Message "[WARNING] Failed to acquire logs $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")). Retrying after sleep " -Color "Yellow"
+				Start-Sleep -Seconds 30
+				Write-LogFile -Message "[INFO] Collecting Directory Sign-in logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))."
 				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd HH:mm:ss")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd HH:mm:ss"))"
 			}
 		}
@@ -291,14 +295,16 @@ function Get-ADAuditLogs {
 
 	while ($currentStart -lt $script:EndDate) {			
 		$currentEnd = $currentStart.AddMinutes($Interval)  
-		Start-Sleep -Seconds 20     
+		Start-Sleep -Seconds 5     
 		if ($UserIds){
 			Write-LogFile -Message "[INFO] Collecting Directory Audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss"))."
 			try{
 				[Array]$results =  Get-AzureADAuditDirectoryLogs -All $true -Filter "initiatedBy/user/userPrincipalName eq '$Userids' and activityDateTime gt $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and activityDateTime lt $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss"))" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
 			}
 			catch{
-				Start-Sleep -Seconds 20
+				Write-LogFile -Message "[WARNING] Failed to acquire logs $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")). Retrying after sleep " -Color "Yellow"
+				Start-Sleep -Seconds 30
+				Write-LogFile -Message "[INFO] Collecting Directory Audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))."
 				[Array]$results =  Get-AzureADAuditDirectoryLogs -All $true -Filter "initiatedBy/user/userPrincipalName eq '$Userids' and activityDateTime gt $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and activityDateTime lt $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss"))" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
 			}
 		}
@@ -308,7 +314,9 @@ function Get-ADAuditLogs {
 				[Array]$results =  Get-AzureADAuditDirectoryLogs -All $true -Filter "activityDateTime gt $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and activityDateTime lt $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss"))" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
 			}
 			catch{
-				Start-Sleep -Seconds 20
+				Write-LogFile -Message "[WARNING] Failed to acquire logs $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")). Retrying after sleep " -Color "Yellow"
+				Start-Sleep -Seconds 30
+				Write-LogFile -Message "[INFO] Collecting Directory Audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))."
 				[Array]$results =  Get-AzureADAuditDirectoryLogs -All $true -Filter "activityDateTime gt $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and activityDateTime lt $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss"))" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
 			}
 		}
