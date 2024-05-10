@@ -326,7 +326,7 @@ function Get-ADAuditLogs {
 			
 			Write-LogFile -Message "[INFO] Found $currentCount Directory Audit Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss"))" -Color "Green"
 				
-			$filePath = "$OutputDir\SignInLogs-$($CurrentStart.ToString("yyyyMMddHHmmss"))-$($CurrentEnd.ToString("yyyyMMddHHmmss")).json"
+			$filePath = "$OutputDir\AuditLogs-$($CurrentStart.ToString("yyyyMMddHHmmss"))-$($CurrentEnd.ToString("yyyyMMddHHmmss")).json"
 			$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
 
 			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range."							
