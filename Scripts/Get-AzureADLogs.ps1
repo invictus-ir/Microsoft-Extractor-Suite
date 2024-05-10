@@ -101,35 +101,35 @@ function Get-ADSignInLogs {
 	[DateTime]$lastLog = $script:EndDate
 	$currentDay = 0  
 
-	Write-LogFile -Message "[INFO] Extracting all available Directory Sign-in Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
+	Write-LogFile -Message "[INFO] Extracting all available Directory Sign-in Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss"))" -Color "Green"
 	if($currentStart -gt $script:EndDate){
-		Write-LogFile -Message "[ERROR] $($currentStart.ToString("yyyy-MM-dd")) is greather than $($script:EndDate.ToString("yyyy-MM-dd")) - are you sure you put in the correct year? Exiting!" -Color "Red"
+		Write-LogFile -Message "[ERROR] $($currentStart.ToString("yyyy-MM-dd HH:mm:ss")) is greather than $($script:EndDate.ToString("yyyy-MM-dd HH:mm:ss")) - are you sure you put in the correct year? Exiting!" -Color "Red"
 		return
 	}
 
 	while ($currentStart -lt $script:EndDate) {			
 		$currentEnd = $currentStart.AddMinutes($Interval)       
 		if ($UserIds){
-			Write-LogFile -Message "[INFO] Collecting Directory Sign-in logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))."
+			Write-LogFile -Message "[INFO] Collecting Directory Sign-in logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss"))."
 			try{
-				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$($Userids)' and createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))"
+				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$($Userids)' and createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd HH:mm:ss")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd HH:mm:ss"))"
 			}
 			catch{
 				Start-Sleep -Seconds 20
-				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$($Userids)' and createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))"
+				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "UserPrincipalName eq '$($Userids)' and createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd HH:mm:ss")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd HH:mm:ss"))"
 			}
 		}
 		else {
 			try{
-				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))"
+				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd HH:mm:ss")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd HH:mm:ss"))"
 			}
 			catch{
 				Start-Sleep -Seconds 20
-				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))"
+				[Array]$results =  Get-AzureADAuditSignInLogs -All $true -Filter "createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd HH:mm:ss")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd HH:mm:ss"))"
 			}
 		}
 		if ($null -eq $results -or $results.Count -eq 0) {
-			Write-LogFile -Message "[WARNING] Empty data set returned between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd")). Moving On!"				
+			Write-LogFile -Message "[WARNING] Empty data set returned between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss")). Moving On!"				
 		}
 		else {					
 			$currentCount = $results.Count
@@ -140,9 +140,9 @@ function Get-ADSignInLogs {
 				$currentTotal = $currentCount 
 			}
 			
-			Write-LogFile -Message "[INFO] Found $currentCount Directory Sign-in Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
+			Write-LogFile -Message "[INFO] Found $currentCount Directory Sign-in Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss"))" -Color "Green"
 				
-			$filePath = "$OutputDir\SignInLogs-$($CurrentStart.ToString("yyyyMMdd"))-$($CurrentEnd.ToString("yyyyMMdd")).json"
+			$filePath = "$OutputDir\SignInLogs-$($CurrentStart.ToString("yyyyMMddHHmmss"))-$($CurrentEnd.ToString("yyyyMMddHHmmss")).json"
 			$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
 
 			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range."							
@@ -221,9 +221,11 @@ function Get-ADAuditLogs {
 	param(
 		[string]$startDate,
 		[string]$endDate,
-		[string]$OutputDir,
-        [string]$UserIds,
-		[string]$Encoding
+		[string]$outputDir,
+		[string]$UserIds,
+		[switch]$MergeOutput,
+		[string]$Encoding,
+		[string]$Interval
 	)
 
 	try {
@@ -240,15 +242,23 @@ function Get-ADAuditLogs {
 
 	Write-logFile -Message "[INFO] Running Get-ADAuditLogs" -Color "Green"
 	
-	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\AzureAD"
-		if (!(test-path $OutputDir)) {
-			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
-			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-		}
+	StartDateAz
+	EndDate
+
+	if ($Interval -eq "") {
+		$Interval = 720
+		Write-LogFile -Message "[INFO] Setting the Interval to the default value of 1440 (Larger values may result in out of memory errors)"
 	}
 
+
+	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\AzureAD\$date"
+		if (!(test-path $OutputDir)) {
+			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
+			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+		}
+	}
 	else {
 		if (Test-Path -Path $OutputDir) {
 			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
@@ -260,29 +270,94 @@ function Get-ADAuditLogs {
 		}
 	}
 
-	$filePath = "$OutputDir\$($date)-Auditlogs.json"
-	Write-logFile -Message "[INFO] Collecting the Directory Audit Logs"
 
-	if ($endDate -and $After) {
-		write-logFile -Message "[WARNING] Please provide only one of either a start date or end date" -Color "Red"
+	if ($UserIds){
+		Write-LogFile -Message "[INFO] UserID's eq $($UserIds)"
+	}
+
+
+	$filePath = "$OutputDir\$($date)-Auditlogs.json"
+
+	[DateTime]$currentStart = $script:StartDate
+	[DateTime]$currentEnd = $script:EndDate
+	[DateTime]$lastLog = $script:EndDate
+	$currentDay = 0  
+
+	Write-LogFile -Message "[INFO] Extracting all available Directory Audit Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss"))" -Color "Green"
+	if($currentStart -gt $script:EndDate){
+		Write-LogFile -Message "[ERROR] $($currentStart.ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) is greather than $($script:EndDate.ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) - are you sure you put in the correct year? Exiting!" -Color "Red"
 		return
 	}
 
-	$filter = ""
-	if ($endDate) {
-		$filter = "activityDateTime lt $endDate"
-	}
-	if ($startDate) {
-		$filter = "activityDateTime gt $startDate"
-	}
-
-	if ($UserIds) {
-		if ($filter) {
-			$filter = " and $filter"
+	while ($currentStart -lt $script:EndDate) {			
+		$currentEnd = $currentStart.AddMinutes($Interval)  
+		Start-Sleep -Seconds 20     
+		if ($UserIds){
+			Write-LogFile -Message "[INFO] Collecting Directory Audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss"))."
+			try{
+				[Array]$results =  Get-AzureADAuditDirectoryLogs -All $true -Filter "initiatedBy/user/userPrincipalName eq '$Userids' and activityDateTime gt $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and activityDateTime lt $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss"))" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
+			}
+			catch{
+				Start-Sleep -Seconds 20
+				[Array]$results =  Get-AzureADAuditDirectoryLogs -All $true -Filter "initiatedBy/user/userPrincipalName eq '$Userids' and activityDateTime gt $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and activityDateTime lt $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss"))" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
+			}
 		}
-		$results = Get-AzureADAuditDirectoryLogs -All $true -Filter "initiatedBy/user/userPrincipalName eq '$Userids' $filter"	
-		$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
-	} 
+		else {
+			Write-LogFile -Message "[INFO] Collecting Directory Audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss"))."
+			try{
+				[Array]$results =  Get-AzureADAuditDirectoryLogs -All $true -Filter "activityDateTime gt $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and activityDateTime lt $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss"))" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
+			}
+			catch{
+				Start-Sleep -Seconds 20
+				[Array]$results =  Get-AzureADAuditDirectoryLogs -All $true -Filter "activityDateTime gt $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and activityDateTime lt $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss"))" | Select-Object Id,Category,CorrelationId,Result,ResultReason,ActivityDisplayName,@{N='ActivityDateTime';E={$_.ActivityDateTime.ToString()}},LoggedByService,OperationType,InitiatedBy,TargetResources,AdditionalDetails
+			}
+		}
+		if ($null -eq $results -or $results.Count -eq 0) {
+			Write-LogFile -Message "[WARNING] Empty data set returned between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")). Moving On!"				
+		}
+		else {					
+			$currentCount = $results.Count
+			if ($currentDay -ne 0){
+				$currentTotal = $currentCount + $results.Count
+			}
+			else {
+				$currentTotal = $currentCount 
+			}
+			
+			Write-LogFile -Message "[INFO] Found $currentCount Directory Audit Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss HH:mm:ss"))" -Color "Green"
+				
+			$filePath = "$OutputDir\SignInLogs-$($CurrentStart.ToString("yyyyMMddHHmmss"))-$($CurrentEnd.ToString("yyyyMMddHHmmss")).json"
+			$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
+
+			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range."							
+		}
+		[Array]$results = @()
+		$CurrentStart = $CurrentEnd
+  		$currentDay++
+	}
+	
+	if ($MergeOutput.IsPresent)
+	{
+		Write-LogFile -Message "[INFO] Merging output files into one file"
+	  	$outputDirMerged = "$OutputDir\Merged\"
+	  	If (!(test-path $outputDirMerged)) {
+			Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
+		  	New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
+	  	}
+
+		$allJsonObjects = @()
+
+		Get-ChildItem $OutputDir -Filter *.json | ForEach-Object {
+			$content = Get-Content -Path $_.FullName -Raw
+			$jsonObjects = $content | ConvertFrom-Json
+			$allJsonObjects += $jsonObjects
+		}
+	
+		$allJsonObjects | ConvertTo-Json -Depth 100 | Set-Content "$outputDirMerged\AuditLogs-Combined.json"
+	}
+	
+	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		
+}
 	else {
 		$results = Get-AzureADAuditDirectoryLogs -All $true -Filter $filter
 		$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
