@@ -8,16 +8,16 @@ This section comprises a variety of functions designed to gather e-mails and the
 
 Get a specific email.
 ^^^^^^^^^^^
-Get a specific email based on userId and Internet Message Id and saves the output to a msg or txt file.
+Get a specific email based on userId and Internet Message Id and saves the output to a eml or txt file.
 
 Usage
 """"""""""""""""""""""""""
-Retrieves an email from fortunahodan@bonacu.onmicrosoft.com with the internet message identifier <d6f15b97-e3e3-4871-adb2-e8d999d51f34@az.westeurope.microsoft.com> to a msg file.
+Retrieves an email from fortunahodan@bonacu.onmicrosoft.com with the internet message identifier <d6f15b97-e3e3-4871-adb2-e8d999d51f34@az.westeurope.microsoft.com> to a eml file.
 ::
 
    Get-Email -userIds fortunahodan@bonacu.onmicrosoft.com -internetMessageId "<d6f15b97-e3e3-4871-adb2-e8d999d51f34@az.westeurope.microsoft.com>" 
 
-Retrieves an email and the attachment from fortunahodan@bonacu.onmicrosoft.com with the internet message identifier <d6f15b97-e3e3-4871-adb2-e8d999d51f34@az.westeurope.microsoft.com> to a msg file.
+Retrieves an email and the attachment from fortunahodan@bonacu.onmicrosoft.com with the internet message identifier <d6f15b97-e3e3-4871-adb2-e8d999d51f34@az.westeurope.microsoft.com> to a eml file.
 ::
 
    Get-Email -userIds fortunahodan@bonacu.onmicrosoft.com -internetMessageId "<d6f15b97-e3e3-4871-adb2-e8d999d51f34@az.westeurope.microsoft.com>" -attachment True
@@ -36,12 +36,15 @@ Parameters
     - The InternetMessageId parameter represents the Internet message identifier of an item.
 
 -Output (optional)
-    - Output is the parameter specifying the msg or txt output type.
-    - Default: msg
+    - Output is the parameter specifying the eml or txt output type.
+    - Default: eml
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
     - Default: EmailExport
+
+-inputFile (optional)
+    - The inputFile parameter specifies the .txt file containing multiple Internet Message Identifiers. You can include multiple Internet Message Identifiers in the file. Ensure each ID is placed on a new line.    
 
 -Attachment (optional)
     - The attachment parameter specifies whether the attachment should be saved or not. 

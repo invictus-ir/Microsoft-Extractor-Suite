@@ -62,7 +62,7 @@ Collects all sessions for all users between 1/4/2023 and 5/4/2023.
 Collects all sessions for the IP address 1.1.1.1.
 ::
 
-   Get-MessageIDs Get-Sessions -StartDate 1/4/2023 -EndDate 5/4/2023 -IP 1.1.1.1
+   Get-MessageIDs -StartDate 1/4/2023 -EndDate 5/4/2023 -IP 1.1.1.1
 
 Parameters
 """"""""""""""""""""""""""

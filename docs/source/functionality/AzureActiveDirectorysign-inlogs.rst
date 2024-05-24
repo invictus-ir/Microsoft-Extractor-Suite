@@ -27,14 +27,14 @@ Get the Azure Active Directory Audit Log after 2023-04-12:
 Parameters
 """"""""""""""""""""""""""
 -startDate (optional)
-    - startDate is the parameter specifying the start date of the date range. The time format supported is limited to yyyy-mm-dd only.
+    - startDate is the parameter specifying the start date of the date range.
 
 -endDate (optional)
-    - endDate is the parameter specifying the end date of the date range. The time format supported is limited to yyyy-mm-dd only.
+    - endDate is the parameter specifying the end date of the date range.
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: Output\AzureAD
+    - Default: The output will be written to: Output\AzureAD\{date_SignInLogs}\SignInLogs.json
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the JSON output file.
@@ -42,6 +42,16 @@ Parameters
 
 -UserIds (optional)
     - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
+
+-MergeOutput (optional)
+    - MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
+
+-UserIds (optional)
+    - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
+
+-Interval (optional)
+    - Interval is the parameter specifying the interval in which the logs are being gathered.
+    - Default: 1440 minutes
 
 Output
 """"""""""""""""""""""""""

@@ -5,7 +5,6 @@ function Get-ADSignInLogsGraph {
 
     .DESCRIPTION
     The Get-ADSignInLogsGraph GraphAPI cmdlet collects the contents of the Azure Active Directory sign-in logs.
-    The output will be written to: Output\AzureAD\SignInLogsGraph.json
 
     .PARAMETER startDate
 	The startDate parameter specifies the date from which all logs need to be collected.
@@ -15,7 +14,7 @@ function Get-ADSignInLogsGraph {
 
     .PARAMETER OutputDir
     outputDir is the parameter specifying the output directory.
-    Default: Output\AzureAD
+    Default: The output will be written to: Output\AzureAD\{date_SignInLogs}\SignInLogs.json
 
     .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the JSON output file.
@@ -32,6 +31,10 @@ function Get-ADSignInLogsGraph {
     .PARAMETER UserIds
     UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
+	.PARAMETER Interval
+    Interval is the parameter specifying the interval in which the logs are being gathered.
+	Default: 1440 minutes
+
     .EXAMPLE
     Get-ADSignInLogsGraph
     Get all audit logs of sign-ins.
@@ -47,7 +50,7 @@ function Get-ADSignInLogsGraph {
     .EXAMPLE
     Get-ADSignInLogsGraph -startDate 2023-04-12
     Get audit logs after 2023-04-12.
-    #>
+#>
     [CmdletBinding()]
     param(
         [string]$startDate,
@@ -85,7 +88,7 @@ function Get-ADSignInLogsGraph {
 
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\AzureAD\$date"
+		$OutputDir = "Output\AzureAD\$($date)_SignInLogs"
 		if (!(test-path $OutputDir)) {
 			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
 			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
@@ -104,66 +107,71 @@ function Get-ADSignInLogsGraph {
 	
 	}
 
-		if ($UserIds){
+	if ($UserIds){
 		Write-LogFile -Message "[INFO] UserID's eq $($UserIds)"
 	}
 
 	StartDateAz
 	EndDate
 
+	if ($Interval -eq "") {
+		$Interval = 720
+		Write-LogFile -Message "[INFO] Setting the Interval to the default value of 720 (Larger values may result in out of memory errors)"
+	}
+
     $date = Get-Date -Format 'yyyyMMddHHmmss'
     $filePath = Join-Path -Path $outputDir -ChildPath "$($date)-SignInLogsGraph.json"
 
 	[DateTime]$currentStart = $script:StartDate
 	[DateTime]$currentEnd = $script:EndDate
-	[DateTime]$lastLog = $script:EndDate
 	$currentDay = 0  
 
-	Write-LogFile -Message "[INFO] Extracting all available Directory Sign-in Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
+	Write-LogFile -Message "[INFO] Extracting all available Directory Sign-in Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))" -Color "Green"
 	if($currentStart -gt $script:EndDate){
-		Write-LogFile -Message "[ERROR] $($currentStart.ToString("yyyy-MM-dd")) is greather than $($script:EndDate.ToString("yyyy-MM-dd")) - are you sure you put in the correct year? Exiting!" -Color "Red"
+		Write-LogFile -Message "[ERROR] $($currentStart.ToString("yyyy-MM-ddTHH:mm:ssZ")) is greather than $($script:EndDate.ToString("yyyy-MM-ddTHH:mm:ssZ")) - are you sure you put in the correct year? Exiting!" -Color "Red"
 		return
 	}
 
 	while ($currentStart -lt $script:EndDate) {			
-		$currentEnd = $currentStart.AddMinutes($Interval)       
-		if ($UserIds){
-			Write-LogFile -Message "[INFO] Collecting Directory Sign-in logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))."
-			try{
-				[Array]$results =  Get-MgBetaAuditLogSignIn -ExpandProperty * -All -Filter "UserPrincipalName eq '$($Userids)' and createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))" |  Select-Object AppDisplayName,AppId,AppTokenProtectionStatus,AppliedConditionalAccessPolicies,ConditionsNotSatisfied,ConditionsSatisfied,AppliedConditionalAccessPoliciesDisplayName,EnforcedGrantControls,EnforcedSessionControls,AppliedConditionalAccessPoliciesId,AppliedConditionalAccessPoliciesResult,AppliedConditionalAccessPolicies2,AppliedEventListeners,AuthenticationAppDeviceDetails,AppVersion,ClientApp,DeviceId,OperatingSystem,AuthenticationAppPolicyEvaluationDetails,AdminConfiguration,AuthenticationEvaluation,AuthenticationAppPolicyEvaluationDetailsPolicyName,AuthenticationAppPolicyEvaluationDetailsStatus,AuthenticationContextClassReferences,@{N='AuthDetailsAuthenticationMethod';E={$_.AuthenticationDetails.AuthenticationMethod.ToString()}},@{N='AuthDetailsAuthenticationMethodDetail';E={$_.AuthenticationDetails.AuthenticationMethodDetail.ToString()}},@{N='AuthDetailsAuthenticationStepDateTime';E={$_.AuthenticationDetails.AuthenticationStepDateTime.ToString()}},@{N='AuthDetailsAuthenticationStepRequirement';E={$_.AuthenticationDetails.AuthenticationStepRequirement.ToString()}},@{N='AuthDetailsAuthenticationStepResultDetail';E={$_.AuthenticationDetails.AuthenticationStepResultDetail.ToString()}},@{N='AuthDetailsSucceeded';E={$_.AuthenticationDetails.Succeeded.ToString()}},AuthenticationMethodsUsed,AuthenticationProcessingDetails,AuthenticationProtocol,AuthenticationRequirement,AuthenticationRequirementPolicies,Detail,RequirementProvider,AutonomousSystemNumber,AzureResourceId,ClientAppUsed,ClientCredentialType,ConditionalAccessStatus,CorrelationId,@{N='CreatedDateTime';E={$_.CreatedDateTime.ToString()}},CrossTenantAccessType,DeviceDetail,Browser,DeviceDetailDeviceId,DisplayName,IsCompliant,IsManaged,DeviceDetailOperatingSystem,TrustType,FederatedCredentialId,FlaggedForReview,HomeTenantId,HomeTenantName,IPAddress,IPAddressFromResourceProvider,Id,IncomingTokenType,IsInteractive,IsTenantRestricted,Location,City,CountryOrRegion,State,ManagedServiceIdentity,AssociatedResourceId,FederatedTokenId,FederatedTokenIssuer,MsiType,MfaDetail,AuthDetail,AuthMethod,NetworkLocationDetails,OriginalRequestId,OriginalTransferMethod,PrivateLinkDetails,PolicyId,PolicyName,PolicyTenantId,PrivateLinkDetailsResourceId,ProcessingTimeInMilliseconds,ResourceDisplayName,ResourceId,ResourceServicePrincipalId,ResourceTenantId,RiskDetail,RiskEventTypesV2,RiskLevelAggregated,RiskLevelDuringSignIn,RiskState,ServicePrincipalCredentialKeyId,ServicePrincipalCredentialThumbprint,ServicePrincipalId,ServicePrincipalName,SessionLifetimePolicies,SignInEventTypes,SignInIdentifier,SignInIdentifierType,SignInTokenProtectionStatus,Status,StatusAdditionalDetails,TokenIssuerName,TokenIssuerType,UniqueTokenIdentifier,UserAgent,UserDisplayName,UserId,UserPrincipalName,UserType,AdditionalProperties
+		$currentEnd = $currentStart.AddMinutes($Interval)
+		$retryCount = 0
+		$maxRetries = 3
+		$success = $false
+		
+		while (-not $success -and $retryCount -lt $maxRetries) {
+			try {
+				if ($UserIds) {
+					Write-LogFile -Message "[INFO] Collecting Directory Sign-in logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))."
+					[Array]$results =  Get-MgBetaAuditLogSignIn -ExpandProperty * -All -Filter "UserPrincipalName eq '$($Userids)' and createdDateTime lt $($currentEnd.ToString("yyyy-MM-ddTHH:mm:ssZ")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-ddTHH:mm:ssZ"))" |  Select-Object AppDisplayName,AppId,AppTokenProtectionStatus,AppliedConditionalAccessPolicies,ConditionsNotSatisfied,ConditionsSatisfied,AppliedConditionalAccessPoliciesDisplayName,EnforcedGrantControls,EnforcedSessionControls,AppliedConditionalAccessPoliciesId,AppliedConditionalAccessPoliciesResult,AppliedConditionalAccessPolicies2,AppliedEventListeners,AuthenticationAppDeviceDetails,AppVersion,ClientApp,DeviceId,OperatingSystem,AuthenticationAppPolicyEvaluationDetails,AdminConfiguration,AuthenticationEvaluation,AuthenticationAppPolicyEvaluationDetailsPolicyName,AuthenticationAppPolicyEvaluationDetailsStatus,AuthenticationContextClassReferences,@{N='AuthDetailsAuthenticationMethod';E={$_.AuthenticationDetails.AuthenticationMethod.ToString()}},@{N='AuthDetailsAuthenticationMethodDetail';E={$_.AuthenticationDetails.AuthenticationMethodDetail.ToString()}},@{N='AuthDetailsAuthenticationStepDateTime';E={$_.AuthenticationDetails.AuthenticationStepDateTime.ToString()}},@{N='AuthDetailsAuthenticationStepRequirement';E={$_.AuthenticationDetails.AuthenticationStepRequirement.ToString()}},@{N='AuthDetailsAuthenticationStepResultDetail';E={$_.AuthenticationDetails.AuthenticationStepResultDetail.ToString()}},@{N='AuthDetailsSucceeded';E={$_.AuthenticationDetails.Succeeded.ToString()}},AuthenticationMethodsUsed,AuthenticationProcessingDetails,AuthenticationProtocol,AuthenticationRequirement,AuthenticationRequirementPolicies,Detail,RequirementProvider,AutonomousSystemNumber,AzureResourceId,ClientAppUsed,ClientCredentialType,ConditionalAccessStatus,CorrelationId,@{N='CreatedDateTime';E={$_.CreatedDateTime.ToString()}},CrossTenantAccessType,DeviceDetail,Browser,DeviceDetailDeviceId,DisplayName,IsCompliant,IsManaged,DeviceDetailOperatingSystem,TrustType,FederatedCredentialId,FlaggedForReview,HomeTenantId,HomeTenantName,IPAddress,IPAddressFromResourceProvider,Id,IncomingTokenType,IsInteractive,IsTenantRestricted,Location,City,CountryOrRegion,State,ManagedServiceIdentity,AssociatedResourceId,FederatedTokenId,FederatedTokenIssuer,MsiType,MfaDetail,AuthDetail,AuthMethod,NetworkLocationDetails,OriginalRequestId,OriginalTransferMethod,PrivateLinkDetails,PolicyId,PolicyName,PolicyTenantId,PrivateLinkDetailsResourceId,ProcessingTimeInMilliseconds,ResourceDisplayName,ResourceId,ResourceServicePrincipalId,ResourceTenantId,RiskDetail,RiskEventTypesV2,RiskLevelAggregated,RiskLevelDuringSignIn,RiskState,ServicePrincipalCredentialKeyId,ServicePrincipalCredentialThumbprint,ServicePrincipalId,ServicePrincipalName,SessionLifetimePolicies,SignInEventTypes,SignInIdentifier,SignInIdentifierType,SignInTokenProtectionStatus,Status,StatusAdditionalDetails,TokenIssuerName,TokenIssuerType,UniqueTokenIdentifier,UserAgent,UserDisplayName,UserId,UserPrincipalName,UserType,AdditionalProperties
+				} else {
+					Write-LogFile -Message "[INFO] Collecting Directory Sign-in logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))."
+					[Array]$results =  Get-MgBetaAuditLogSignIn -ExpandProperty * -All -Filter "createdDateTime lt $($currentEnd.ToString("yyyy-MM-ddTHH:mm:ssZ")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-ddTHH:mm:ssZ"))" |  Select-Object AppDisplayName,AppId,AppTokenProtectionStatus,AppliedConditionalAccessPolicies,ConditionsNotSatisfied,ConditionsSatisfied,AppliedConditionalAccessPoliciesDisplayName,EnforcedGrantControls,EnforcedSessionControls,AppliedConditionalAccessPoliciesId,AppliedConditionalAccessPoliciesResult,AppliedConditionalAccessPolicies2,AppliedEventListeners,AuthenticationAppDeviceDetails,AppVersion,ClientApp,DeviceId,OperatingSystem,AuthenticationAppPolicyEvaluationDetails,AdminConfiguration,AuthenticationEvaluation,AuthenticationAppPolicyEvaluationDetailsPolicyName,AuthenticationAppPolicyEvaluationDetailsStatus,AuthenticationContextClassReferences,@{N='AuthDetailsAuthenticationMethod';E={$_.AuthenticationDetails.AuthenticationMethod.ToString()}},@{N='AuthDetailsAuthenticationMethodDetail';E={$_.AuthenticationDetails.AuthenticationMethodDetail.ToString()}},@{N='AuthDetailsAuthenticationStepDateTime';E={$_.AuthenticationDetails.AuthenticationStepDateTime.ToString()}},@{N='AuthDetailsAuthenticationStepRequirement';E={$_.AuthenticationDetails.AuthenticationStepRequirement.ToString()}},@{N='AuthDetailsAuthenticationStepResultDetail';E={$_.AuthenticationDetails.AuthenticationStepResultDetail.ToString()}},@{N='AuthDetailsSucceeded';E={$_.AuthenticationDetails.Succeeded.ToString()}},AuthenticationMethodsUsed,AuthenticationProcessingDetails,AuthenticationProtocol,AuthenticationRequirement,AuthenticationRequirementPolicies,Detail,RequirementProvider,AutonomousSystemNumber,AzureResourceId,ClientAppUsed,ClientCredentialType,ConditionalAccessStatus,CorrelationId,@{N='CreatedDateTime';E={$_.CreatedDateTime.ToString()}},CrossTenantAccessType,DeviceDetail,Browser,DeviceDetailDeviceId,DisplayName,IsCompliant,IsManaged,DeviceDetailOperatingSystem,TrustType,FederatedCredentialId,FlaggedForReview,HomeTenantId,HomeTenantName,IPAddress,IPAddressFromResourceProvider,Id,IncomingTokenType,IsInteractive,IsTenantRestricted,Location,City,CountryOrRegion,State,ManagedServiceIdentity,AssociatedResourceId,FederatedTokenId,FederatedTokenIssuer,MsiType,MfaDetail,AuthDetail,AuthMethod,NetworkLocationDetails,OriginalRequestId,OriginalTransferMethod,PrivateLinkDetails,PolicyId,PolicyName,PolicyTenantId,PrivateLinkDetailsResourceId,ProcessingTimeInMilliseconds,ResourceDisplayName,ResourceId,ResourceServicePrincipalId,ResourceTenantId,RiskDetail,RiskEventTypesV2,RiskLevelAggregated,RiskLevelDuringSignIn,RiskState,ServicePrincipalCredentialKeyId,ServicePrincipalCredentialThumbprint,ServicePrincipalId,ServicePrincipalName,SessionLifetimePolicies,SignInEventTypes,SignInIdentifier,SignInIdentifierType,SignInTokenProtectionStatus,Status,StatusAdditionalDetails,TokenIssuerName,TokenIssuerType,UniqueTokenIdentifier,UserAgent,UserDisplayName,UserId,UserPrincipalName,UserType,AdditionalProperties
+				}
+				$success = $true
 			}
-			catch{
-				Start-Sleep -Seconds 20
-				[Array]$results =  Get-MgBetaAuditLogSignIn -ExpandProperty * -All -Filter "UserPrincipalName eq '$($Userids)' and createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))" |  Select-Object AppDisplayName,AppId,AppTokenProtectionStatus,AppliedConditionalAccessPolicies,ConditionsNotSatisfied,ConditionsSatisfied,AppliedConditionalAccessPoliciesDisplayName,EnforcedGrantControls,EnforcedSessionControls,AppliedConditionalAccessPoliciesId,AppliedConditionalAccessPoliciesResult,AppliedConditionalAccessPolicies2,AppliedEventListeners,AuthenticationAppDeviceDetails,AppVersion,ClientApp,DeviceId,OperatingSystem,AuthenticationAppPolicyEvaluationDetails,AdminConfiguration,AuthenticationEvaluation,AuthenticationAppPolicyEvaluationDetailsPolicyName,AuthenticationAppPolicyEvaluationDetailsStatus,AuthenticationContextClassReferences,@{N='AuthDetailsAuthenticationMethod';E={$_.AuthenticationDetails.AuthenticationMethod.ToString()}},@{N='AuthDetailsAuthenticationMethodDetail';E={$_.AuthenticationDetails.AuthenticationMethodDetail.ToString()}},@{N='AuthDetailsAuthenticationStepDateTime';E={$_.AuthenticationDetails.AuthenticationStepDateTime.ToString()}},@{N='AuthDetailsAuthenticationStepRequirement';E={$_.AuthenticationDetails.AuthenticationStepRequirement.ToString()}},@{N='AuthDetailsAuthenticationStepResultDetail';E={$_.AuthenticationDetails.AuthenticationStepResultDetail.ToString()}},@{N='AuthDetailsSucceeded';E={$_.AuthenticationDetails.Succeeded.ToString()}},AuthenticationMethodsUsed,AuthenticationProcessingDetails,AuthenticationProtocol,AuthenticationRequirement,AuthenticationRequirementPolicies,Detail,RequirementProvider,AutonomousSystemNumber,AzureResourceId,ClientAppUsed,ClientCredentialType,ConditionalAccessStatus,CorrelationId,@{N='CreatedDateTime';E={$_.CreatedDateTime.ToString()}},CrossTenantAccessType,DeviceDetail,Browser,DeviceDetailDeviceId,DisplayName,IsCompliant,IsManaged,DeviceDetailOperatingSystem,TrustType,FederatedCredentialId,FlaggedForReview,HomeTenantId,HomeTenantName,IPAddress,IPAddressFromResourceProvider,Id,IncomingTokenType,IsInteractive,IsTenantRestricted,Location,City,CountryOrRegion,State,ManagedServiceIdentity,AssociatedResourceId,FederatedTokenId,FederatedTokenIssuer,MsiType,MfaDetail,AuthDetail,AuthMethod,NetworkLocationDetails,OriginalRequestId,OriginalTransferMethod,PrivateLinkDetails,PolicyId,PolicyName,PolicyTenantId,PrivateLinkDetailsResourceId,ProcessingTimeInMilliseconds,ResourceDisplayName,ResourceId,ResourceServicePrincipalId,ResourceTenantId,RiskDetail,RiskEventTypesV2,RiskLevelAggregated,RiskLevelDuringSignIn,RiskState,ServicePrincipalCredentialKeyId,ServicePrincipalCredentialThumbprint,ServicePrincipalId,ServicePrincipalName,SessionLifetimePolicies,SignInEventTypes,SignInIdentifier,SignInIdentifierType,SignInTokenProtectionStatus,Status,StatusAdditionalDetails,TokenIssuerName,TokenIssuerType,UniqueTokenIdentifier,UserAgent,UserDisplayName,UserId,UserPrincipalName,UserType,AdditionalProperties
+
+			catch {
+				$retryCount++
+				if ($retryCount -lt $maxRetries) {
+					Start-Sleep -Seconds 10
+					Write-LogFile -Message "[WARNING] Failed to acquire logs. Retrying... Attempt $retryCount of $maxRetries" -Color "Yellow"
+				} else {
+					Write-LogFile -Message "[ERROR] Failed to acquire logs after $maxRetries attempts. Moving on." -Color "Red"
+				}
 			}
 		}
-		else {
-			try{
-				[Array]$results =  Get-MgBetaAuditLogSignIn -ExpandProperty * -All -Filter "createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))" |  Select-Object AppDisplayName,AppId,AppTokenProtectionStatus,AppliedConditionalAccessPolicies,ConditionsNotSatisfied,ConditionsSatisfied,AppliedConditionalAccessPoliciesDisplayName,EnforcedGrantControls,EnforcedSessionControls,AppliedConditionalAccessPoliciesId,AppliedConditionalAccessPoliciesResult,AppliedConditionalAccessPolicies2,AppliedEventListeners,AuthenticationAppDeviceDetails,AppVersion,ClientApp,DeviceId,OperatingSystem,AuthenticationAppPolicyEvaluationDetails,AdminConfiguration,AuthenticationEvaluation,AuthenticationAppPolicyEvaluationDetailsPolicyName,AuthenticationAppPolicyEvaluationDetailsStatus,AuthenticationContextClassReferences,@{N='AuthDetailsAuthenticationMethod';E={$_.AuthenticationDetails.AuthenticationMethod.ToString()}},@{N='AuthDetailsAuthenticationMethodDetail';E={$_.AuthenticationDetails.AuthenticationMethodDetail.ToString()}},@{N='AuthDetailsAuthenticationStepDateTime';E={$_.AuthenticationDetails.AuthenticationStepDateTime.ToString()}},@{N='AuthDetailsAuthenticationStepRequirement';E={$_.AuthenticationDetails.AuthenticationStepRequirement.ToString()}},@{N='AuthDetailsAuthenticationStepResultDetail';E={$_.AuthenticationDetails.AuthenticationStepResultDetail.ToString()}},@{N='AuthDetailsSucceeded';E={$_.AuthenticationDetails.Succeeded.ToString()}},AuthenticationMethodsUsed,AuthenticationProcessingDetails,AuthenticationProtocol,AuthenticationRequirement,AuthenticationRequirementPolicies,Detail,RequirementProvider,AutonomousSystemNumber,AzureResourceId,ClientAppUsed,ClientCredentialType,ConditionalAccessStatus,CorrelationId,@{N='CreatedDateTime';E={$_.CreatedDateTime.ToString()}},CrossTenantAccessType,DeviceDetail,Browser,DeviceDetailDeviceId,DisplayName,IsCompliant,IsManaged,DeviceDetailOperatingSystem,TrustType,FederatedCredentialId,FlaggedForReview,HomeTenantId,HomeTenantName,IPAddress,IPAddressFromResourceProvider,Id,IncomingTokenType,IsInteractive,IsTenantRestricted,Location,City,CountryOrRegion,State,ManagedServiceIdentity,AssociatedResourceId,FederatedTokenId,FederatedTokenIssuer,MsiType,MfaDetail,AuthDetail,AuthMethod,NetworkLocationDetails,OriginalRequestId,OriginalTransferMethod,PrivateLinkDetails,PolicyId,PolicyName,PolicyTenantId,PrivateLinkDetailsResourceId,ProcessingTimeInMilliseconds,ResourceDisplayName,ResourceId,ResourceServicePrincipalId,ResourceTenantId,RiskDetail,RiskEventTypesV2,RiskLevelAggregated,RiskLevelDuringSignIn,RiskState,ServicePrincipalCredentialKeyId,ServicePrincipalCredentialThumbprint,ServicePrincipalId,ServicePrincipalName,SessionLifetimePolicies,SignInEventTypes,SignInIdentifier,SignInIdentifierType,SignInTokenProtectionStatus,Status,StatusAdditionalDetails,TokenIssuerName,TokenIssuerType,UniqueTokenIdentifier,UserAgent,UserDisplayName,UserId,UserPrincipalName,UserType,AdditionalProperties
-			}
-			catch{
-				Start-Sleep -Seconds 20
-				[Array]$results =  Get-MgBetaAuditLogSignIn -ExpandProperty * -All -Filter "createdDateTime lt $($currentEnd.ToString("yyyy-MM-dd")) and createdDateTime gt $($currentStart.ToString("yyyy-MM-dd"))" |  Select-Object AppDisplayName,AppId,AppTokenProtectionStatus,AppliedConditionalAccessPolicies,ConditionsNotSatisfied,ConditionsSatisfied,AppliedConditionalAccessPoliciesDisplayName,EnforcedGrantControls,EnforcedSessionControls,AppliedConditionalAccessPoliciesId,AppliedConditionalAccessPoliciesResult,AppliedConditionalAccessPolicies2,AppliedEventListeners,AuthenticationAppDeviceDetails,AppVersion,ClientApp,DeviceId,OperatingSystem,AuthenticationAppPolicyEvaluationDetails,AdminConfiguration,AuthenticationEvaluation,AuthenticationAppPolicyEvaluationDetailsPolicyName,AuthenticationAppPolicyEvaluationDetailsStatus,AuthenticationContextClassReferences,@{N='AuthDetailsAuthenticationMethod';E={$_.AuthenticationDetails.AuthenticationMethod.ToString()}},@{N='AuthDetailsAuthenticationMethodDetail';E={$_.AuthenticationDetails.AuthenticationMethodDetail.ToString()}},@{N='AuthDetailsAuthenticationStepDateTime';E={$_.AuthenticationDetails.AuthenticationStepDateTime.ToString()}},@{N='AuthDetailsAuthenticationStepRequirement';E={$_.AuthenticationDetails.AuthenticationStepRequirement.ToString()}},@{N='AuthDetailsAuthenticationStepResultDetail';E={$_.AuthenticationDetails.AuthenticationStepResultDetail.ToString()}},@{N='AuthDetailsSucceeded';E={$_.AuthenticationDetails.Succeeded.ToString()}},AuthenticationMethodsUsed,AuthenticationProcessingDetails,AuthenticationProtocol,AuthenticationRequirement,AuthenticationRequirementPolicies,Detail,RequirementProvider,AutonomousSystemNumber,AzureResourceId,ClientAppUsed,ClientCredentialType,ConditionalAccessStatus,CorrelationId,@{N='CreatedDateTime';E={$_.CreatedDateTime.ToString()}},CrossTenantAccessType,DeviceDetail,Browser,DeviceDetailDeviceId,DisplayName,IsCompliant,IsManaged,DeviceDetailOperatingSystem,TrustType,FederatedCredentialId,FlaggedForReview,HomeTenantId,HomeTenantName,IPAddress,IPAddressFromResourceProvider,Id,IncomingTokenType,IsInteractive,IsTenantRestricted,Location,City,CountryOrRegion,State,ManagedServiceIdentity,AssociatedResourceId,FederatedTokenId,FederatedTokenIssuer,MsiType,MfaDetail,AuthDetail,AuthMethod,NetworkLocationDetails,OriginalRequestId,OriginalTransferMethod,PrivateLinkDetails,PolicyId,PolicyName,PolicyTenantId,PrivateLinkDetailsResourceId,ProcessingTimeInMilliseconds,ResourceDisplayName,ResourceId,ResourceServicePrincipalId,ResourceTenantId,RiskDetail,RiskEventTypesV2,RiskLevelAggregated,RiskLevelDuringSignIn,RiskState,ServicePrincipalCredentialKeyId,ServicePrincipalCredentialThumbprint,ServicePrincipalId,ServicePrincipalName,SessionLifetimePolicies,SignInEventTypes,SignInIdentifier,SignInIdentifierType,SignInTokenProtectionStatus,Status,StatusAdditionalDetails,TokenIssuerName,TokenIssuerType,UniqueTokenIdentifier,UserAgent,UserDisplayName,UserId,UserPrincipalName,UserType,AdditionalProperties
-			}
-		}
+
 		if ($null -eq $results -or $results.Count -eq 0) {
-			Write-LogFile -Message "[WARNING] Empty data set returned between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd")). Moving On!"				
+			Write-LogFile -Message "[WARNING] Empty data set returned between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")). Moving On!" -Color "Yellow"					
 		}
 		else {					
 			$currentCount = $results.Count
-			if ($currentDay -ne 0){
-				$currentTotal = $currentCount + $results.Count
-			}
-			else {
-				$currentTotal = $currentCount 
-			}
-			
-			Write-LogFile -Message "[INFO] Found $currentCount Directory Sign-in Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-dd")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-dd"))" -Color "Green"
+			Write-LogFile -Message "[INFO] Found $currentCount Directory Sign-in Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))" -Color "Green"
 				
 			$filePath = "$OutputDir\SignInLogsGraph-$($CurrentStart.ToString("yyyyMMdd"))-$($CurrentEnd.ToString("yyyyMMdd")).json"	
 			$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
 
-			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range."							
+			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records for the current time range."							
 		}
 		[Array]$results = @()
 		$CurrentStart = $CurrentEnd
@@ -200,16 +208,16 @@ function Get-ADAuditLogsGraph {
 
 	.DESCRIPTION
 	The Get-ADAuditLogsGraph GraphAPI cmdlet to collect the contents of the Azure Active Directory Audit logs.
-	The output will be written to: "Output\AzureAD\AuditlogsGraph.json
 
 	.PARAMETER startDate
 	The startDate parameter specifies the date from which all logs need to be collected.
+
 	.PARAMETER endDate
     The Before parameter specifies the date endDate which all logs need to be collected.
 
 	.PARAMETER OutputDir
 	outputDir is the parameter specifying the output directory.
-	Default: Output\AzureAD
+	Default: The output will be written to: "Output\AzureAD\{date_AuditLogs}\Auditlogs.json
 
 	.PARAMETER UserIds
 	UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
@@ -218,9 +226,17 @@ function Get-ADAuditLogsGraph {
 	Encoding is the parameter specifying the encoding of the JSON output file.
 	Default: UTF8
 
+	.PARAMETER MergeOutput
+    MergeOutput is the parameter specifying if you wish to merge outputs to a single file
+    Default: No
+
 	.PARAMETER Application
 	Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
 	Default: Delegated access (access on behalf a user)
+
+	.PARAMETER Interval
+    Interval is the parameter specifying the interval in which the logs are being gathered.
+	Default: 720 minutes
 	
 	.EXAMPLE
 	Get-ADAuditLogsGraph
@@ -243,9 +259,11 @@ function Get-ADAuditLogsGraph {
 			[string]$startDate,
 			[string]$endDate,
 			[string]$OutputDir,
+			[switch]$MergeOutput,
 			[string]$Encoding,
 			[string]$UserIds,
-			[switch]$Application
+			[switch]$Application,
+			[string]$Interval
 		)
 	
 		try {
@@ -263,11 +281,19 @@ function Get-ADAuditLogsGraph {
 		if (!($Application.IsPresent)) {
 			Connect-MgGraph -Scopes AuditLog.Read.All, Directory.Read.All -NoWelcome
 		}
+
+		if ($Interval -eq "") {
+			$Interval = 720
+			Write-LogFile -Message "[INFO] Setting the Interval to the default value of 720 (Larger values may result in out of memory errors)"
+		}
+
+		StartDateAz
+		EndDate
 	
 		Write-logFile -Message "[INFO] Running Get-ADAuditLogsGraph" -Color "Green"
 		
 		if ($OutputDir -eq "" ){
-			$OutputDir = "Output\AzureAD"
+			$OutputDir = "Output\AzureAD\$($date)_Auditlogs"
 			if (!(test-path $OutputDir)) {
 				New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
 				write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
@@ -286,31 +312,81 @@ function Get-ADAuditLogsGraph {
 		}
 	
 		$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-		$filePath = "$OutputDir\$($date)-AuditlogsGraph.json"
+		[DateTime]$currentStart = $script:StartDate
+		[DateTime]$currentEnd = $script:EndDate
+		$currentDay = 0  
 
-		if ($Before -and $After) {
-			write-logFile -Message "[WARNING] Please provide only one of either a start date or end date" -Color "Red"
+		Write-LogFile -Message "[INFO] Extracting all available Directory Audit Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))" -Color "Green"
+		if($currentStart -gt $script:EndDate){
+			Write-LogFile -Message "[ERROR] $($currentStart.ToString("yyyy-MM-ddTHH:mm:ssZ")) is greather than $($script:EndDate.ToString("yyyy-MM-ddTHH:mm:ssZ")) - are you sure you put in the correct year? Exiting!" -Color "Red"
 			return
 		}
 
-		$filter = ""
-		if ($endDate) {
-			$filter = "activityDateTime lt $endDate"
-		}
-		if ($startDate) {
-			$filter = "activityDateTime gt $startDate"
-		}
-
-		if ($UserIds) {
-			if ($filter) {
-				$filter = " and $filter"
+		while ($currentStart -lt $script:EndDate) {			
+			$currentEnd = $currentStart.AddMinutes($Interval)
+			$retryCount = 0
+			$maxRetries = 3
+			$success = $false
+	
+			while (-not $success -and $retryCount -lt $maxRetries) {
+				try {
+					if ($UserIds) {
+						Write-LogFile -Message "[INFO] Collecting Directory Audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))."
+						[Array]$results = Get-MgAuditLogDirectoryAudit -ExpandProperty * -All -Filter "initiatedBy/user/userPrincipalName eq '$UserIds' and activityDateTime gt $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and activityDateTime lt $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))"
+					} else {
+						Write-LogFile -Message "[INFO] Collecting Directory Audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))."
+						[Array]$results = Get-MgAuditLogDirectoryAudit -ExpandProperty * -All -Filter "activityDateTime gt $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and activityDateTime lt $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))"
+					}
+					$success = $true
+				}
+				catch {
+					$retryCount++
+					if ($retryCount -lt $maxRetries) {
+						Start-Sleep -Seconds 10
+						Write-LogFile -Message "[WARNING] Failed to acquire logs. Retrying... Attempt $retryCount of $maxRetries" -Color "Yellow"
+					} else {
+						Write-LogFile -Message "[ERROR] Failed to acquire logs after $maxRetries attempts. Moving on." -Color "Red"
+					}
+				}
 			}
-			Get-MgAuditLogDirectoryAudit -ExpandProperty * -All -Filter $filter | ConvertTo-Json -Depth 100 | out-File -FilePath $filePath -Encoding $Encoding
-		} 
-		else {
-			Get-MgAuditLogDirectoryAudit -ExpandProperty * -All -Filter $filter | ConvertTo-Json -Depth 100 | out-File -FilePath $filePath -Encoding $Encoding
-		}	
+	
+			if ($null -eq $results -or $results.Count -eq 0) {
+				Write-LogFile -Message "[WARNING] Empty data set returned between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")). Moving On!" -Color "Yellow"		
+			}
+			else {					
+				$currentCount = $results.Count
+				Write-LogFile -Message "[INFO] Found $currentCount Directory Audit Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))" -Color "Green"
+					
+				$filePath = "$OutputDir\AuditLogs-$($CurrentStart.ToString("yyyyMMddHHmmss"))-$($CurrentEnd.ToString("yyyyMMddHHmmss")).json"
+				$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
+	
+				Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records for the current time range."							
+			}
+			[Array]$results = @()
+			$CurrentStart = $CurrentEnd
+			$currentDay++
+		}
 		
-		write-logFile -Message "[INFO] Audit logs written to $filePath" -Color "Green"
+		if ($MergeOutput.IsPresent)
+		{
+			Write-LogFile -Message "[INFO] Merging output files into one file"
+			$outputDirMerged = "$OutputDir\Merged\"
+			If (!(test-path $outputDirMerged)) {
+				Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
+				New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
+			}
+	
+			$allJsonObjects = @()
+	
+			Get-ChildItem $OutputDir -Filter *.json | ForEach-Object {
+				$content = Get-Content -Path $_.FullName -Raw
+				$jsonObjects = $content | ConvertFrom-Json
+				$allJsonObjects += $jsonObjects
+			}
+		
+			$allJsonObjects | ConvertTo-Json -Depth 100 | Set-Content "$outputDirMerged\AuditLogs-Combined.json"
+		}
+		
+		Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		
 	}
 	

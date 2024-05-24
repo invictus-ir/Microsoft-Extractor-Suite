@@ -36,7 +36,7 @@ Function Get-Sessions {
 	Collects all sessions for all users between 1/4/2023 and 5/4/2023.
     
     .EXAMPLE
-    Get-Sessions Get-Sessions -StartDate 1/4/2023 -EndDate 5/4/2023 -UserIds HR@invictus-ir.com
+    Get-Sessions -StartDate 1/4/2023 -EndDate 5/4/2023 -UserIds HR@invictus-ir.com
 	Collects all sessions for the user HR@invictus-ir.com.
 #>
     [CmdletBinding()]
@@ -271,11 +271,11 @@ function Get-MessageIDs {
 	Collects all sessions for all users between 1/4/2023 and 5/4/2023.
     
     .EXAMPLE
-    Get-MessageIDs Get-Sessions -StartDate 1/4/2023 -EndDate 5/4/2023 -IP 1.1.1.1
+    Get-MessageIDs -StartDate 1/4/2023 -EndDate 5/4/2023 -IP 1.1.1.1
 	Collects all sessions for the IP address 1.1.1.1.
 
     .EXAMPLE
-    Get-MessageIDs Get-Sessions -StartDate 1/4/2023 -EndDate 5/4/2023 -IP 1.1.1.1 -Download Yes
+    Get-MessageIDs -StartDate 1/4/2023 -EndDate 5/4/2023 -IP 1.1.1.1 -Download Yes
 	Collects all sessions for the IP address 1.1.1.1 and downloads the e-mails and attachments.
 #>
     [CmdletBinding()]
@@ -646,7 +646,7 @@ function DownloadMails($iMessageID,$UserIds){
 
         $subject = $getMessage.Subject
         $subject = $subject -replace '[\\/:*?"<>|]', '_'
-        $filePath = "$outputDir\$ReceivedDateTime-$subject.msg"
+        $filePath = "$outputDir\$ReceivedDateTime-$subject.elm"
 
         Get-MgUserMessageContent -MessageId $messageId -UserId $userId -OutFile $filePath
         Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
