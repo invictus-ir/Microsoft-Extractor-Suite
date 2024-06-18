@@ -47,14 +47,14 @@ function Get-RiskyUsers {
     }
 
     if (!($Application.IsPresent)) {
-        Connect-MgGraph -Scopes IdentityRiskEvent.Read.All -NoWelcome
+        Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All -NoWelcome
     }
 
     try {
         $areYouConnected = Get-MgRiskyUser -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-GraphAPI -Scopes IdentityRiskyUser.Read.All before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All before running this script" -Color "Red"
         break
     }
 
@@ -164,14 +164,14 @@ function Get-RiskyDetections {
     )
 
     if (!($Application.IsPresent)) {
-        Connect-MgGraph -Scopes IdentityRiskEvent.Read.All -NoWelcome
+        Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All -NoWelcome
     }
 
     try {
         $areYouConnected = Get-MgRiskDetection -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-GraphAPI -Scopes IdentityRiskEvent.Read.All before running this script" -Color "Red"
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All before running this script" -Color "Red"
         break
     }
 
