@@ -1,5 +1,4 @@
 ![alt text](https://github.com/invictus-ir/Microsoft-Extractor-Suite/blob/main/docs/source/Images/Invictus-Incident-Response.jpg?raw=true)
-
 ![Language](https://img.shields.io/badge/Language-Powershell-blue)
 [![Documentation](https://img.shields.io/badge/Read%20the%20Docs-Documentation-blue)](https://microsoft-365-extractor-suite.readthedocs.io/en/latest/)
 [![Latest Version](https://img.shields.io/powershellgallery/v/Microsoft-Extractor-Suite?label=Latest%20Version&color=brightgreen)](https://www.powershellgallery.com/packages/Microsoft-Extractor-Suite)
@@ -24,6 +23,8 @@ The following Microsoft data sources are supported:
 * Message Trace Logs
 * Azure AD Sign-In Logs
 * Azure AD Audit Logs
+* Azure Activity Logs
+* Azure Directory Activity Logs
 
 In addition to the log sources above the tool is also able to retrieve other relevant information:
 * Registered OAuth applications in Azure AD
@@ -33,7 +34,7 @@ In addition to the log sources above the tool is also able to retrieve other rel
 * The risky detections
 * The conditional access policies
 * Administrator directory roles and their users
-* A specific e-mail or attachment
+* A specific or list of e-mail(s) or attachment(s)
 
 Microsoft-Extractor-Suite was created by Joey Rentenaar and Korstiaan Stam and is maintained by the [Invictus IR](https://www.invictus-ir.com/) team.
 

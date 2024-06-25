@@ -27,19 +27,15 @@ Parameters
 """"""""""""""""""""""""""
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: UserInfo
+    - Default: Users
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
--Application (optional)
-    - Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
-    - Default: Delegated access (access on behalf a user)
-
 Output
 """"""""""""""""""""""""""
-The output will be saved to the 'UserInfo' directory within the 'Output' directory.
+The output will be saved to the 'Users' directory within the 'Output' directory.
 
 Permissions
 """"""""""""""""""""""""""
@@ -72,19 +68,15 @@ Parameters
 """"""""""""""""""""""""""
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: UserInfo
+    - Default: Admins
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
--Application (optional)
-    - Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
-    - Default: Delegated access (access on behalf a user)
-
 Output
 """"""""""""""""""""""""""
-The output will be saved to the 'UserInfo' directory within the 'Output' directory.
+The output will be saved to the 'Admins' directory within the 'Output' directory.
 
 Permissions
 """"""""""""""""""""""""""
@@ -112,19 +104,15 @@ Parameters
 """"""""""""""""""""""""""
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: UserInfo
+    - Default: MFA
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
--Application (optional)
-    - Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
-    - Default: Delegated access (access on behalf a user)
-
 Output
 """"""""""""""""""""""""""
-The output will be saved to the 'UserInfo' directory within the 'Output' directory.
+The output will be saved to the 'MFA' directory within the 'Output' directory.
 
 Permissions
 """"""""""""""""""""""""""
@@ -147,19 +135,15 @@ Parameters
 """"""""""""""""""""""""""
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: UserInfo
+    - Default: RiskyEvents
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
--Application (optional)
-    - Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
-    - Default: Delegated access (access on behalf a user)
-
 Output
 """"""""""""""""""""""""""
-The output will be saved to the 'UserInfo' directory within the 'Output' directory.
+The output will be saved to the 'RiskyEvents' directory within the 'Output' directory.
 
 Permissions
 """"""""""""""""""""""""""
@@ -182,19 +166,15 @@ Parameters
 """"""""""""""""""""""""""
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: UserInfo
+    - Default: RiskyEvents
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
--Application (optional)
-    - Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
-    - Default: Delegated access (access on behalf a user)
-
 Output
 """"""""""""""""""""""""""
-The output will be saved to the 'UserInfo' directory within the 'Output' directory.
+The output will be saved to the 'RiskyEvents' directory within the 'Output' directory.
 
 Permissions
 """"""""""""""""""""""""""

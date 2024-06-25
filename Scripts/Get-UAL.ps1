@@ -63,7 +63,7 @@ function Get-UALAll
 
  	.EXAMPLE
 	Get-UALAll -UserIds Test@invictus-ir.com -MergeOutput
-	Gets all the unified audit log entries for the user Test@invictus-ir.com and adds a combined output csv file at the end of acquisition
+	Gets all the unified audit log entries for the user Test@invictus-ir.com and adds a combined output JSON file at the end of acquisition
 	
 	.EXAMPLE
 	Get-UALAll -UserIds Test@invictus-ir.com -Output JSON
@@ -71,22 +71,23 @@ function Get-UALAll
 	
 #>
 	[CmdletBinding()]
-	param(
-		[string]$StartDate,
-		[string]$EndDate,
-		[string]$UserIds,
-		[string]$Interval,
-		[string]$Output,
-		[switch]$MergeOutput,
-		[string]$OutputDir,
-		[string]$Encoding
-	)
+	param (
+        [string]$StartDate,
+        [string]$EndDate,
+        [string]$UserIds = "*",
+        [int]$Interval = 720,
+        [string]$Output = "CSV",
+        [switch]$MergeOutput,
+        [string]$OutputDir,
+        [string]$Encoding = "UTF8"
+    )
 	
 	try {
 		$areYouConnected = Get-AdminAuditLogConfig -ErrorAction stop
 	}
 	catch {
 		write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 		break
 	}
 
@@ -95,33 +96,12 @@ function Get-UALAll
 	StartDate
 	EndDate
 	
-	if ($UserIds -eq "") {
-		$UserIds = "*"
-	}
-	
-	if ($Interval -eq "") {
-		$Interval = 720
-		Write-LogFile -Message "[INFO] Setting the Interval to the default value of 720"
-	}
-	
-	if ($Output -eq "JSON") {
-		$Output = "JSON"
-		Write-LogFile -Message "[INFO] Output set to JSON"
-	} else {
-		$Output = "CSV"
-		Write-LogFile -Message "[INFO] Output set to CSV"
-	}
-
-	if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
-	}
-		
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\UnifiedAuditLog\$date"
 		If (!(test-path $OutputDir)) {
 			Write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
-			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+			New-Item -ItemType Directory -Force -Name $OutputDir > $null
 		}
 	}
 
@@ -147,7 +127,7 @@ function Get-UALAll
 		$currentEnd = $currentStart.AddMinutes($Interval)
 		$amountResults = Search-UnifiedAuditLog -UserIds $UserIds -StartDate $currentStart -EndDate $currentEnd -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 		
-		if ($amountResults -eq $null) {
+		if ($null -eq $amountResults) {
 			Write-LogFile -Message "[INFO] No audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")). Moving on!"
 			$CurrentStart = $CurrentEnd
 		}
@@ -208,14 +188,13 @@ function Get-UALAll
 						$message = "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range. Moving on!"
 						
 						if ($Output -eq "JSON") {
-							$results = $results|Select-Object AuditData -ExpandProperty AuditData
+							$results = $results | Select-Object AuditData -ExpandProperty AuditData
 							$results | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
 							Write-LogFile -Message $message -Color "Green"
 						}
 
 						elseif ($Output -eq "CSV") {
 							$results | export-CSV "$OutputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding $Encoding
-							
 							Write-LogFile -Message $message -Color "Green"
 						}
 						
@@ -227,16 +206,9 @@ function Get-UALAll
 		}
 	}
 
-	if ($Output -eq "CSV" -and ($MergeOutput.IsPresent))
-	{
+	if ($Output -eq "CSV" -and ($MergeOutput.IsPresent)) {
 		Write-LogFile -Message "[INFO] Merging output files into one file"
-	  	$outputDirMerged = "$OutputDir\Merged\"
-	  	If (!(test-path $outputDirMerged)) {
-			Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
-		  	New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
-	  	}
-  
-	    Get-ChildItem $OutputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/UAL-Combined.csv" -NoTypeInformation -Append
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "CSV" -MergedFileName "UAL-Combined.csv"
 	}
 
 	Write-LogFile -Message "[INFO] Acquisition complete, check the Output directory for your files.." -Color "Green"
@@ -309,19 +281,19 @@ function Get-UALGroup
 
   	.EXAMPLE
 	Get-UALGroup -Group Exchange -MergeOutput
-	Gets the Azure related unified audit log entries and adds a combined output csv file at the end of acquisition
+	Gets the Azure related unified audit log entries and adds a combined output JSON file at the end of acquisition
 #>
 	[CmdletBinding()]
 	param(
 		[string]$StartDate,
 		[string]$EndDate,
-		[string]$UserIds,
-		[string]$Interval,
+		[string]$UserIds = "*",
+		[string]$Interval = 1440,
 		[string]$Group,
-		[string]$Output,
+		[string]$Output = "CSV",
   		[switch]$MergeOutput,
 		[string]$OutputDir,
-		[string]$Encoding
+		[string]$Encoding = "UTF8"
 	)
 
 	try {
@@ -329,6 +301,7 @@ function Get-UALGroup
 	}
 	catch {
 		write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 		break
 	}
 	
@@ -361,32 +334,11 @@ function Get-UALGroup
 	StartDate
 	EndDate
 	
-	if ($UserIds -eq "") {
-		$UserIds = "*"
-	}
-	
-	if ($Interval -eq "") {
-		$Interval = 1440
-		write-logFile -Message "[INFO] Setting the Interval to the default value of 1440"
-	}
-	
-	if ($Output -eq "JSON") {
-		$Output = "JSON"
-		write-logFile -Message "[INFO] Output type set to JSON"
-	} else {
-		$Output = "CSV"
-		Write-LogFile -Message "[INFO] Output set to CSV"
-	}
-
-	if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
-	}
-	
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\UnifiedAuditLog\$recordFile"
 		if (!(test-path $OutputDir)) {
 			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+			New-Item -ItemType Directory -Force -Name $OutputDir > $null
 		}
 	}
 
@@ -423,7 +375,7 @@ function Get-UALGroup
 				$currentEnd = $currentStart.AddMinutes($Interval)
 				$amountResults = Search-UnifiedAuditLog -UserIds $UserIds -StartDate $currentStart -EndDate $currentEnd -RecordType $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 
-				if ($amountResults -eq $null) {
+				if ($null -eq $amountResults) {
 					Write-LogFile -Message "[INFO] No audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")). Moving on!"
 					$CurrentStart = $CurrentEnd
 				}
@@ -508,17 +460,10 @@ function Get-UALGroup
 			Write-LogFile -message "[INFO] No Records found for $Record"
 		}
 	}
-	if ($Output -eq "CSV" -and ($MergeOutput.IsPresent))
-  	{
+	if ($Output -eq "CSV" -and ($MergeOutput.IsPresent)) {
 		Write-LogFile -Message "[INFO] Merging output files into one file"
-		$outputDirMerged = "$OutputDir\Merged\"
-		If (!(test-path $outputDirMerged)) {
-			Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
-			New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
-		}
-
- 		Get-ChildItem $OutputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/UAL-Combined.csv" -NoTypeInformation -Append
-    }
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "CSV" -MergedFileName "UAL-Combined.csv"
+	}
 	
 	Write-LogFile -Message "[INFO] Acquisition complete, check the Output directory for your files.." -Color "Green"
 }
@@ -562,11 +507,11 @@ function Get-UALSpecific
 	Default: Output\UnifiedAuditLog
 
 	.PARAMETER Encoding
-    Encoding is the parameter specifying the encoding of the CSV/JSON output file.
+    Encoding is the parameter specifying the encoding of the CSV output file.
 	Default: UTF8
 
   	.PARAMETER MergeOutput
-    MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file
+    MergeOutput is the parameter specifying if you wish to merge CSV/JSON outputs to a single file
 
 	.EXAMPLE
 	Get-UALSpecific -RecordType ExchangeItem
@@ -590,19 +535,19 @@ function Get-UALSpecific
 
   	.EXAMPLE
 	Get-UALSpecific -RecordType MipAutoLabelExchangeItem -MergeOutput
-	Gets the ExchangeItem logging from the unified audit log and adds a combined output csv file at the end of acquisition
+	Gets the ExchangeItem logging from the unified audit log and adds a combined output JSON file at the end of acquisition
 #>
 	[CmdletBinding()]
 	param(
 		[string]$StartDate,
 		[string]$EndDate,
-		[string]$UserIds,
-		[string]$Interval,
+		[string]$UserIds = "*",
+		[string]$Interval = 1440,
 		[Parameter(Mandatory=$true)]$RecordType,
-		[string]$Output,
+		[string]$Output = "CSV",
   		[switch]$MergeOutput,
   		[string]$OutputDir,
-		[string]$Encoding
+		[string]$Encoding = "UTF8"
 	)
 
 	try {
@@ -610,6 +555,7 @@ function Get-UALSpecific
 	}
 	catch {
 		write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 		break
 	}
 	
@@ -617,30 +563,14 @@ function Get-UALSpecific
 
 	StartDate
 	EndDate
-	
-	if ($UserIds -eq "")
-	{
-		$UserIds = "*"
-	}
-	
-	if ($interval -eq "")
-	{
-		$Interval = 1440
-		write-logFile -Message "[INFO] Setting the Interval to the default value of 1440"
-	}
-	
-	if ($Output -eq "JSON")
-	{
+
+	if ($Output -eq "JSON") {
 		$Output = "JSON"
 		write-logFile -Message "[INFO] Output set to JSON"
 	}
 	else {
 		$Output = "CSV"
 		Write-LogFile -Message "[INFO] Output set to CSV"
-	}
-
-	if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
 	}
 
 	write-logFile -Message "[INFO] Extracting all available audit logs between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
@@ -663,7 +593,7 @@ function Get-UALSpecific
 				$OutputDir = "Output\UnifiedAuditLog\$record"
 				if (!(test-path $OutputDir)) {
 					write-logFile -Message "[INFO] Creating the following output directory: $OutputDir"
-					New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null 
+					New-Item -ItemType Directory -Force -Name $OutputDir > $null
 				}
 			}
 
@@ -686,7 +616,7 @@ function Get-UALSpecific
 				$amountResults = Search-UnifiedAuditLog -UserIds $UserIds -StartDate $currentStart -EndDate $currentEnd -RecordType $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 				
 				
-				if ($amountResults -eq $null) {
+				if ($null -eq $amountResults) {
 					Write-LogFile -Message "[INFO] No audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")). Moving on!"
 					$CurrentStart = $CurrentEnd
 				}
@@ -765,18 +695,10 @@ function Get-UALSpecific
 		}
 	}
 
-	if ($Output -eq "CSV" -and ($MergeOutput.IsPresent))
-	{
-	Write-LogFile -Message "[INFO] Merging output files into one file"
-	  $outputDirMerged = "$OutputDir\Merged\"
-	  write-host $outputDirMerged
-	  If (!(test-path $outputDirMerged)) {
-		  Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
-		  New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
-	  }
-  
-	    Get-ChildItem $OutputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/UAL-Combined.csv" -NoTypeInformation -Append
-	  }
+	if ($Output -eq "CSV" -and ($MergeOutput.IsPresent)) {
+		Write-LogFile -Message "[INFO] Merging output files into one file"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "CSV" -MergedFileName "UAL-Combined.csv"
+	}
 
 	Write-LogFile -Message "[INFO] Acquisition complete, check the Output directory for your files.." -Color "Green"
 }
@@ -847,12 +769,12 @@ function Get-UALSpecificActivity
 	param(
 		[string]$StartDate,
 		[string]$EndDate,
-		[string]$UserIds,
-		[string]$Interval,
+		[string]$UserIds = "*",
+		[string]$Interval = 1440,
 		[Parameter(Mandatory=$true)]$ActivityType,
-		[string]$Output,
+		[string]$Output = "CSV",
 		[string]$OutputDir,
-		[string]$Encoding
+		[string]$Encoding = "UTF8"
 	)
 
 	try {
@@ -860,6 +782,7 @@ function Get-UALSpecificActivity
 	}
 	catch {
 		write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 		break
 	}
 	
@@ -868,19 +791,7 @@ function Get-UALSpecificActivity
 	StartDate
 	EndDate
 	
-	if ($UserIds -eq "")
-	{
-		$UserIds = "*"
-	}
-	
-	if ($interval -eq "")
-	{
-		$Interval = 1440
-		write-logFile -Message "[INFO] Setting the Interval to the default value of 1440"
-	}
-	
-	if ($Output -eq "JSON")
-	{
+	if ($Output -eq "JSON") {
 		$Output = "JSON"
 		write-logFile -Message "[INFO] Output set to JSON"
 	}
@@ -888,10 +799,6 @@ function Get-UALSpecificActivity
 	{
 		$Output = "CSV"
 		write-logFile -Message "[INFO] Output set to CSV"
-	}
-
-	if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
 	}
 
 	write-logFile -Message "[INFO] Extracting all available audit logs between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
@@ -914,7 +821,7 @@ function Get-UALSpecificActivity
 				$OutputDir = "Output\UnifiedAuditLog\$record\"
 				if (!(test-path $OutputDir)) {
 					write-logFile -Message "[INFO] Creating the following output directory: $OutputDir"
-					New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null 
+					New-Item -ItemType Directory -Force -Name $OutputDir > $null 
 				}
 			}
 
@@ -937,7 +844,7 @@ function Get-UALSpecificActivity
 				$amountResults = Search-UnifiedAuditLog -UserIds $UserIds -StartDate $currentStart -EndDate $currentEnd -Operations $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 				
 				
-				if ($amountResults -eq $null) {
+				if ($null -eq $amountResults) {
 					Write-LogFile -Message "[INFO] No audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")). Moving on!"
 					$CurrentStart = $CurrentEnd
 				}

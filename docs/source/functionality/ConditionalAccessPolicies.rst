@@ -13,7 +13,7 @@ Parameters
 """"""""""""""""""""""""""
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: UserInfo
+    - Default: ConditionalAccessPolicies
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
@@ -25,7 +25,7 @@ Parameters
 
 Output
 """"""""""""""""""""""""""
-The output will be saved to the 'UserInfo' directory within the 'Output' directory.
+The output will be saved to the 'ConditionalAccessPolicies' directory within the 'Output' directory.
 
 Permissions
 """"""""""""""""""""""""""

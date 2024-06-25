@@ -43,42 +43,25 @@ Function Get-Sessions {
 	param(
         [Parameter(Mandatory=$true)]$StartDate,
         [Parameter(Mandatory=$true)]$EndDate,
-		[string]$OutputDir,
+		[string]$OutputDir = "Output\MailItemsAccessed",
         [string]$UserIds,
         [string]$IP,
-		[string]$Encoding,
-        [string]$Output
+		[string]$Encoding = "UTF8",
+        [string]$Output = "No"
 	)
 
-    try {
-		$areYouConnected = Get-AdminAuditLogConfig -ErrorAction stop
-	}
-	catch {
-		write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
-		break
-	}
-
-    if ($OutputDir -eq "" ){
-        $OutputDir = "Output\MailItemsAccessed"
-        if (!(test-path $OutputDir)) {
-            New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
-            write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-        }
+    if (!(test-path $OutputDir)) {
+        New-Item -ItemType Directory -Force -Name $OutputDir > $null
+        write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
     }
-
     else {
 		if (Test-Path -Path $OutputDir) {
 			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
 		}
-	
 		else {
 			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
 			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
 		}
-	}
-
-    if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
 	}
 
     Write-logFile -Message "[INFO] Running Get-Sessions" -Color "Green"
@@ -86,7 +69,14 @@ Function Get-Sessions {
     if ($UserIds -And !$IP){
         $Results = @()
 
-        $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -UserIds $UserIds -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
+        try {
+            $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -UserIds $UserIds -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
+        }
+        catch {
+            write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+            Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+            break
+        }
 
         if($amountResults -gt 4999){
             write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly provide more specific details, such as specifying a user or IP address." -Color "Red"
@@ -122,7 +112,14 @@ Function Get-Sessions {
         elseif($IP -And !$UserIds){
             $Results = @()
 
-            $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
+            try {
+                $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
+            }
+            catch {
+                write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+                Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+                break
+            }
 
             if($amountResults -gt 4999){
                 write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly provide more specific details, such as specifying a user." -Color "Red"
@@ -160,7 +157,15 @@ Function Get-Sessions {
         elseif($IP -And $UserIds){
             $Results = @()
 
-            $amountResults = (Search-UnifiedAuditLog -UserIds $UserIds -FreeText $IP -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
+            try {
+                $amountResults = (Search-UnifiedAuditLog -UserIds $UserIds -FreeText $IP -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
+            }
+            catch {
+                write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+                Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+                break
+            }
+            
             if($amountResults -gt 4999){
                 write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly provide a more specific time window." -Color "Red"
             }
@@ -197,7 +202,14 @@ Function Get-Sessions {
         else{
             $Results = @()
 
-            $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
+            try {
+                $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
+            }
+            catch {
+                write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+                Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+                break
+            }
 
             if($amountResults -gt 4999){
                 write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly provide more specific details, such as specifying a user." -Color "Red"
@@ -282,43 +294,26 @@ function Get-MessageIDs {
 	param(
         [Parameter(Mandatory=$true)]$StartDate,
         [Parameter(Mandatory=$true)]$EndDate,
-		[string]$OutputDir,
+		[string]$OutputDir = "Output\MailItemsAccessed",
         [string]$IP,
-		[string]$Encoding,
+		[string]$Encoding = "UTF8",
         [string]$Sessions,
         [string]$Output,
-        [string]$Download
+        [string]$Download = "No"
 	)
 
-    try {
-		$areYouConnected = Get-AdminAuditLogConfig -ErrorAction stop
-	}
-	catch {
-		write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
-		break
-	}
-
-    if ($OutputDir -eq "" ){
-        $OutputDir = "Output\MailItemsAccessed"
-        if (!(test-path $OutputDir)) {
-            New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
-            write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-        }
+    if (!(test-path $OutputDir)) {
+        New-Item -ItemType Directory -Force -Name $OutputDir > $null
+        write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
     }
-
     else {
 		if (Test-Path -Path $OutputDir) {
 			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
 		}
-	
 		else {
 			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
 			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
 		}
-	}
-
-    if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
 	}
     
     Write-logFile -Message "[INFO] Running Get-MessageIDs" -Color "Green"
@@ -326,8 +321,16 @@ function Get-MessageIDs {
     $results=@();
 	
 	if (!$Sessions -And !$IP){
-		$amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
-		
+
+        try {
+            $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+        }
+        catch {
+            write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+            Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+            break
+        }
+
         if ($amountResults -gt 4999){
             write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly lower the time window." -Color "Red"
         }
@@ -398,8 +401,16 @@ function Get-MessageIDs {
     }
 
     elseif ($IP -And $Sessions){
-        $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 		
+        try {
+            $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+        }
+        catch {
+            write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+            Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+            break
+        }
+
         if ($amountResults -gt 4999){
             write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly lower the time window." -Color "Red"
         }
@@ -478,7 +489,14 @@ function Get-MessageIDs {
     }
 
     elseif ($Sessions -And !$IP){
-        $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $Sessions -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+        try {
+            $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $Sessions -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+        }
+        catch {
+            write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+            Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+            break
+        }
 		
         if ($amountResults -gt 4999){
             write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly lower the time window." -Color "Red"
@@ -553,7 +571,15 @@ function Get-MessageIDs {
     }
         
     elseif (!$Sessions -And $IP){
-        $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+        try {
+            $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+        }
+        catch {
+            write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+            Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+            break
+        }
+
         if ($amountResults -gt 4999){
             write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly lower the time window." -Color "Red"
         }
@@ -634,7 +660,7 @@ function DownloadMails($iMessageID,$UserIds){
         $outputDir = "Output\MailItemsAccessed\Emails"
         if (!(test-path $outputDir)) {
             write-logFile -Message "[INFO] Creating the following directory: $outputDir"
-            New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+            New-Item -ItemType Directory -Force -Name $outputDir > $null
         }
     }
 
@@ -676,10 +702,5 @@ function DownloadMails($iMessageID,$UserIds){
         Write-Host "[WARNING] Error Message: $($_.Exception.Message)" -Color "Red"
         break
     }
-
-    
-
-
-
 }
 

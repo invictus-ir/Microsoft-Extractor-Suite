@@ -6,28 +6,19 @@ function Get-Users {
 
     .DESCRIPTION
     Retrieves the creation time and date of the last password change for all users.
-    The output will be written to: Output\UserInfo\
 
     .PARAMETER OutputDir
     OutputDir is the parameter specifying the output directory.
-    Default: Output\UserInfo
+    Default: Output\Users
 
     .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
     Default: UTF8
-
-    .PARAMETER Application
-    Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
-    Default: Delegated access (access on behalf a user)
     
     .EXAMPLE
     Get-Users
     Retrieves the creation time and date of the last password change for all users.
 
-    .EXAMPLE
-    Get-Users -Application
-    Retrieves the creation time and date of the last password change for all users via application authentication.
-	
     .EXAMPLE
     Get-Users -Encoding utf32
     Retrieves the creation time and date of the last password change for all users and exports the output to a CSV file with UTF-32 encoding.
@@ -38,40 +29,23 @@ function Get-Users {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir,
-        [string]$Encoding,
-        [switch]$Application
+        [string]$OutputDir = "Output\Users",
+        [string]$Encoding = "UTF8"
     )
 
-    if (!($Application.IsPresent)) {
-        Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All -NoWelcome
+    $authType = Get-GraphAuthType
+    if ($authType -eq "Delegated") {
+        Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All > $null
     }
 
-    try {
-        $areYouConnected = Get-MgUser -ErrorAction stop
+    if (!(test-path $OutputDir)) {
+        New-Item -ItemType Directory -Force -Name $OutputDir > $null
+        write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
     }
-    catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All' before running this script" -Color "Red"
-        break
-    }
-
-    if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
-	}
-
-    if ($OutputDir -eq "" ){
-        $OutputDir = "Output\UserInfo"
-        if (!(test-path $OutputDir)) {
-            New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
-            write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-        }
-    }
-
     else {
 		if (Test-Path -Path $OutputDir) {
 			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
 		}
-	
 		else {
 			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
 			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
@@ -80,46 +54,53 @@ function Get-Users {
 
     Write-logFile -Message "[INFO] Running Get-Users" -Color "Green"
 
-    $selectobjects = "Id","AccountEnabled","DisplayName","UserPrincipalName","Mail","CreatedDateTime","LastPasswordChangeDateTime","DeletedDateTime","JobTitle","Department","OfficeLocation","City","State","Country"
-    $mgUsers = Get-MgUser -All -Select $selectobjects 
-    write-host "A total of $($mgUsers.count) users found:" 
+    try {
+        $selectobjects = "Id","AccountEnabled","DisplayName","UserPrincipalName","Mail","CreatedDateTime","LastPasswordChangeDateTime","DeletedDateTime","JobTitle","Department","OfficeLocation","City","State","Country"
+        $mgUsers = Get-MgUser -All -Select $selectobjects 
+        write-host "A total of $($mgUsers.count) users found:" 
 
-    $date = (Get-Date).AddDays(-7)
-    $oneweekold = $mgUsers | Where-Object {
-        $_.CreatedDateTime -gt $date
+        $date = (Get-Date).AddDays(-7)
+        $oneweekold = $mgUsers | Where-Object {
+            $_.CreatedDateTime -gt $date
+        }
+        write-host "  - $($oneweekold.count) users created within the last 7 days."
+
+        $date = (Get-Date).AddDays(-30)
+        $onemonthold = $mgUsers | Where-Object {
+            $_.CreatedDateTime -gt $date
+        }
+        write-host "  - $($onemonthold.count) users created within the last 30 days."
+
+        $date = (Get-Date).AddDays(-90)
+        $threemonthold = $mgUsers | Where-Object {
+            $_.CreatedDateTime -gt $date
+        }
+        write-host "  - $($threemonthold.count) users created within the last 90 days."
+
+        $date = (Get-Date).AddDays(-180)
+        $sixmonthold = $mgUsers | Where-Object {
+            $_.CreatedDateTime -gt $date
+        }
+        write-host "  - $($sixmonthold.count) users created within the last 6 months."
+
+        $date = (Get-Date).AddDays(-360)
+        $sixmonthold = $mgUsers | Where-Object {
+            $_.CreatedDateTime -gt $date
+        }
+        write-host "  - $($sixmonthold.count) users created within the last 1 year."
+
+        Get-MgUser | Get-Member > $null
+
+        $date = Get-Date -Format "yyyyMMddHHmm"
+        $filePath = "$OutputDir\$($date)-Users.csv"
+        
+        $mgUsers | select-object $selectobjects | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
     }
-    write-host "  - $($oneweekold.count) users created within the last 7 days."
-
-    $date = (Get-Date).AddDays(-30)
-    $onemonthold = $mgUsers | Where-Object {
-        $_.CreatedDateTime -gt $date
+    catch {
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All' before running this script" -Color "Red"
+        Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+        break
     }
-    write-host "  - $($onemonthold.count) users created within the last 30 days."
-
-    $date = (Get-Date).AddDays(-90)
-    $threemonthold = $mgUsers | Where-Object {
-        $_.CreatedDateTime -gt $date
-    }
-    write-host "  - $($threemonthold.count) users created within the last 90 days."
-
-    $date = (Get-Date).AddDays(-180)
-    $sixmonthold = $mgUsers | Where-Object {
-        $_.CreatedDateTime -gt $date
-    }
-    write-host "  - $($sixmonthold.count) users created within the last 6 months."
-
-    $date = (Get-Date).AddDays(-360)
-    $sixmonthold = $mgUsers | Where-Object {
-        $_.CreatedDateTime -gt $date
-    }
-    write-host "  - $($sixmonthold.count) users created within the last 1 year."
-
-    Get-MgUser | Get-Member | out-null
-
-    $date = Get-Date -Format "yyyyMMddHHmm"
-    $filePath = "$OutputDir\$($date)-Users.csv"
-    
-    $mgUsers | select-object $selectobjects | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
     
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
 }
@@ -131,28 +112,19 @@ Function Get-AdminUsers {
 
     .DESCRIPTION
     Retrieves Administrator directory roles, including the identification of users associated with each specific role.
-	The output will be written to: Output\UserInfo\
 
 	.PARAMETER OutputDir
 	OutputDir is the parameter specifying the output directory.
-	Default: Output\UserInfo
+	Default: Output\Admins
 
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
 	Default: UTF8
-
-    .PARAMETER Application
-    Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
-    Default: Delegated access (access on behalf a user)
     
     .EXAMPLE
     Get-AdminUsers
 	Retrieves Administrator directory roles, including the identification of users associated with each specific role.
 	
-    .EXAMPLE
-    Get-AdminUsers -Application
-    Retrieves Administrator directory roles, including the identification of users associated with each specific role via application authentication.
-
 	.EXAMPLE
 	Get-AdminUsers -Encoding utf32
 	Retrieves Administrator directory roles, including the identification of users associated with each specific role and exports the output to a CSV file with UTF-32 encoding.
@@ -164,40 +136,23 @@ Function Get-AdminUsers {
 
     [CmdletBinding()]
     param(
-        [string]$outputDir,
-        [string]$Encoding,
-        [switch]$Application
+        [string]$outputDir = "Output\Admins",
+        [string]$Encoding = "UTF8"
     )
 
-    if (!($Application.IsPresent)) {
-        Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, Directory.Read.All -NoWelcome
-    }
-
-    try {
-        $areYouConnected = Get-MgDirectoryRole -ErrorAction stop
-    }
-    catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, Directory.Read.All' before running this script" -Color "Red"
-        break
+    $authType = Get-GraphAuthType
+    if ($authType -eq "Delegated") {
+        Connect-MgGraph -Scopes User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All > $null
     }
     
-    if ($Encoding -eq "" ){
-        $Encoding = "UTF8"
+    if (!(test-path $OutputDir)) {
+        New-Item -ItemType Directory -Force -Name $OutputDir > $null
+        write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
     }
-
-    if ($OutputDir -eq "" ){
-        $OutputDir = "Output\UserInfo"
-        if (!(test-path $OutputDir)) {
-            New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
-            write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-        }
-    }
-
     else {
 		if (Test-Path -Path $OutputDir) {
 			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
 		}
-	
 		else {
 			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
 			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
@@ -205,69 +160,76 @@ Function Get-AdminUsers {
 	}
     
     Write-logFile -Message "[INFO] Running Get-AdminUsers" -Color "Green"
+    try {
+        $getRoles = Get-MgDirectoryRole -all
+        foreach ($role in $getRoles) {
+            $roleId = $role.Id
+            $roleName = $role.DisplayName
 
-    $getRoles = Get-MgDirectoryRole -all
-    foreach ($role in $getRoles) {
-        $roleId = $role.Id
-        $roleName = $role.DisplayName
+            if ($roleName -like "*Admin*") {
+                $areThereUsers = Get-MgDirectoryRoleMember -DirectoryRoleId $roleId
 
-        if ($roleName -like "*Admin*") {
-            $areThereUsers = Get-MgDirectoryRoleMember -DirectoryRoleId $roleId
-
-            if ($null -eq $areThereUsers) {
-                write-host "[INFO] $roleName - No users found"
-            }
-
-            else {
-                $results=@();
-
-                $myObject = [PSCustomObject]@{
-                    UserName          = "-"
-                    UserId            = "_"
-                    Role              = "-"
+                if ($null -eq $areThereUsers) {
+                    write-host "[INFO] $roleName - No users found"
                 }
 
-                $count = 0
-                $areThereUsers | ForEach-Object {
+                else {
+                    $results=@();
 
-                    $userid = $_.Id
-
-                    if ($userid -eq ".") {
-                        write-host "."
+                    $myObject = [PSCustomObject]@{
+                        UserName          = "-"
+                        UserId            = "_"
+                        Role              = "-"
                     }
-                    
-                    else {
-                        $count = $count +1
-                        try{
-                            $getUserName = Get-MgUser -Filter ("Id eq '$userid'")
-                            $userName = $getUserName.UserPrincipalName
 
-                            $myObject.UserName = $userName
-                            $myObject.UserId = $userid
-                            $myObject.Role = $roleName
+                    $count = 0
+                    $areThereUsers | ForEach-Object {
 
-                            $results+= $myObject;
+                        $userid = $_.Id
+
+                        if ($userid -eq ".") {
+                            write-host "."
                         }
-                        catch{
-                            Write-logFile -Message "[INFO] Resource $userid does not exist or one of its queried reference-property objects are not present." -Color "Yellow"
+                        
+                        else {
+                            $count = $count +1
+                            try{
+                                $getUserName = Get-MgUser -Filter ("Id eq '$userid'")
+                                $userName = $getUserName.UserPrincipalName
+
+                                $myObject.UserName = $userName
+                                $myObject.UserId = $userid
+                                $myObject.Role = $roleName
+
+                                $results+= $myObject;
+                            }
+                            catch{
+                                Write-logFile -Message "[INFO] Resource $userid does not exist or one of its queried reference-property objects are not present." -Color "Yellow"
+                            }
                         }
                     }
+
+                    Write-logFile -Message "[info] $roleName - $count users found" -Color "Yellow"
+                    $filePath = "$OutputDir\$($date)-$roleName.csv"
+                    $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+                    Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
                 }
-
-                Write-logFile -Message "[info] $roleName - $count users found" -Color "Yellow"
-                $filePath = "$OutputDir\$($date)-$roleName.csv"
-                $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
-                Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
             }
         }
+    }
+    catch {
+        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, Directory.Read.All' before running this script" -Color "Red"
+        Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+        break
     }
 
     $outputDirMerged = "$OutputDir\Merged\"
     If (!(test-path $outputDirMerged)) {
         Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
-        New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
+        New-Item -ItemType Directory -Force -Path $outputDirMerged > $null
     }
     
     Write-LogFile -Message "[INFO] Merging Administrator CSV Ouput Files" -Color "Green"
-    Get-ChildItem $OutputDir -Filter "*Administrator.csv" | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/All-Administrators.csv" -NoTypeInformation -Append  
+    $date = Get-Date -Format "yyyyMMddHHmm"
+    Get-ChildItem $OutputDir -Filter "*Administrator.csv" | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/$($date)-All-Administrators.csv" -NoTypeInformation -Append  
 }
