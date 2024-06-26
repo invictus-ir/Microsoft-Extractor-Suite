@@ -82,7 +82,7 @@ function Get-RiskyUsers {
             $uri = $response.'@odata.nextLink'
         } while ($uri -ne $null)
     } catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All before running this script" -Color "Red"
+        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All command before executing this script" -Color "Yellow"
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
         break
     }
@@ -197,7 +197,7 @@ function Get-RiskyDetections {
             $uri = $response.'@odata.nextLink'
         } while ($uri -ne $null)
     } catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All before running this script" -Color "Red"
+        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All command before executing this script" -Color "Yellow"
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
         break
     }

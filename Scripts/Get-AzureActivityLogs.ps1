@@ -74,7 +74,6 @@ function Get-ActivityLogs {
 	$azureRmProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
 	$profileClient = [Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient]::new($azureRmProfile)
 	$token = $profileClient.AcquireAccessToken($currentContext.Tenant.Id)
-	#$token
 
 	if ($SubscriptionID -eq "") {
 		write-logFile -Message "[INFO] Retrieving all subscriptions linked to the logged-in user account" -Color "Green"
@@ -90,7 +89,7 @@ function Get-ActivityLogs {
 			$subScription = $subscriptionsResponse.value
 		}
 		catch {
-			write-logFile -Message "[INFO] You must call Connect-AzureAZ before running this script" -Color "Red"
+			write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-Az command before executing this script" -Color "Yellow"
 			Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 			break
 		}
@@ -105,7 +104,7 @@ function Get-ActivityLogs {
 			$subScription = Get-AzSubscription -SubscriptionId $SubscriptionID
 		}
 		catch {
-			write-logFile -Message "[INFO] You must call Connect-AzureAZ before running this script" -Color "Red"
+			write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-Az command before executing this script" -Color "Yellow"
 			Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 			break
 		}
@@ -115,7 +114,6 @@ function Get-ActivityLogs {
 		$subId = $sub.subscriptionId
 		write-logFile -Message "[INFO] Retrieving all Activity Logs for $subId" -Color "Green"	
 
-		#$subId = $sub.Id
 		$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 		$filePath = "$OutputDir\$($date)-$subId-ActivityLog.json"
 

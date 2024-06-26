@@ -102,7 +102,7 @@ function Get-ADSignInLogsGraph {
         } While ($apiUrl)
     }
     catch {
-        Write-LogFile -Message "[INFO] Make sure you are connected to Connect-MgGraph before running this script" -Color "Red"
+		write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph command before executing this script" -Color "Yellow"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
     }
 	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		
@@ -212,7 +212,7 @@ function Get-ADAuditLogsGraph {
 		} While ($apiUrl)
 	}
 	catch {
-		Write-LogFile -Message "[INFO] Make sure you are connected to Connect-MgGraph before running this script" -Color "Red"
+		write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph command before executing this script" -Color "Yellow"
 		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
     }	
 	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		

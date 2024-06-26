@@ -104,7 +104,7 @@ Function Get-ConditionalAccessPolicies {
     }
 
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Policy.Read.All before running this script" -Color "Red"
+        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Policy.Read.All command before executing this script" -Color "Yellow"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" 
         break
     }

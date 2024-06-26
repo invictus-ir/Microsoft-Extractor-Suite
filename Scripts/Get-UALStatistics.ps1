@@ -70,7 +70,7 @@ function Get-UALStatistics
 		$totalCount = Search-UnifiedAuditLog -Userids $UserIds -StartDate $script:StartDate -EndDate $script:EndDate -ResultSize 1 |  Format-List -Property ResultCount| out-string -Stream | select-string ResultCount
 	}
 	catch {
-		write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
 		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 		break
 	}

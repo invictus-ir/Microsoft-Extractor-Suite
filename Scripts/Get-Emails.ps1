@@ -138,7 +138,7 @@ Function Get-Email {
             }
         }
         catch {
-            Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.ReadBasic.All before running this script" -Color "Red"
+            write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Mail.ReadBasic.All command before executing this script" -Color "Yellow"
             Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
             return
         }  
@@ -192,7 +192,7 @@ Function Get-Attachment {
         $getMessage = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages?filter=internetMessageId eq '$internetMessageId'" -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.ReadBasic.All before running this script" -Color "Red"
+        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Mail.ReadBasic.All command before executing this script" -Color "Yellow"
         Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
         break
@@ -259,7 +259,7 @@ Function Show-Email {
         $message = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages?filter=internetMessageId eq '$internetMessageId'" -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.ReadBasic.All before running this script" -Color "Red"
+        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Mail.ReadBasic.All command before executing this script" -Color "Yellow"
         Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
         break

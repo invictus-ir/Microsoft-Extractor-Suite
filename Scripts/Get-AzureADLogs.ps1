@@ -114,7 +114,7 @@ function Get-ADSignInLogs {
 					Write-LogFile -Message "[WARNING] Failed to acquire logs. Retrying... Attempt $retryCount of $maxRetries" -Color "Yellow"
 				} else {
 					Write-LogFile -Message "[ERROR] Failed to acquire logs after $maxRetries attempts. Moving on." -Color "Red"
-					Write-logFile -Message "[INFO] You must call Connect-Azure or install AzureADPreview before running this script" -Color "Red"
+					write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-Azure command or install AzureADPreview before executing this script" -Color "Yellow"
 					Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 				}
 			}
@@ -273,7 +273,7 @@ function Get-ADAuditLogs {
 					Write-LogFile -Message "[WARNING] Failed to acquire logs. Retrying... Attempt $retryCount of $maxRetries" -Color "Yellow"
 				} else {
 					Write-LogFile -Message "[ERROR] Failed to acquire logs after $maxRetries attempts. Moving on." -Color "Red"
-					Write-logFile -Message "[WARNING] You must call Connect-Azure or install AzureADPreview before running this script" -Color "Red"
+					write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-Azure command or install AzureADPreview before executing this script" -Color "Yellow"
 					Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 				}
 			}

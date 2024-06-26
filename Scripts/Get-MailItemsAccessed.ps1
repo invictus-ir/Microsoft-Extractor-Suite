@@ -73,7 +73,7 @@ Function Get-Sessions {
             $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -UserIds $UserIds -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
         }
         catch {
-            write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+            write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
             Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
             break
         }
@@ -116,7 +116,7 @@ Function Get-Sessions {
                 $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
             }
             catch {
-                write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+                write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
                 Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
                 break
             }
@@ -161,7 +161,7 @@ Function Get-Sessions {
                 $amountResults = (Search-UnifiedAuditLog -UserIds $UserIds -FreeText $IP -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
             }
             catch {
-                write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+                write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
                 Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
                 break
             }
@@ -206,7 +206,7 @@ Function Get-Sessions {
                 $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
             }
             catch {
-                write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+                write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
                 Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
                 break
             }
@@ -326,7 +326,7 @@ function Get-MessageIDs {
             $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
         }
         catch {
-            write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+            write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
             Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
             break
         }
@@ -406,7 +406,7 @@ function Get-MessageIDs {
             $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
         }
         catch {
-            write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+            write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
             Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
             break
         }
@@ -493,7 +493,7 @@ function Get-MessageIDs {
             $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $Sessions -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
         }
         catch {
-            write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+            write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
             Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
             break
         }
@@ -575,7 +575,7 @@ function Get-MessageIDs {
             $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
         }
         catch {
-            write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+            write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
             Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
             break
         }
@@ -697,7 +697,7 @@ function DownloadMails($iMessageID,$UserIds){
         }
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.ReadBasic.All before running the -Download flag" -Color "Red"
+        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Mail.ReadBasic.All command before executing this script" -Color "Yellow"
         Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
         Write-Host "[WARNING] Error Message: $($_.Exception.Message)" -Color "Red"
         break

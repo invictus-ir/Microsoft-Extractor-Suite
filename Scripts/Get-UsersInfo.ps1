@@ -97,7 +97,7 @@ function Get-Users {
         $mgUsers | select-object $selectobjects | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All' before running this script" -Color "Red"
+        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All' command before executing this script" -Color "Yellow"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
         break
     }
@@ -218,7 +218,7 @@ Function Get-AdminUsers {
         }
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, Directory.Read.All' before running this script" -Color "Red"
+        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All' command before executing this script" -Color "Yellow"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
         break
     }

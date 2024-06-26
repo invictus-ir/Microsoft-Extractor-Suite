@@ -86,7 +86,7 @@ function Get-UALAll
 		$areYouConnected = Get-AdminAuditLogConfig -ErrorAction stop
 	}
 	catch {
-		write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
 		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 		break
 	}
@@ -300,7 +300,7 @@ function Get-UALGroup
 		$areYouConnected = Get-AdminAuditLogConfig -ErrorAction stop
 	}
 	catch {
-		write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
 		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 		break
 	}
@@ -554,7 +554,7 @@ function Get-UALSpecific
 		$areYouConnected = Get-AdminAuditLogConfig -ErrorAction stop
 	}
 	catch {
-		write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
 		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 		break
 	}
@@ -781,7 +781,7 @@ function Get-UALSpecificActivity
 		$areYouConnected = Get-AdminAuditLogConfig -ErrorAction stop
 	}
 	catch {
-		write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
 		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 		break
 	}
