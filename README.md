@@ -47,7 +47,7 @@ Install the Microsoft-Extractor-Suite toolkit:
 To import the Microsoft-Extractor-Suite:
 > Import-Module .\Microsoft-Extractor-Suite.psd1
 
-You must sign-in to Microsoft 365 or Azure depending on your use case before running the functions. To sign in, use the cmdlets:
+You must sign-in to Microsoft 365 or Azure depending on your use case before running the functions. To sign in, use one of the cmdlets:
 > Connect-M365
 
 > Connect-Azure
@@ -56,4 +56,3 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 
 ## Related Projects
 To enhance your analysis, consider exploring the [Microsoft-Analyzer-Suite](https://github.com/evild3ad/Microsoft-Analyzer-Suite) developed by evild3ad. This suite offers a collection of PowerShell scripts specifically designed for analyzing Microsoft 365 and Microsoft Entra ID data, which can be extracted using the Microsoft-Extractor-Suite.
-
