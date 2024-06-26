@@ -2,10 +2,6 @@ Azure Audit Logs via Graph API
 =======
 Use **Get-ADAuditLogsGraph** to collect the contents of the Azure Active Directory Audit Log.
 
-.. note::
-
-    This GraphAPI functionality is currently in beta. If you encounter any issues or have suggestions for improvements please let us know.
-
 Usage
 """"""""""""""""""""""""""
 Running the script without any parameters will gather the Azure Active Directory Audit Log for the last 90 days:
@@ -34,13 +30,6 @@ Parameters
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
     - Default: The output will be written to: "Output\AzureAD\{date_AuditLogs}\Auditlogs.json
-
--Application (optional)
-    - Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
-    - Default: Delegated access (access on behalf a user)
-
--MergeOutput (optional)
-    - MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the JSON output file.

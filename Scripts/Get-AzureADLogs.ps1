@@ -56,39 +56,21 @@ function Get-ADSignInLogs {
 		[string]$outputDir,
 		[string]$UserIds,
 		[switch]$MergeOutput,
-		[string]$Encoding,
-		[string]$Interval
+		[string]$Encoding = "UTF8",
+		[string]$Interval = 1440
 	)
-
-	try {
-		import-module AzureADPreview -force -ErrorAction stop
-		$areYouConnected = Get-AzureADAuditSignInLogs -ErrorAction stop
-	}
-	catch {
-		Write-logFile -Message "[WARNING] You must call Connect-Azure or install AzureADPreview before running this script" -Color "Red"
-		break
-	}
 
 	Write-logFile -Message "[INFO] Running Get-AADSignInLogs" -Color "Green"
 
 	StartDateAz
 	EndDate
 
-	if ($Interval -eq "") {
-		$Interval = 1440
-		Write-LogFile -Message "[INFO] Setting the Interval to the default value of 1440"
-	}
-
-	if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
-	}
-
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\AzureAD\$($date)_SignInLogs"
 		if (!(test-path $OutputDir)) {
 			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+			New-Item -ItemType Directory -Force -Name $OutputDir > $null
 		}
 	}
 
@@ -97,10 +79,8 @@ function Get-ADSignInLogs {
 	}
 
 	$filePath = "$OutputDir\SignInLogs.json"
-		
 	[DateTime]$currentStart = $script:StartDate
 	[DateTime]$currentEnd = $script:EndDate
-	[DateTime]$lastLog = $script:EndDate
 	$currentDay = 0  
 
 	Write-LogFile -Message "[INFO] Extracting all available Directory Sign-in Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))" -Color "Green"
@@ -134,6 +114,8 @@ function Get-ADSignInLogs {
 					Write-LogFile -Message "[WARNING] Failed to acquire logs. Retrying... Attempt $retryCount of $maxRetries" -Color "Yellow"
 				} else {
 					Write-LogFile -Message "[ERROR] Failed to acquire logs after $maxRetries attempts. Moving on." -Color "Red"
+					write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-Azure command or install AzureADPreview before executing this script" -Color "Yellow"
+					Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 				}
 			}
 		}
@@ -146,7 +128,7 @@ function Get-ADSignInLogs {
 			Write-LogFile -Message "[INFO] Found $currentCount Directory Sign-in Logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"))" -Color "Green"
 				
 			$filePath = "$OutputDir\SignInLogs-$($CurrentStart.ToString("yyyyMMdd"))-$($CurrentEnd.ToString("yyyyMMdd")).json"
-			$results | ConvertTo-Json -Depth 100 | Out-File -Append $filePath -Encoding $Encoding
+			$results | ConvertTo-Json -Depth 100 | out-file -Append $filePath -Encoding $Encoding
 
 			Write-LogFile -Message "[INFO] Successfully retrieved $($currentCount) records for the current time range."							
 		}
@@ -155,24 +137,9 @@ function Get-ADSignInLogs {
 		$currentDay++
 	}
 	
-	if ($MergeOutput.IsPresent)
-	{
+	if ($MergeOutput.IsPresent) {
 		Write-LogFile -Message "[INFO] Merging output files into one file"
-		$outputDirMerged = "$OutputDir\Merged\"
-		If (!(test-path $outputDirMerged)) {
-			Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
-			New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null  
-		}
-
-		$allJsonObjects = @()
-
-		Get-ChildItem $OutputDir -Filter *.json | ForEach-Object {
-			$content = Get-Content -Path $_.FullName -Raw
-			$jsonObjects = $content | ConvertFrom-Json
-			$allJsonObjects += $jsonObjects
-		}
-	
-		$allJsonObjects | ConvertTo-Json -Depth 100 | Set-Content "$outputDirMerged\SignInLogs-Combined.json"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "SignInLogs-Combined.json"
 	}
 	
 	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		
@@ -238,39 +205,21 @@ function Get-ADAuditLogs {
 		[string]$outputDir,
 		[string]$UserIds,
 		[switch]$MergeOutput,
-		[string]$Encoding,
-		[string]$Interval
+		[string]$Encoding = "UTF8",
+		[string]$Interval = 720
 	)
-
-	try {
-		$areYouConnected = Get-AzureADAuditDirectoryLogs -ErrorAction stop
-	}
-	catch {
-		Write-logFile -Message "[WARNING] You must call Connect-Azure or install AzureADPreview before running this script" -Color "Red"
-		break
-	}
-
-	if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
-	}
 
 	Write-logFile -Message "[INFO] Running Get-ADAuditLogs" -Color "Green"
 	
 	StartDateAz
 	EndDate
 
-	if ($Interval -eq "") {
-		$Interval = 720
-		Write-LogFile -Message "[INFO] Setting the Interval to the default value of 720 (Larger values may result in out of memory errors)"
-	}
-
-
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\AzureAD\$($date)_AuditLogs"
 		if (!(test-path $OutputDir)) {
 			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
+			New-Item -ItemType Directory -Force -Name $OutputDir > $null
 		}
 	}
 	else {
@@ -324,6 +273,8 @@ function Get-ADAuditLogs {
 					Write-LogFile -Message "[WARNING] Failed to acquire logs. Retrying... Attempt $retryCount of $maxRetries" -Color "Yellow"
 				} else {
 					Write-LogFile -Message "[ERROR] Failed to acquire logs after $maxRetries attempts. Moving on." -Color "Red"
+					write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-Azure command or install AzureADPreview before executing this script" -Color "Yellow"
+					Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 				}
 			}
 		}
@@ -344,26 +295,11 @@ function Get-ADAuditLogs {
 		$CurrentStart = $CurrentEnd
 		$currentDay++
 	}
-	
-	if ($MergeOutput.IsPresent)
-	{
+
+	if ($MergeOutput.IsPresent) {
 		Write-LogFile -Message "[INFO] Merging output files into one file"
-		$outputDirMerged = "$OutputDir\Merged\"
-		If (!(test-path $outputDirMerged)) {
-			Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
-			New-Item -ItemType Directory -Force -Path $outputDirMerged | Out-Null
-		}
-
-		$allJsonObjects = @()
-
-		Get-ChildItem $OutputDir -Filter *.json | ForEach-Object {
-			$content = Get-Content -Path $_.FullName -Raw
-			$jsonObjects = $content | ConvertFrom-Json
-			$allJsonObjects += $jsonObjects
-		}
-	
-		$allJsonObjects | ConvertTo-Json -Depth 100 | Set-Content "$outputDirMerged\AuditLogs-Combined.json"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "AuditLogs-Combined.json"
 	}
-	
+
 	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		
 }

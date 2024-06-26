@@ -6,11 +6,10 @@ Function Get-ConditionalAccessPolicies {
 
     .DESCRIPTION
     Retrieves the risky users from the Entra ID Identity Protection, which marks an account as being at risk based on the pattern of activity for the account.
-    The output will be written to: Output\UserInfo\
 
     .PARAMETER OutputDir
     OutputDir is the parameter specifying the output directory.
-    Default: Output\UserInfo
+    Default: Output\ConditionalAccessPolicies
 
     .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
@@ -38,40 +37,24 @@ Function Get-ConditionalAccessPolicies {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir,
-        [string]$Encoding,
+        [string]$OutputDir = "Output\ConditionalAccessPolicies",
+        [string]$Encoding = "UTF8",
         [switch]$Application
     )
 
-    if ($Encoding -eq "" ){
-        $Encoding = "UTF8"
+    $authType = Get-GraphAuthType
+    if ($authType -eq "Delegated") {
+        Connect-MgGraph -Scopes Policy.Read.All > $null
     }
 
-    if (!($Application.IsPresent)) {
-        Connect-MgGraph -Scopes Policy.Read.All -NoWelcome
-    }
-
-    try {
-        $areYouConnected = get-MgIdentityConditionalAccessPolicy -ErrorAction stop
-    }
-    catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Policy.Read.All before running this script" -Color "Red"
-        break
-    }
-
-    if ($OutputDir -eq "" ){
-        $OutputDir = "Output\UserInfo"
-        if (!(test-path $OutputDir)) {
-            New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
-            write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-        }
-    }
-
+    if (!(test-path $OutputDir)) {
+        New-Item -ItemType Directory -Force -Name $OutputDir > $null
+        write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
+    }    
     else {
 		if (Test-Path -Path $OutputDir) {
 			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
 		}
-	
 		else {
 			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
 			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
@@ -81,41 +64,49 @@ Function Get-ConditionalAccessPolicies {
     Write-logFile -Message "[INFO] Running Get-ConditionalAccess" -Color "Green"
     $results=@();
 
-    get-MgIdentityConditionalAccessPolicy -all | ForEach-Object {
-        $myObject = [PSCustomObject]@{
-            DisplayName                   = "-"
-            CreatedDateTime               = "-"
-            Description                   = "-"
-            Id                            = "-"
-            ModifiedDateTime              = "-"
-            State                         = "-"
-            ClientAppTypes                = "-"
-            ServicePrincipalRiskLevels    = "-"
-            SignInRiskLevels              = "-"
-            UserRiskLevels                = "-"
-            BuiltInControls               = "-"
-            CustomAuthenticationFactors   = "-"
-            ClientOperatorAppTypes        = "-"
-            TermsOfUse                    = "-"
-            DisableResilienceDefaults     = "-"
-        }
+    try {
+        get-MgIdentityConditionalAccessPolicy -all | ForEach-Object {
+            $myObject = [PSCustomObject]@{
+                DisplayName                   = "-"
+                CreatedDateTime               = "-"
+                Description                   = "-"
+                Id                            = "-"
+                ModifiedDateTime              = "-"
+                State                         = "-"
+                ClientAppTypes                = "-"
+                ServicePrincipalRiskLevels    = "-"
+                SignInRiskLevels              = "-"
+                UserRiskLevels                = "-"
+                BuiltInControls               = "-"
+                CustomAuthenticationFactors   = "-"
+                ClientOperatorAppTypes        = "-"
+                TermsOfUse                    = "-"
+                DisableResilienceDefaults     = "-"
+            }
 
-        $myobject.DisplayName = $_.DisplayName
-        $myobject.CreatedDateTime = $_.CreatedDateTime
-        $myobject.Description = $_.Description
-        $myobject.Id = $_.Id
-        $myobject.ModifiedDateTime = $_.ModifiedDateTime
-        $myobject.State = $_.State
-        $myobject.ClientAppTypes = $_.Conditions.ClientAppTypes | out-string
-        $myobject.ServicePrincipalRiskLevels = $_.Conditions.ServicePrincipalRiskLevels | out-string
-        $myobject.SignInRiskLevels = $_.Conditions.SignInRiskLevels | out-string
-        $myobject.UserRiskLevels = $_.Conditions.UserRiskLevels | out-string
-        $myobject.BuiltInControls = $_.GrantControls.BuiltInControls | out-string
-        $myobject.CustomAuthenticationFactors = $_.GrantControls.CustomAuthenticationFactors | out-string
-        $myobject.ClientOperatorAppTypes = $_.GrantControls.Operator | out-string
-        $myobject.TermsOfUse = $_.GrantControls.TermsOfUse | out-string
-        $myobject.DisableResilienceDefaults = $_.SessionControls.DisableResilienceDefaults | out-string
-        $results+= $myObject;
+            $myobject.DisplayName = $_.DisplayName
+            $myobject.CreatedDateTime = $_.CreatedDateTime
+            $myobject.Description = $_.Description
+            $myobject.Id = $_.Id
+            $myobject.ModifiedDateTime = $_.ModifiedDateTime
+            $myobject.State = $_.State
+            $myobject.ClientAppTypes = $_.Conditions.ClientAppTypes | out-string
+            $myobject.ServicePrincipalRiskLevels = $_.Conditions.ServicePrincipalRiskLevels | out-string
+            $myobject.SignInRiskLevels = $_.Conditions.SignInRiskLevels | out-string
+            $myobject.UserRiskLevels = $_.Conditions.UserRiskLevels | out-string
+            $myobject.BuiltInControls = $_.GrantControls.BuiltInControls | out-string
+            $myobject.CustomAuthenticationFactors = $_.GrantControls.CustomAuthenticationFactors | out-string
+            $myobject.ClientOperatorAppTypes = $_.GrantControls.Operator | out-string
+            $myobject.TermsOfUse = $_.GrantControls.TermsOfUse | out-string
+            $myobject.DisableResilienceDefaults = $_.SessionControls.DisableResilienceDefaults | out-string
+            $results+= $myObject;
+        }
+    }
+
+    catch {
+        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Policy.Read.All command before executing this script" -Color "Yellow"
+        Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" 
+        break
     }
 
     $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 

@@ -31,28 +31,18 @@ function Get-AdminAuditLog {
 	param (
 		[string]$StartDate,
 		[string]$EndDate,
-		[string]$outputDir
+		[string]$outputDir = "Output\AdminAuditLog"
 	)
-
-	try {
-		$areYouConnected = Get-AdminAuditLogConfig -ErrorAction stop
-	}
-	catch {
-		write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
-		break
-	}
 
     write-logFile -Message "[INFO] Running Get-AdminAuditLog" -Color "Green"
 
 	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
     $outputFile = "$($date)-AdminAuditLog.csv"
 
-	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\AdminAuditLog"
-		if (!(test-path $OutputDir)) {
-			New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
-			write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
-		}
+
+	if (!(test-path $OutputDir)) {
+		New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
+		write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
 	}
 	
 	else {
@@ -73,8 +63,15 @@ function Get-AdminAuditLog {
 
     Write-LogFile -Message "[INFO] Extracting all available Admin Audit Logs between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Green"
 
-    $results = Search-AdminAuditLog -ResultSize 250000 -StartDate $script:startDate -EndDate $script:EndDate
-    $results | Export-Csv $outputDirectory -NoTypeInformation -Append -Encoding UTF8
+	try {
+		$results = Search-AdminAuditLog -ResultSize 250000 -StartDate $script:startDate -EndDate $script:EndDate
+		$results | Export-Csv $outputDirectory -NoTypeInformation -Append -Encoding UTF8
+	}
+	catch {
+		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
+		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+		break
+	}   
 
     write-logFile -Message "[INFO] Output is written to: $outputDirectory" -Color "Green"
 }

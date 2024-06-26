@@ -3,11 +3,11 @@
 # -- Project information
 
 project = 'Microsoft-Extractor-Suite'
-copyright = 'Copyright (c) 2024 Invictus Incident Response'
+copyright = 'Copyright 2024 Invictus Incident Response'
 author = 'Joey Rentenaar & Korstiaan Stam'
 
-release = '1.3.5'
-version = '1.3.5'
+release = '2.0.0'
+version = '2.0.0'
 
 # -- General configuration
 

@@ -1,39 +1,3 @@
-Function StartDateAzure
-{
-	if (($startDate -eq "") -Or ($null -eq $startDate)) {
-		$startDate = [datetime]::Now.ToUniversalTime().AddDays(-89)
-		$startDate = Get-Date $startDate -Format "yyyy-MM-dd HH:mm:ss"
-		write-host "[INFO] No start date provived by user setting the start date to: $startDate"
-		
-		$script:StartDate = Get-Date $startDate -Format "yyyy-MM-dd HH:mm:ss"
-	}
-	
-	else {
-		$script:startDate = $startDate -as [datetime]
-		if (!$script:startDate ) { 
-		write-host  "[WARNING] Not A valid start date and time, make sure to use YYYY-MM-DD" 
-		} 
-	}
-}
-
-function EndDateAzure
-{
-	if (($endDate -eq "") -Or ($null -eq $endDate)) {
-		$endDate = [datetime]::Now.ToUniversalTime()
-		$endDate = Get-Date $endDate -Format "yyyy-MM-dd HH:mm:ss"
-		write-host  "[INFO] No end date provived by user setting the end date to: $endDate"
-		
-		$script:endDate = Get-Date $endDate -Format "yyyy-MM-dd HH:mm:ss"
-	}
-
-	else {
-		$script:endDate = $endDate -as [datetime]
-		if (!$endDate) { 
-			write-host "[WARNING] Not A valid end date and time, make sure to use YYYY-MM-DD"
-		} 
-	}
-}
-
 function Get-ActivityLogs {
 	<#
     .SYNOPSIS
@@ -41,7 +5,7 @@ function Get-ActivityLogs {
 
     .DESCRIPTION
     The Get-ActivityLogs cmdlet collects the Azure Activity logs.
-	The output will be written to: Output\AzureAD\$date\$iD-ActivityLog.json
+	The output will be written to: Output\ActivityLogs\$date\$iD-ActivityLog.json
 
 	.PARAMETER StartDate
     startDate is the parameter specifying the start date of the date range.
@@ -57,7 +21,7 @@ function Get-ActivityLogs {
 
 	.PARAMETER OutputDir
     OutputDir is the parameter specifying the output directory.
-	Default: Output\AzureActivityLogs
+	Default: Output\ActivityLogs
 
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the JSON output file.
@@ -68,12 +32,12 @@ function Get-ActivityLogs {
 	Get all the activity logs for all subscriptions connected to the logged-in user account for the last 89 days.
 
 	.EXAMPLE
-    Get-ActivityLogs -EndDate 2023-04-12
-	Get all the activity logs before 2023-04-12.
+    Get-ActivityLogs -EndDate 2024-04-12
+	Get all the activity logs before 2024-04-12.
 
 	.EXAMPLE
-    Get-ActivityLogs -StartDate 2023-04-12
-	Get all the activity logs after 2023-04-12.
+    Get-ActivityLogs -StartDate 2024-04-12
+	Get all the activity logs after 2024-04-12.
 	
 	.EXAMPLE
     Get-ActivityLogs -SubscriptionID "4947f939-cf12-4329-960d-4dg68a3eb66f"
@@ -84,33 +48,17 @@ function Get-ActivityLogs {
 		[string]$StartDate,
 		[string]$EndDate,
 		[string]$SubscriptionID,
-		[string]$OutputDir,
-		[string]$Encoding		
+		[string]$OutputDir = "Output\ActivityLogs",
+		[string]$Encoding = "UTF8"		
 	)
-
-	try {
-		$areYouConnected = Get-AzSubscription -ErrorAction stop -WarningAction silentlyContinue
-	}
-	catch {
-		write-logFile -Message "[WARNING] You must call Connect-AzureAZ before running this script" -Color "Red"
-		break
-	}
 	
-	StartDateAzure
-	EndDateAzure
-	
-	if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
-	}
+	StartDate
+	EndDate
 
-	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\AzureActivityLogs"
-		if (!(test-path $OutputDir)) {
-			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
-			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-		}
+	if (!(test-path $OutputDir)) {
+		New-Item -ItemType Directory -Force -Name $OutputDir > $null
+		write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
 	}
-
 	else {
 		if (Test-Path -Path $OutputDir) {
 			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
@@ -122,123 +70,79 @@ function Get-ActivityLogs {
 		}
 	}
 
-	$validSubscriptions = @()
+	$currentContext = Get-AzContext
+	$azureRmProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+	$profileClient = [Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient]::new($azureRmProfile)
+	$token = $profileClient.AcquireAccessToken($currentContext.Tenant.Id)
 
 	if ($SubscriptionID -eq "") {
 		write-logFile -Message "[INFO] Retrieving all subscriptions linked to the logged-in user account" -Color "Green"
-		$subScription = Get-AzSubscription
+
+		try {
+			$subscriptionsUri = "https://management.azure.com/subscriptions?api-version=2020-01-01"
+			$headers = @{
+				Authorization = "Bearer $($token.AccessToken)"
+				'Content-Type' = 'application/json'
+			}
+
+			$subscriptionsResponse = Invoke-RestMethod -Uri $subscriptionsUri -Headers $headers -Method Get
+			$subScription = $subscriptionsResponse.value
+		}
+		catch {
+			write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-Az command before executing this script" -Color "Yellow"
+			Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+			break
+		}
 		
 		foreach ($i in $subScription) {
-			write-logFile -Message "[INFO] Identified Subscription: $i"
+			$subId = $i.subscriptionId
+			write-logFile -Message "[INFO] Identified Subscription: $subId"
 		}
 	}
-	
 	else {
-		$subScription = Get-AzSubscription -SubscriptionId $SubscriptionID
+		try {
+			$subScription = Get-AzSubscription -SubscriptionId $SubscriptionID
+		}
+		catch {
+			write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-Az command before executing this script" -Color "Yellow"
+			Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+			break
+		}
 	}
 
 	foreach ($sub in $subScription) {
-        try {
-            Set-AzContext -Subscription $sub.Id | Out-Null
-            $logs = Get-AzActivityLog -StartTime (Get-Date).AddDays(-89) -EndTime (Get-Date) -ErrorAction Stop -WarningAction SilentlyContinue
-            
-            if ($logs) {
-                $validSubscriptions += $sub
-                Write-Host "[INFO] Activity logs found in subscription: $($sub.Id)" -ForegroundColor Green
-            }
-        }
-        catch {
-            Write-Host "[WARNING] No Activity logs in subscription: $($sub.Id), or an error occurred." -ForegroundColor Yellow
-        }
-    }
+		$subId = $sub.subscriptionId
+		write-logFile -Message "[INFO] Retrieving all Activity Logs for $subId" -Color "Green"	
 
-	if ($validSubscriptions.Count -eq 0) {
-        Write-Host "[WARNING] No valid subscriptions with logs found." -ForegroundColor Red
-        return
-    }
+		$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
+		$filePath = "$OutputDir\$($date)-$subId-ActivityLog.json"
 
-	try {
+		$uriBase = "https://management.azure.com/subscriptions/$subId/providers/Microsoft.Insights/eventtypes/management/values?api-version=2015-04-01&`$filter=eventTimestamp ge '$script:StartDate' and eventTimestamp le '$script:endDate'"
+		$events = @()
 
-		foreach ($sub in $validSubscriptions) {	
-			$name = $sub.Name
-			$iD = $sub.Id
-			
-			write-logFile -Message "[INFO] Retrieving all Activity Logs for $sub" -Color "Green"	
-			Set-AzContext -Subscription $iD | Out-Null
-			
-			write-logFile -Message "[INFO] Connected to Subscription $iD" -Color "Green"
-			$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-			$filePath = "$OutputDir\$($date)-$iD-ActivityLog.json"
-					
-			[DateTime]$currentStart = $script:StartDate
-			[DateTime]$currentEnd = $script:EndDate		
-			
-			$totalDays = ($currentEnd - $currentStart).TotalDays
-
-			for ($i = 0; $i -lt $totalDays; $i++) {
-				$dagCounter = $currentStart.AddDays($i)
-				$formattedDate = $dagCounter.ToString("yyyy-MM-dd")
-				
-				[DateTime]$start = (Get-Date $formattedDate).Date  
-				[DateTime]$end = (Get-Date $formattedDate).Date.AddDays(1).AddSeconds(-1)
-				
-				$currentStartnew = $start
-				$currentEnd = $end
-				
-				$amountResults = Get-AzActivityLog -StartTime $start -EndTime $end -MaxRecord 1000 -WarningAction SilentlyContinue	
-				if ($amountResults.count -gt 0) {
-					if ($amountResults.count -gt 1000) {
-						while ($currentStartnew -lt $currentEnd) {				
-							Write-LogFile -Message "[WARNING] $formattedDate - We have exceeded the maximum allowable number of 100 logs, lowering the time interval.." -Color "Red"
-							Write-LogFile -Message "[INFO] $formattedDate - Temporary lowering time interval.." -Color "Yellow"
-							
-							$tempInterval = 24
-							$tempStartDate = $start
-							$amountResults = Get-AzActivityLog -StartTime $tempStartDate -EndTime $currentEnd -MaxRecord 1000 -WarningAction SilentlyContinue
-
-							while ($($amountResults.count) -gt 1000) {
-								$timeLeft = ($currentEnd - $tempStartDate).TotalHours
-								$tempInterval = $timeLeft / 2
-								
-								$backup = $tempInterval
-								$tempStartDate = $tempStartDate.AddHours($tempInterval)
-								$amountResults = Get-AzActivityLog -StartTime $tempStartDate -EndTime $currentEnd -MaxRecord 1000 -WarningAction SilentlyContinue
-							}
-							
-							$amountResults = Get-AzActivityLog -StartTime $tempStartDate -EndTime $currentEnd -MaxRecord 1000 -WarningAction SilentlyContinue
-							Write-LogFile -Message "[INFO] Successfully retrieved $($amountResults.count) Activity logs between $tempStartDate and $currentEnd" -Color "Green"
-
-							$amountResults | Convert-ToJSON -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
-							
-							if ($tempStartDate -eq $currentEnd) {
-								$timeLeft = ($currentEnd - $start).TotalHours							
-								$tempStartDate = $start			
-							}
-							
-							$currentEnd = $tempStartDate
-						}
-					}
-					
-					else {
-						Write-LogFile -Message "[INFO] Successfully retrieved $($amountResults.count) Activity logs for $formattedDate. Moving on!" -Color "Green"
-						Get-AzActivityLog -StartTime $start -EndTime $end -MaxRecord 1000 -WarningAction silentlyContinue | Select-Object @{N='EventTimestamp';E={$_.EventTimestamp.ToString()}},EventName,EventDataId,TenantId,CorrelationId,SubStatus,SubscriptionId,@{N='SubmissionTimestamp';E={$_.SubmissionTimestamp.ToString()}},Status,ResourceType,ResourceProviderName,ResourceId,ResourceGroupName,OperationName,OperationId,Level,Id,Description,Category,Caller,Authorization,Claims,HttpRequest,Properties | ConvertTo-Json -Depth 100| Out-File -FilePath $filePath -Append -Encoding $Encoding
-					}					
+		do {
+			$listOperations = @{
+				Uri     = $uriBase
+				Headers = @{
+					Authorization  = "Bearer $($token.AccessToken)"
+					'Content-Type' = 'application/json'
 				}
-				
-				else {
-					Write-LogFile -Message "[INFO] No Activity Logs found on $formattedDate. Moving on!"
-				}
+				Method  = 'GET'
 			}
-			
-			Write-LogFile -Message "[INFO] Done all logs are collected for $name" -Color "Green"
+
+			$response = Invoke-RestMethod @listOperations
+			$events += $response.value
+			$uriBase = $response.nextLink
+		} while ($null -ne $uriBase)
+
+		if ($events.Count -eq 0) {
+			Write-LogFile -Message "[WARNING] No Activity logs in subscription: $($subId), or an error occurred." -ForegroundColor Yellow
+		}
+		else{
+			$eventCount = $events.Count
+			Write-LogFile -Message "[INFO] $eventCount Activity logs found in subscription: $subId" -ForegroundColor Green
+			$events | ConvertTo-Json -Depth 100 | Set-Content -Path $filePath  -encoding $Encoding
 		}
 	}
-	catch [System.Management.Automation.ActionPreferenceStopException] {
-		write-logFile -Message "[WARNING] $sub contains no or null logs! moving on" -Color "Red"
-	}
-	catch {
-		write-logFile -Message "[ERROR] another error has occured $($error) please check the azure documentaion for further troubleshooting" -Color "Red"
-		return
-	}
-
+	Write-LogFile -Message "[INFO] Done all Activity Logs are collected" -Color "Green"
 }

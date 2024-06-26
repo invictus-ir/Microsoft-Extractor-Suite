@@ -1,17 +1,18 @@
 Function Connect-M365
 {
 	versionCheck
-	Connect-ExchangeOnline -Showbanner:$false -ShowProgress:$true
+	Connect-ExchangeOnline > $null
 }
 
 Function Connect-Azure
 {
 	versionCheck
-	Connect-AzureAD | Out-Null
+	Connect-AzureAD > $null
 }
 
 Function Connect-AzureAZ
 {
 	versionCheck
-	Connect-AzAccount | Out-Null
+	Connect-AzAccount > $null
 }
+

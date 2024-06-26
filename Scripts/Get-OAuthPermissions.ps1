@@ -86,30 +86,24 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 		[string[]] $ServicePrincipalProperties = @("DisplayName"),
 		[switch] $ShowProgress = $true,
 		[int] $PrecacheSize = 999,
-		[string] $OutputDir,
-		[string] $Encoding
+		[string] $OutputDir = "Output\OAuthPermissions",
+		[string] $Encoding = "UTF8"
 	)
 		
 	try {
         $tenant_details = Get-AzureADTenantDetail -ErrorAction stop
     } catch {
-		write-logFile -Message "[WARNING] You must call Connect-Azure before running this script" -Color "Red"
+		write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-Azure command before executing this script" -Color "Yellow"
+		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 		break
 	}
 
-	if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
-	}
-	
 	write-logFile -Message "[INFO] Running Get-OAuthPermissions" -Color "Green"
     $date = Get-Date -Format "ddMMyyyyHHmmss" 
 	
-	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\OAuthPermissions"
-		if (!(test-path $OutputDir)) {
-			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
-			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-		}
+	if (!(test-path $OutputDir)) {
+		New-Item -ItemType Directory -Force -Name $OutputDir > $null
+		write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
 	}
 
 	else {
@@ -304,10 +298,9 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 			}
 		}
 	}
-	)
+)
    
-
-	$report | ConvertTo-Csv | Format-Table | out-null
+	$report | ConvertTo-Csv | Format-Table > $null
 	$prop = $report.ForEach{ $_.PSObject.Properties.Name } | Select-Object -Unique
 	$report | Select-Object $prop | Export-CSV -NoTypeInformation -Path "$OutputDir\$($date)-OAuthPermissions.csv" -Encoding $Encoding
 

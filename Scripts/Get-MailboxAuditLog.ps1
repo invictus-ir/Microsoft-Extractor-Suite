@@ -48,26 +48,24 @@ function Get-MailboxAuditLog
 		[string]$UserIds,
 		[string]$StartDate,
 		[string]$EndDate,
-		[string]$OutputDir,
-		[string]$Encoding
+		[string]$OutputDir = "Output\MailboxAuditLog",
+		[string]$Encoding = "UTF8"
 	)
 
 	try {
 		$areYouConnected = Search-MailboxAuditlog -ErrorAction stop
 	}
 	catch {
-		write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
+		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 		break
 	}
 
 	write-logFile -Message "[INFO] Running Get-MailboxAuditLog" -Color "Green"
 
-	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\MailboxAuditLog"
-		If (!(test-path $OutputDir)){
-			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
-			write-logFile -Message "[INFO] Creating the following directory: $OutputDir" 
-		}
+	If (!(test-path $OutputDir)){
+		New-Item -ItemType Directory -Force -Name $OutputDir > $null
+		write-logFile -Message "[INFO] Creating the following directory: $OutputDir" 
 	}
 
 	else {
@@ -80,17 +78,13 @@ function Get-MailboxAuditLog
 			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
 		}
 	}
-
-	if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
-	}
 	
 	StartDate
 	EndDate
 
 	if (($null -eq $UserIds) -Or ($UserIds -eq ""))  {
 		write-logFile -Message "[INFO] No users provided.. Getting the MailboxAuditLog for all users" -Color "Yellow"
-		Get-mailbox -resultsize unlimited  |
+		Get-mailbox -resultsize unlimited |
 		ForEach-Object {
 			$date = Get-Date -Format "yyyyMMddHHmm"
 			$outputFile = "$OutputDir\$($date)-mailboxAuditLog-$($_.UserPrincipalName).csv"

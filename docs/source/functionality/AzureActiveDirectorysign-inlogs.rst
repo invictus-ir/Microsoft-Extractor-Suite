@@ -55,4 +55,4 @@ Parameters
 
 Output
 """"""""""""""""""""""""""
-The output will be saved to the 'AzureAD' directory within the 'Output' directory, with the file name 'SignInLogs.json'. Each time an acquisition is performed, the output JSON file will be overwritten. Therefore, if you perform multiple acquisitions, the JSON file will only contain the results from the latest acquisition.
+The output will be saved to the 'AzureAD' directory within the 'Output' directory, with the file name 'SignInLogs.json'.

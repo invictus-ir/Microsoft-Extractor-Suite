@@ -3,14 +3,13 @@
 
 $manifest = Import-PowerShellDataFile "$PSScriptRoot\Microsoft-Extractor-Suite.psd1"
 $version = $manifest.ModuleVersion
-$host.ui.RawUI.WindowTitle="Microsoft-Extractor-Suite $version"
+$host.ui.RawUI.WindowTitle = "Microsoft-Extractor-Suite $version"
 
 $logo=@"
-
  +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+
  |M|i|c|r|o|s|o|f|t| |E|x|t|r|a|c|t|o|r| |S|u|i|t|e|
  +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+                                                                                                                                                                     
-Copyright (c) 2024 Invictus Incident Response
+Copyright 2024 Invictus Incident Response
 Created by Joey Rentenaar & Korstiaan Stam
 "@
 
@@ -18,7 +17,7 @@ Write-Host $logo -ForegroundColor Yellow
 
 $outputDir = "Output"
 if (!(test-path $outputDir)) {
-	New-Item -ItemType Directory -Force -Name $Outputdir | Out-Null
+	New-Item -ItemType Directory -Force -Name $Outputdir > $null
 }
 
 $retryCount = 0 
@@ -73,31 +72,25 @@ function Write-LogFile([String]$message,$color)
 {
 	$outputDir = "Output"
 	if (!(test-path $outputDir)) {
-		New-Item -ItemType Directory -Force -Name $Outputdir | Out-Null
+		New-Item -ItemType Directory -Force -Name $Outputdir > $null
 	}
-	if ($color -eq "Yellow")
-	{
-		Write-host $message -ForegroundColor Yellow
-	}
-	elseif ($color -eq "Red")
-	{
-		Write-host $message -ForegroundColor Red
-	}
-	elseif ($color -eq "Green")
-	{
-		Write-host $message -ForegroundColor Green
-	}
-	else {
-		Write-host $message
-	}
-	
-	$logToWrite = [DateTime]::Now.ToString() + ": " + $message
-	$logToWrite | Out-File $LogFile -Append
+
+	switch ($color) {
+        "Yellow" { [Console]::ForegroundColor = [ConsoleColor]::Yellow }
+        "Red" 	 { [Console]::ForegroundColor = [ConsoleColor]::Red }
+        "Green"  { [Console]::ForegroundColor = [ConsoleColor]::Green }
+        default  { [Console]::ResetColor() }
+    }
+
+    [Console]::WriteLine($message)
+    [Console]::ResetColor()
+    $logToWrite = [DateTime]::Now.ToString() + ": " + $message
+    $logToWrite | Out-File -FilePath $LogFile -Append
 }
 
 function versionCheck{
 	$moduleName = "Microsoft-Extractor-Suite"
-	$currentVersionString  = $version
+	$currentVersionString = $version
 
 	$currentVersion = [Version]$currentVersionString
     $latestVersionString = (Find-Module -Name $moduleName).Version.ToString()
@@ -111,4 +104,47 @@ function versionCheck{
 	}
 }
 
+function Get-GraphAuthType {
+	$authContext = Get-MgContext | Select-Object -ExpandProperty AuthType
+    switch ($authContext) {
+        "AppOnly" { return "application" }
+        "Delegated" { return "delegated" }
+    }
+}
+
+function Merge-OutputFiles {
+    param (
+        [Parameter(Mandatory)][string]$OutputDir,
+        [Parameter(Mandatory)][string]$OutputType,
+        [string]$MergedFileName
+    )
+
+    $outputDirMerged = Join-Path -Path $OutputDir -ChildPath "Merged"
+    If (!(Test-Path $outputDirMerged)) {
+        Write-LogFile -Message "[INFO] Creating the following directory: $outputDirMerged"
+        New-Item -ItemType Directory -Force -Path $outputDirMerged > $null
+    }
+
+	$mergedPath = Join-Path -Path $outputDirMerged -ChildPath $MergedFileName
+	
+    switch ($OutputType) {
+        'CSV' {
+			Get-ChildItem $OutputDir -Filter *.csv | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv $mergedPath -NoTypeInformation -Append -Encoding UTF8
+            Write-LogFile -Message "[INFO] CSV files merged into $mergedPath"
+        }
+        'JSON' {
+			$allJsonObjects = Get-ChildItem $OutputDir -Filter *.json | ForEach-Object {
+                Get-Content -Path $_.FullName -Raw | ConvertFrom-Json
+            }
+            $allJsonObjects | ConvertTo-Json -Depth 100 | Set-Content $mergedPath
+            Write-Host "[INFO] JSON files merged into $mergedPath"
+        }
+        default {
+            Write-LogFile -Message "[ERROR] Unsupported file type specified: $OutputType" -Color Red
+        }
+    }
+}
+
 versionCheck
+
+Export-ModuleMember -Function * -Alias * -Variable * -Cmdlet *

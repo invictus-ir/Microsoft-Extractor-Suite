@@ -43,33 +43,20 @@ Function Get-Email {
 	param(
 		[Parameter(Mandatory=$true)]$userIds,
 		[string]$internetMessageId,
-        [string]$output,
-		[string]$outputDir,
-        [string]$attachment,
+        [string]$Output = "eml",
+		[string]$outputDir = "Output\EmailExport",
+        [switch]$attachment,
         [string]$inputFile
 	)  
 
     Write-logFile -Message "[INFO] Running Get-Email" -Color "Green"
 
-    if ($outputDir -eq "" ){
-        $outputDir = "Output\EmailExport"
-        if (!(test-path $outputDir)) {
-            write-logFile -Message "[INFO] Creating the following directory: $outputDir"
-            New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
-        }
+    if (!(Test-Path -Path $outputDir)) {
+        Write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
+        New-Item -ItemType Directory -Path $outputDir -Force > $null
+    } else {
+        Write-LogFile -Message "[INFO] Directory exists: $outputDir"
     }
-
-    else {
-		if (Test-Path -Path $OutputDir) {
-			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
-		}
-	
-		else {
-			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
-		}
-	}
-
 
     if ($inputFile) {
         try {
@@ -80,19 +67,17 @@ Function Get-Email {
             return
         }
     
-        # Loop through each internetMessageId in the inputFile
         $notCollected = @()
         foreach ($id in $internetMessageIds) {
             $id = $id.Trim()
             write-host "[INFO] Identified: $id"
+           
             try {
-                $getMessage = Get-MgUserMessage -UserId $userIds -Filter "internetMessageId eq '$id'"
-                $messageId = $getMessage.Id
-
-                $subject = $getMessage.Subject
-                $subject = $subject -replace '[\\/:*?"<>|]', '_'
-
-                $ReceivedDateTime = $getMessage.ReceivedDateTime.ToString("yyyyMMdd_HHmmss")
+                $getMessage = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages?filter=internetMessageId eq '$id'"
+                $message = $getMessage.value[0]
+                $ReceivedDateTime = [datetime]::Parse($message.ReceivedDateTime).ToString("yyyyMMdd_HHmmss")
+                $messageId = $message.Id
+                $subject = $message.Subject -replace '[\\/:*?"<>|]', '_'
         
                 if ($output -eq "txt") {
                     $filePath = "$outputDir\$ReceivedDateTime-$subject.txt"
@@ -101,20 +86,20 @@ Function Get-Email {
                 else {
                     $filePath = "$outputDir\$ReceivedDateTime-$subject.eml"
                 }
-            
-                Get-MgUserMessageContent -MessageId $messageId -UserId $userIds -OutFile $filePath
+
+                $contentUri = "https://graph.microsoft.com/v1.0/users/$userIds/messages/$messageId/\$value"            
+                Invoke-MgGraphRequest -Uri $contentUri -Method Get -OutputFilePath $filePath
                 Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
-            
-                if ($attachment -eq "True"){
+
+                if ($attachment.IsPresent){
                     Get-Attachment -Userid $Userids -internetMessageId $id
                 }
-            }
-            catch {
-                Write-Warning "[WARNING] Failed to collect message with ID '$id': $_"
-                $notCollected += $id  # Add the message ID to the list of not collected IDs
-            }
+           }
+           catch {
+               Write-Warning "[WARNING] Failed to collect message with ID '$id': $_"
+               $notCollected += $id 
+           }
         }
-        # Check if there are any message IDs that were not collected and write them to the log file
         if ($notCollected.Count -gt 0) {
             Write-logFile -Message "[INFO] The following messages have not been collected:" -Color "Yellow"
             foreach ($notCollectedID in $notCollected) {
@@ -124,43 +109,39 @@ Function Get-Email {
     }
 
     else {
-        # Check if internetMessageId is provided
         if (-not $internetMessageId) {
             Write-Error "[ERROR] Either internetMessageId or inputFile must be provided."
             return
         }
     
         try {
-            $areYouConnected = Get-MgUserMessage -UserId $userIds -Filter "internetMessageId eq '$internetMessageId'"
+            $getMessage = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages?filter=internetMessageId eq '$internetMessageId'"
+            $message = $getMessage.value[0]
+            $ReceivedDateTime = [datetime]::Parse($message.ReceivedDateTime).ToString("yyyyMMdd_HHmmss")
+            $messageId = $message.Id
+            $subject = $message.Subject -replace '[\\/:*?"<>|]', '_'
+
+            if ($output -eq "txt") {
+                $filePath = "$outputDir\$ReceivedDateTime-$subject.txt"
+            }
+            
+            else {
+                $filePath = "$outputDir\$ReceivedDateTime-$subject.eml"
+            }
+
+            $contentUri = "https://graph.microsoft.com/v1.0/users/$userIds/messages/$messageId/\$value"               
+            Invoke-MgGraphRequest -Uri $contentUri -Method Get -OutputFilePath $filePath
+            Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
+
+            if ($attachment.IsPresent){
+                Get-Attachment -Userid $Userids -internetMessageId $internetMessageId
+            }
         }
         catch {
-            Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.ReadBasic.All before running this script" -Color "Red"
+            write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Mail.ReadBasic.All command before executing this script" -Color "Yellow"
             Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
             return
-        }
-    
-        $getMessage = Get-MgUserMessage -UserId $userIds -Filter "internetMessageId eq '$internetMessageId'"
-        $messageId = $getMessage.Id
-    
-        $subject = $getMessage.Subject
-        $subject = $subject -replace '[\\/:*?"<>|]', '_'
-    
-        $ReceivedDateTime = $getMessage.ReceivedDateTime.ToString("yyyyMMdd_HHmmss")
-    
-        if ($output -eq "txt") {
-            $filePath = "$outputDir\$ReceivedDateTime-$subject.txt"
-        }
-        
-        else {
-            $filePath = "$outputDir\$ReceivedDateTime-$subject.eml"
-        }
-    
-        Get-MgUserMessageContent -MessageId $messageId -UserId $userIds -OutFile $filePath
-        Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
-    
-        if ($attachment -eq "True"){
-            Get-Attachment -Userid $Userids -internetMessageId $internetMessageId
-        }
+        }  
     }   
 }
 
@@ -195,67 +176,51 @@ Function Get-Attachment {
 	param(
 		[Parameter(Mandatory=$true)]$userIds,
 		[Parameter(Mandatory=$true)]$internetMessageId,
-		[string]$outputDir
+		[string]$outputDir = "Output\EmailExport"
 	)
-
-    write-host $internetMessageId
-    write-host $userIds
 
     Write-logFile -Message "[INFO] Running Get-Attachment" -Color "Green"
 
+    if (!(Test-Path -Path $outputDir)) {
+        Write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
+        New-Item -ItemType Directory -Path $outputDir -Force > $null
+    } else {
+        Write-LogFile -Message "[INFO] Directory exists: $outputDir"
+    }
+
     try {
-        $areYouConnected = Get-MgUserMessage -Filter "internetMessageId eq '$internetMessageId'" -UserId $userIds -ErrorAction stop
+        $getMessage = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages?filter=internetMessageId eq '$internetMessageId'" -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.Read, Mail.ReadBasic, Mail.ReadBasic.All before running this script" -Color "Red"
+        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Mail.ReadBasic.All command before executing this script" -Color "Yellow"
         Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
+        Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
         break
     }
 
-    if ($outputDir -eq "" ){
-        $outputDir = "Output\EmailExport"
-        if (!(test-path $outputDir)) {
-            New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
-            write-logFile -Message "[INFO] Creating the following directory: $outputDir"
-        }
-    }
-
-    else {
-		if (Test-Path -Path $OutputDir) {
-			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
-		}
-	
-		else {
-			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
-		}
-	}
-
-    #$getMessage = Get-MgUserMessage -Filter "internetMessageId eq '$internetMessageId'" -UserId $userIds
-    $getMessage = Get-MgUserMessage -UserId $userIds -Filter "internetMessageId eq '$internetMessageId'"
-    $messageId = $getMessage.Id
-    $messageId = $messageId.Trim()
-    $hasAttachment = $getMessage.HasAttachments
-    $ReceivedDateTime = $getMessage.ReceivedDateTime.ToString("yyyyMMdd_HHmmss")
-    $subject = $getMessage.Subject
-    $subject = $subject -replace '[\\/:*?"<>|]', '_'
+    $messageId = $getMessage.value.Id
+    $hasAttachment = $getMessage.value.HasAttachments
+    $ReceivedDateTime = $getMessage.value.ReceivedDateTime.ToString("yyyyMMdd_HHmmss")
+    $subject = $getMessage.value.Subject
 
     if ($hasAttachment -eq "True"){
-        $attachments = Get-MgUserMessageAttachment -UserId $userIds -MessageId $messageId
+        $response = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages/$messageId/attachments"
 
-        foreach ($attachment in $attachments){
+        foreach ($attachment in $response.value){
             $filename = $attachment.Name
         
-            Write-logFile -Message "[INFO] Found attachment named $filename"
             Write-logFile -Message "[INFO] Downloading attachment"
             Write-host "[INFO] Name: $filename"
             write-host "[INFO] Size: $($attachment.Size)"
-        
-            $base64B = ($attachment).AdditionalProperties.contentBytes
-            $decoded = [System.Convert]::FromBase64String($base64B)
+
+            $uri = "https://graph.microsoft.com/v1.0/users/$userIds/messages/$messageId/attachments/$($attachment.Id)/\$value" 
+            $response = Invoke-MgGraphRequest -Method Get -Uri $uri 
 
             $filename = $filename -replace '[\\/:*?"<>|]', '_'
-            $filePath = Join-Path -Path $outputDir -ChildPath "$ReceivedDateTime-$subject-$filename"
+            $filePath = Join-Path $outputDir "$ReceivedDateTime-$subject-$filename"
+
+            $base64B = ($attachment.contentBytes)
+            $decoded = [System.Convert]::FromBase64String($base64B)
             Set-Content -Path $filePath -Value $decoded -Encoding Byte
         
             Write-logFile -Message "[INFO] Output written to '$subject-$filename'" -Color "Green"
@@ -290,13 +255,15 @@ Function Show-Email {
     Write-logFile -Message "[INFO] Running Show-Email" -Color "Green"
 
     try {
-        $areYouConnected = Get-MgUserMessage -Filter "internetMessageId eq '$internetMessageId'" -UserId $userIds -ErrorAction stop
+
+        $message = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages?filter=internetMessageId eq '$internetMessageId'" -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes Mail.Read, Mail.ReadBasic, Mail.ReadBasic.All, Mail.ReadWrite before running this script" -Color "Red"
+        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Mail.ReadBasic.All command before executing this script" -Color "Yellow"
         Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
+        Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
         break
     }
 
-    Get-MgUserMessage -Filter "internetMessageId eq '$internetMessageId'" -UserId $userIds | fl *
+    $message.Value
 }

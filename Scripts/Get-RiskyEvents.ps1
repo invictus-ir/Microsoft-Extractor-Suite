@@ -5,27 +5,18 @@ function Get-RiskyUsers {
 
     .DESCRIPTION
     Retrieves the risky users from the Entra ID Identity Protection, which marks an account as being at risk based on the pattern of activity for the account.
-    The output will be written to: Output\UserInfo\
 
     .PARAMETER OutputDir
     OutputDir is the parameter specifying the output directory.
-    Default: Output\UserInfo
+    Default: Output\RiskyEvents
 
     .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
     Default: UTF8
-
-    .PARAMETER Application
-    Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
-    Default: Delegated access (access on behalf a user)
     
     .EXAMPLE
     Get-RiskyUsers
     Retrieves all risky users.
-
-    .EXAMPLE
-    Get-RiskyUsers -Application
-    Retrieves all risky users via application authentication.
 	
     .EXAMPLE
     Get-RiskyUsers -Encoding utf32
@@ -37,40 +28,23 @@ function Get-RiskyUsers {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir,
-        [string]$Encoding,
-        [switch]$Application
+        [string]$OutputDir = "Output\RiskyEvents",
+        [string]$Encoding = "UTF8"
     )
 
-    if ($Encoding -eq "" ){
-        $Encoding = "UTF8"
+    $authType = Get-GraphAuthType
+    if ($authType -eq "Delegated") {
+        Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All -NoWelcome > $null
     }
 
-    if (!($Application.IsPresent)) {
-        Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All -NoWelcome
+    if (!(test-path $OutputDir)) {
+        New-Item -ItemType Directory -Force -Name $OutputDir > $null
+        write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
     }
-
-    try {
-        $areYouConnected = Get-MgRiskyUser -ErrorAction stop
-    }
-    catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All before running this script" -Color "Red"
-        break
-    }
-
-    if ($OutputDir -eq "" ){
-        $OutputDir = "Output\UserInfo"
-        if (!(test-path $OutputDir)) {
-            New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
-            write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-        }
-    }
-
     else {
 		if (Test-Path -Path $OutputDir) {
 			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
-		}
-	
+		}	
 		else {
 			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
 			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
@@ -80,43 +54,49 @@ function Get-RiskyUsers {
     Write-logFile -Message "[INFO] Running Get-RiskyUsers" -Color "Green"
     $results=@();
     $count = 0
+    
+    try {
+        $uri = "https://graph.microsoft.com/v1.0/identityProtection/riskyUsers"
+        do {
+            $response = Invoke-MgGraphRequest -Method GET -Uri $uri
 
-    Get-MgRiskyUser -All | ForEach-Object {
-        $myObject = [PSCustomObject]@{
-            History                           = "-"
-            Id                                = "-"
-            IsDeleted                         = "-"
-            IsProcessing                      = "-"
-            RiskDetail                        = "-"
-            RiskLastUpdatedDateTime           = "-"
-            RiskLevel                         = "-"
-            RiskState                         = "-"
-            UserDisplayName                   = "-"
-            UserPrincipalName                 = "-"
-            AdditionalProperties              = "-"
-        }
+            if ($response.value) {
+                foreach ($user in $response.value) {
+                    $results += [PSCustomObject]@{
+                        Id = $user.Id
+                        IsDeleted = $user.IsDeleted
+                        IsProcessing = $user.IsProcessing
+                        RiskDetail = $user.RiskDetail
+                        RiskLastUpdatedDateTime = $user.RiskLastUpdatedDateTime
+                        RiskLevel = $user.RiskLevel
+                        RiskState = $user.RiskState
+                        UserDisplayName = $user.UserDisplayName
+                        UserPrincipalName = $user.UserPrincipalName
+                        AdditionalProperties = $user.AdditionalProperties -join ", "
+                    }
 
-        $myobject.History = $_.History
-        $myobject.Id = $_.Id
-        $myobject.IsDeleted = $_.IsDeleted
-        $myobject.IsProcessing = $_.IsProcessing
-        $myobject.RiskDetail = $_.RiskDetail
-        $myobject.RiskLastUpdatedDateTime = $_.RiskLastUpdatedDateTime
-        $myobject.RiskLevel = $_.RiskLevel
-        $myobject.RiskState = $_.RiskState
-        $myobject.UserDisplayName = $_.UserDisplayName
-        $myobject.UserPrincipalName = $_.UserPrincipalName
-        $myobject.AdditionalProperties = $_.AdditionalProperties | out-string
-
-        $results+= $myObject;
-        $count = $count +1
+                    $count++
+                }
+            }
+        
+            $uri = $response.'@odata.nextLink'
+        } while ($uri -ne $null)
+    } catch {
+        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All command before executing this script" -Color "Yellow"
+        Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+        break
     }
 
     $date = Get-Date -Format "yyyyMMddHHmm"
     $filePath = "$OutputDir\$($date)-RiskyUsers.csv"
-    $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
-    Write-logFile -Message "[INFO] A total of $count Risky Users found"
-    Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
+
+    if ($results.Count -gt 0) {
+        $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+        Write-LogFile -Message "[INFO] A total of $count Risky Users found"
+        Write-LogFile -Message "[INFO] Output written to $filePath" -Color "Green"
+    } else {
+        Write-LogFile -Message "[INFO] No Risky Users found" -Color "Yellow"
+    }
 }
 
 function Get-RiskyDetections {
@@ -126,27 +106,18 @@ function Get-RiskyDetections {
 
     .DESCRIPTION
     Retrieves the risky detections from the Entra ID Identity Protection.
-    The output will be written to: Output\UserInfo\
 
     .PARAMETER OutputDir
     OutputDir is the parameter specifying the output directory.
-    Default: Output\UserInfo
+    Default: Output\RiskyEvents
 
     .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
     Default: UTF8
-
-    .PARAMETER Application
-    Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
-    Default: Delegated access (access on behalf a user)
         
     .EXAMPLE
     Get-RiskyDetections
     Retrieves all the risky detections.
-
-    .EXAMPLE
-    Get-RiskyDetections -Application
-    Retrieves all the risky detections via application authentication.
 	
     .EXAMPLE
     Get-RiskyDetections -Encoding utf32
@@ -158,33 +129,18 @@ function Get-RiskyDetections {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir,
-        [string]$Encoding,
-        [switch]$Application
+        [string]$OutputDir= "Output\RiskyEvents",
+        [string]$Encoding = "UTF8"
     )
 
-    if (!($Application.IsPresent)) {
-        Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All -NoWelcome
+    $authType = Get-GraphAuthType
+    if ($authType -eq "Delegated") {
+        Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All -NoWelcome > $null
     }
 
-    try {
-        $areYouConnected = Get-MgRiskDetection -ErrorAction stop
-    }
-    catch {
-        Write-logFile -Message "[WARNING] You must call Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All before running this script" -Color "Red"
-        break
-    }
-
-    if ($Encoding -eq "" ){
-        $Encoding = "UTF8"
-    }
-
-    if ($OutputDir -eq "" ){
-        $OutputDir = "Output\UserInfo"
-        if (!(test-path $OutputDir)) {
-            New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
-            write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-        }
+    if (!(test-path $OutputDir)) {
+        New-Item -ItemType Directory -Force -Name $OutputDir > $null
+        write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
     }
 
     else {
@@ -201,64 +157,58 @@ function Get-RiskyDetections {
     Write-logFile -Message "[INFO] Running Get-RiskyDetections" -Color "Green"
     $results=@();
     $count = 0
-    Get-MgRiskDetection -All | ForEach-Object {
-        $myObject = [PSCustomObject]@{
-            Activity                        = "-"
-            ActivityDateTime                = "-"
-            AdditionalInfo                  = "-"
-            CorrelationId                   = "-"
-            DetectedDateTime                = "-"
-            IPAddress                       = "-"
-            Id                              = "-"
-            LastUpdatedDateTime             = "-"
-            City                            = "-"
-            CountryOrRegion                 = "-"
-            State                           = "-"
-            RequestId                       = "-"
-            RiskDetail                      = "-"
-            RiskEventType                   = "-"
-            RiskLevel                       = "-"
-            riskState                       = "-"
-            detectionTimingType             = "-"
-            Source                          = "-"
-            TokenIssuerType                 = "-"
-            UserDisplayName                 = "-"
-            UserId                          = "-"
-            UserPrincipalName               = "-"
-            AdditionalProperties            = "-"
-        }
 
-        $myobject.Activity = $_.Activity
-        $myobject.ActivityDateTime = $_.ActivityDateTime
-        $myobject.AdditionalInfo = $_.AdditionalInfo
-        $myobject.CorrelationId = $_.CorrelationId
-        $myobject.DetectedDateTime = $_.DetectedDateTime
-        $myobject.IPAddress = $_.IPAddress
-        $myobject.Id = $_.Id
-        $myobject.LastUpdatedDateTime = $_.LastUpdatedDateTime
-        $myobject.City = $_.Location.City | out-string
-        $myobject.CountryOrRegion = $_.Location.CountryOrRegion | out-string
-        $myobject.State = $_.Location.State | out-string
-        $myobject.RequestId = $_.RequestId
-        $myobject.RiskDetail = $_.RiskDetail
-        $myobject.RiskEventType = $_.RiskEventType
-        $myobject.RiskLevel = $_.RiskLevel
-        $myobject.riskState = $_.riskState
-        $myobject.detectionTimingType = $_.detectionTimingType
-        $myobject.Source = $_.Source
-        $myobject.TokenIssuerType = $_.TokenIssuerType
-        $myobject.UserDisplayName = $_.UserDisplayName
-        $myobject.UserId = $_.UserId
-        $myobject.UserPrincipalName = $_.UserPrincipalName
-        $myobject.AdditionalProperties = $_.AdditionalProperties | out-string
+    try {
+        $uri = "https://graph.microsoft.com/v1.0/identityProtection/riskDetections"
+        do {
+            $response = Invoke-MgGraphRequest -Method GET -Uri $uri
 
-        $results+= $myObject;
-        $count = $count +1
+            if ($response.value) {
+                foreach ($detection in $response.value) {
+                    $results += [PSCustomObject]@{
+                        Activity = $detection.Activity
+                        ActivityDateTime = $detection.ActivityDateTime
+                        AdditionalInfo = $detection.AdditionalInfo
+                        CorrelationId = $detection.CorrelationId
+                        DetectedDateTime = $detection.DetectedDateTime
+                        IPAddress = $detection.IPAddress
+                        Id = $detection.Id
+                        LastUpdatedDateTime = $detection.LastUpdatedDateTime
+                        City = $detection.Location.City
+                        CountryOrRegion = $detection.Location.CountryOrRegion
+                        State = $detection.Location.State
+                        RequestId = $detection.RequestId
+                        RiskDetail = $detection.RiskDetail
+                        RiskEventType = $detection.RiskEventType
+                        RiskLevel = $detection.RiskLevel
+                        RiskState = $detection.RiskState
+                        DetectionTimingType = $detection.DetectionTimingType
+                        Source = $detection.Source
+                        TokenIssuerType = $detection.TokenIssuerType
+                        UserDisplayName = $detection.UserDisplayName
+                        UserId = $detection.UserId
+                        UserPrincipalName = $detection.UserPrincipalName
+                        AdditionalProperties = $detection.AdditionalProperties -join ", "
+                    }
+                    $count++
+                }
+            }
+
+            $uri = $response.'@odata.nextLink'
+        } while ($uri -ne $null)
+    } catch {
+        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All command before executing this script" -Color "Yellow"
+        Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+        break
     }
 
     $date = Get-Date -Format "yyyyMMddHHmm"
     $filePath = "$OutputDir\$($date)-RiskyDetections.csv"
-    $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
-    Write-logFile -Message "[INFO] A total of $count Risky Detections found"
-    Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
+    if ($results.Count -gt 0) {
+        $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+        Write-LogFile -Message "[INFO] A total of $count Risky Detections found"
+        Write-LogFile -Message "[INFO] Output written to $filePath" -Color "Green"
+    } else {
+        Write-LogFile -Message "[INFO] No Risky Detections found" -Color "Yellow"
+    }
 }

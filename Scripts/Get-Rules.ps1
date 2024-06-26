@@ -52,23 +52,18 @@ function Get-TransportRules
 
 	[CmdletBinding()]
 	param (
-		[string]$OutputDir,
-		[string]$Encoding
+		[string]$OutputDir = "Output\Rules"	,
+		[string]$Encoding = "UTF8"
 	)
 
-	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\Rules"	
-		if (!(test-path $OutputDir)) {
-			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
-			write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
-		}
+	if (!(test-path $OutputDir)) {
+		New-Item -ItemType Directory -Force -Name $OutputDir > $null
+		write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
 	}
-
 	else{
 		if (Test-Path -Path $OutputDir) {
   			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
      	}
-
        	else {
     		write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
        		write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
@@ -76,12 +71,7 @@ function Get-TransportRules
    	}
     
 	$filename = "$($date)-TransportRules.csv"
-	$outputDirectory = Join-Path $OutputDir $filename
-
-	if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
-	}
-		
+	$outputDirectory = Join-Path $OutputDir $filename		
 	$transportRules = Get-TransportRule | Select-Object -Property Name,Description,CreatedBy,WhenChanged,State
 	
 	if ($null -ne $transportRules) {
@@ -209,22 +199,14 @@ function Get-MailboxRules
 	[CmdletBinding()]
 	param(
 		[string]$UserIds,
-		[string]$OutputDir,
-		[string]$Encoding
+		[string]$OutputDir = "Output\Rules",
+		[string]$Encoding = "UTF8"
 	)
 	
 	$RuleList = @()
-
-	if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
-	}
-
-	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\Rules"	
-		if (!(test-path $OutputDir)) {
-			write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
-			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
-		}
+	if (!(test-path $OutputDir)) {
+		write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
+		New-Item -ItemType Directory -Force -Name $OutputDir > $null
 	}
 
 	else{

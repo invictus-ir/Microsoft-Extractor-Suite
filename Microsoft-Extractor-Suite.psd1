@@ -8,13 +8,13 @@ Author = 'Joey Rentenaar & Korstiaan Stam'
 CompanyName = 'Invictus-IR'
 
 # Version number of this module.
-ModuleVersion = '1.3.5' 
+ModuleVersion = '2.0.0' 
 
 # ID used to uniquely identify this module
 GUID = '4376306b-0078-4b4d-b565-e22804e3be01'
 
 # Copyright statement for this module
-Copyright = 'Copyright (c) 2024 Invictus Incident Response'
+Copyright = 'Copyright 2024 Invictus Incident Response'
 
 # Description of the functionality provided by this module
 Description = 'Microsoft-Extractor-Suite is a fully-featured, actively-maintained, Powershell tool designed to streamline the process of collecting all necessary data and information from various sources within Microsoft.'	
@@ -38,6 +38,7 @@ NestedModules = @(
 	".\Scripts\Get-Emails.ps1"
 	".\Scripts\Get-MailItemsAccessed.ps1"
 	".\Scripts\Get-UALGraph.ps1"
+	".\Scripts\Get-AzureDirectoryActivityLogs.ps1"
 )
 
 FunctionsToExport = @(
@@ -83,6 +84,9 @@ FunctionsToExport = @(
 	# Get-AzureActivityLogs.ps1
 	"Get-ActivityLogs"
 
+	# Get-AzureDirectoryActivityLogs.ps1
+	"Get-DirectoryActivityLogs"
+
 	# Get-AzureADGraphLogs.ps1
 	"Get-ADSignInLogsGraph"
 	"Get-ADAuditLogsGraph"
@@ -113,7 +117,7 @@ FunctionsToExport = @(
 
 # Variables to export from this module
 VariablesToExport = @(
-	'$outputdir',
+    '$outputdir',
 	'$curDir',
 	'$logFile',
 	'$retryCount'

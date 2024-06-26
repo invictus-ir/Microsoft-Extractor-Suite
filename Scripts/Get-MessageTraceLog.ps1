@@ -81,15 +81,16 @@ function Get-MessageTraceLog
 		[string]$UserIds,
 		[string]$StartDate,
 		[string]$EndDate,
-		[string]$OutputDir,
-		[string]$Encoding
+		[string]$OutputDir = "Output\MessageTrace",
+		[string]$Encoding = "UTF8"
 	)
 
 	try {
 		$areYouConnected = Get-MessageTrace -ErrorAction stop
 	}
 	catch {
-		write-logFile -Message "[WARNING] You must call Connect-M365 before running this script" -Color "Red"
+		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
+		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 		break
 	}
 		
@@ -100,36 +101,23 @@ function Get-MessageTraceLog
 	
 	$date = Get-Date -Format "yyyyMMddHHmm"
 
-	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\MessageTrace"	
-		if (!(test-path $OutputDir)) {
-			New-Item -ItemType Directory -Force -Name $OutputDir | Out-Null
-			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-		}
+	if (!(test-path $OutputDir)) {
+		New-Item -ItemType Directory -Force -Name $OutputDir > $null
+		write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
 	}
-
 	else {
 		if (Test-Path -Path $OutputDir) {
 			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
 		}
-	
 		else {
 			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
 			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
 		}
 	}
 
-	if ($Encoding -eq "" ){
-		$Encoding = "UTF8"
-	}
-
-	else {
-		write-logFile -Message "[INFO] Output directory set to: $OutputDir" -Color "Green"
-	}
-
 	if (($null -eq $UserIds) -Or ($UserIds -eq ""))  {
 		write-logFile -Message "[INFO] No users provided. Getting the Message Trace Log for all users between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
-		Get-mailbox -resultsize unlimited  |
+		Get-mailbox -resultsize unlimited |
 		ForEach-Object {
 			$outputFile = "$OutputDir\"+$($_.PrimarySmtpAddress)+"-MTL.csv"
 

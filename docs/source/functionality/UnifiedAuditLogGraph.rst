@@ -1,4 +1,4 @@
-Unified Audit Log via Graph API (BETA functionality)
+Unified Audit Log via Graph API
 =======
 
 The UAL is a critical piece of evidence in a BEC investigation because it is a centralized source for
