@@ -148,3 +148,4 @@ function Merge-OutputFiles {
 versionCheck
 
 Export-ModuleMember -Function * -Alias * -Variable * -Cmdlet *
+
