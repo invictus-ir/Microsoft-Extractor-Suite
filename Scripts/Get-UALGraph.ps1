@@ -161,20 +161,17 @@ Function Get-UALGraph {
 
     try {
     	write-logFile -Message "[INFO] Collecting scan results from api (this may take a while)"
-        $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-        $outputFilePath = "$($date)-$searchName-UnifiedAuditLog.json"
+        $date = [datetime]::Now.ToString('yyyyMMddHHmmss')
+        $inc = 1 
         $apiUrl = "https://graph.microsoft.com/beta/security/auditLog/queries/$scanId/records"
+        $ProgressPreference = 'SilentlyContinue'
         
         Do {
-            $response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl -ContentType 'application/json'
-            if ($response.value) {
-                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
-                $response.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
-                
-            } else {
-                Write-logFile -Message "[INFO] No results matched your search." -color Yellow
-            }
+            $outputFilePath = "$($date)-$searchName-UnifiedAuditLog-$($inc).json"
+            $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+            $response = invoke-MgGraphRequest -Method Get -Uri $apiUrl -ContentType 'application/json' -OutputFilePath $filepath -PassThru
             $apiUrl = $response.'@odata.nextLink'
+            $inc ++
         } While ($apiUrl)
         
         write-logFile -Message "[INFO] Audit log records have been saved to $outputFilePath" -Color "Green"
