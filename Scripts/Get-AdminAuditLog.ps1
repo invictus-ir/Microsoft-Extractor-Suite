@@ -70,7 +70,7 @@ function Get-AdminAuditLog {
 	catch {
 		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
 		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-		break
+		throw
 	}   
 
     write-logFile -Message "[INFO] Output is written to: $outputDirectory" -Color "Green"
