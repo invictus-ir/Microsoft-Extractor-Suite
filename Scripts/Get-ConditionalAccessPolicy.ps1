@@ -106,7 +106,7 @@ Function Get-ConditionalAccessPolicies {
     catch {
         write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Policy.Read.All command before executing this script" -Color "Yellow"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" 
-        break
+        throw
     }
 
     $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
