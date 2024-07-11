@@ -75,7 +75,7 @@ Function Get-Sessions {
         catch {
             write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
             Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-            break
+            throw
         }
 
         if($amountResults -gt 4999){
@@ -118,7 +118,7 @@ Function Get-Sessions {
             catch {
                 write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
                 Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-                break
+                throw
             }
 
             if($amountResults -gt 4999){
@@ -208,7 +208,7 @@ Function Get-Sessions {
             catch {
                 write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
                 Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-                break
+                throw
             }
 
             if($amountResults -gt 4999){
@@ -328,7 +328,7 @@ function Get-MessageIDs {
         catch {
             write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
             Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-            break
+            throw
         }
 
         if ($amountResults -gt 4999){
@@ -408,7 +408,7 @@ function Get-MessageIDs {
         catch {
             write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
             Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-            break
+            throw
         }
 
         if ($amountResults -gt 4999){
@@ -495,7 +495,7 @@ function Get-MessageIDs {
         catch {
             write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
             Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-            break
+            throw
         }
 		
         if ($amountResults -gt 4999){
@@ -577,7 +577,7 @@ function Get-MessageIDs {
         catch {
             write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
             Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-            break
+            throw
         }
 
         if ($amountResults -gt 4999){
@@ -700,7 +700,7 @@ function DownloadMails($iMessageID,$UserIds){
         write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Mail.ReadBasic.All command before executing this script" -Color "Yellow"
         Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
         Write-Host "[WARNING] Error Message: $($_.Exception.Message)" -Color "Red"
-        break
+        throw
     }
 }
 
