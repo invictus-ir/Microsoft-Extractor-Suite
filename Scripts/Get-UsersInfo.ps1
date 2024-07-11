@@ -99,7 +99,7 @@ function Get-Users {
     catch {
         write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All' command before executing this script" -Color "Yellow"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-        break
+        throw
     }
     
     Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
@@ -220,7 +220,7 @@ Function Get-AdminUsers {
     catch {
         write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes 'User.Read.All, Directory.AccessAsUser.All, User.ReadBasic.All, Directory.Read.All' command before executing this script" -Color "Yellow"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-        break
+        throw
     }
 
     $outputDirMerged = "$OutputDir\Merged\"
