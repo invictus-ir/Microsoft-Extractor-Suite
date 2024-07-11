@@ -156,7 +156,7 @@ Function Get-UALGraph {
     catch {
         write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes 'AuditLogsQuery.Read.All' command before executing this script" -Color "Yellow"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-        break
+        throw
     }
 
     try {
@@ -184,7 +184,7 @@ Function Get-UALGraph {
     }
     catch {
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-        break
+        throw
     }
 }
 
