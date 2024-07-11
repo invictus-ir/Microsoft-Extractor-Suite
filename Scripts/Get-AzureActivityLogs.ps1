@@ -91,7 +91,7 @@ function Get-ActivityLogs {
 		catch {
 			write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-Az command before executing this script" -Color "Yellow"
 			Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-			break
+			throw
 		}
 		
 		foreach ($i in $subScription) {
@@ -106,7 +106,7 @@ function Get-ActivityLogs {
 		catch {
 			write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-Az command before executing this script" -Color "Yellow"
 			Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-			break
+			throw
 		}
 	}
 
