@@ -150,7 +150,8 @@ Function Get-UALGraph {
                 }
                 Start-Sleep -Seconds 5
             } while ($status -ne "succeeded")
-        }   
+        }
+       write-logFile -Message "[INFO] Unified Audit Log search complete."
     }
     catch {
         write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes 'AuditLogsQuery.Read.All' command before executing this script" -Color "Yellow"
@@ -159,6 +160,7 @@ Function Get-UALGraph {
     }
 
     try {
+    	write-logFile -Message "[INFO] Collecting scan results from api (this may take a while)"
         $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
         $outputFilePath = "$($date)-$searchName-UnifiedAuditLog.json"
         $apiUrl = "https://graph.microsoft.com/beta/security/auditLog/queries/$scanId/records"
