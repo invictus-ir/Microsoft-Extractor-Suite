@@ -199,6 +199,7 @@ function Get-RiskyDetections {
     } catch {
         write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All command before executing this script" -Color "Yellow"
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+	Write-LogFile -Message "[ERROR (Continued)] Check the below, as the target tenant may not be licenced for this feature $($_.ErrorDetails.Message)" -Color "Red"
         break
     }
 
