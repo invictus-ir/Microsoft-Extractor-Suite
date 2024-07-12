@@ -269,7 +269,8 @@ function Get-ADAuditLogs {
 			catch {
 				$retryCount++
 				if ($retryCount -lt $maxRetries) {
-					Start-Sleep -Seconds 10
+    					#Minimum of 15 seconds required, or microsoft will return too many requests
+					Start-Sleep -Seconds 15
 					Write-LogFile -Message "[WARNING] Failed to acquire logs. Retrying... Attempt $retryCount of $maxRetries" -Color "Yellow"
 				} else {
 					Write-LogFile -Message "[ERROR] Failed to acquire logs after $maxRetries attempts. Moving on." -Color "Red"
