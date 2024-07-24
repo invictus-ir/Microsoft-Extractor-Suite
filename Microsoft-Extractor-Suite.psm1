@@ -137,7 +137,7 @@ function Get-GraphAuthType {
                 Connect-MgGraph -NoWelcome -Scopes $joinedScopes > $null
             }
         }
-        "application" {
+        "AppOnly" {
             if ($missingScopes.Count -gt 0) {
                 foreach ($missingScope in $missingScopes) {
                     Write-LogFile -Message "[INFO] The connected application is missing Graph scope detected: $missingScope" -Color "Red"
