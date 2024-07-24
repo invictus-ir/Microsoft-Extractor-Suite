@@ -35,7 +35,7 @@ function Get-UALAll
 	Default: Output\UnifiedAuditLog
 
  	.PARAMETER MergeOutput
-    MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file
+    MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
 
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.

@@ -48,10 +48,8 @@ function Get-ADSignInLogsGraph {
         [string]$Encoding = "UTF8"
 	)
 
-	$authType = Get-GraphAuthType
-	if ($authType -eq "Delegated") {
-		Connect-MgGraph -Scopes AuditLog.Read.All, Directory.Read.All > $null
-	}
+	$requiredScopes = @("AuditLog.Read.All", "Directory.Read.All")
+    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
 	write-logFile -Message "[INFO] Running Get-ADSignInLogsGraph" -Color "Green"
 
@@ -89,20 +87,20 @@ function Get-ADSignInLogsGraph {
 
 	try {
         Do {
-            $response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl -ContentType 'application/json'
-            if ($response.value) {
+			$response = Invoke-MgGraphRequest -Uri $apiUrl -Method Get -ContentType "application/json; odata.metadata=minimal; odata.streaming=true;" -OutputType Json
+			$responseJson = $response | ConvertFrom-Json 
+           
+			if ($responseJson.value) {
 				$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
                 $filePath = Join-Path -Path $OutputDir -ChildPath "$($date)-SignInLogsGraph.json"
-                $response.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
+
+				$responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding		
                 Write-LogFile -Message "[INFO] Sign-in logs written to $filePath" -ForegroundColor Green
-            } else {
-                Write-LogFile -Message "[INFO] No data to write for current batch."
             }
-            $apiUrl = $response.'@odata.nextLink'
+            $apiUrl = $responseJson.'@odata.nextLink'
         } While ($apiUrl)
     }
     catch {
-		write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph command before executing this script" -Color "Yellow"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
     }
 	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		
@@ -132,7 +130,7 @@ function Get-ADAuditLogsGraph {
 	.PARAMETER Encoding
 	Encoding is the parameter specifying the encoding of the JSON output file.
 	Default: UTF8
-	
+
 	.EXAMPLE
 	Get-ADAuditLogsGraph
 	Get directory audit logs.
@@ -158,10 +156,8 @@ function Get-ADAuditLogsGraph {
 		[string]$UserIds
 	)
 
-	$authType = Get-GraphAuthType
-	if ($authType -eq "Delegated") {
-		Connect-MgGraph -Scopes AuditLog.Read.All, Directory.Read.All > $null
-	}
+	$requiredScopes = @("AuditLog.Read.All", "Directory.Read.All")
+    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
 	Write-logFile -Message "[INFO] Running Get-ADAuditLogsGraph" -Color "Green"
 	
@@ -199,20 +195,18 @@ function Get-ADAuditLogsGraph {
 
 	try {
 		Do {
-			$response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl -ContentType 'application/json'
-			if ($response.value) {
+			$response = Invoke-MgGraphRequest -Uri $apiUrl -Method Get -ContentType "application/json; odata.metadata=minimal; odata.streaming=true;" -OutputType Json
+			$responseJson = $response | ConvertFrom-Json 
+			if ($responseJson.value) {
 				$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 				$filePath = Join-Path -Path $OutputDir -ChildPath "$($date)-AuditLogs.json"
-				$response.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
+                $responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding			
 				Write-LogFile -Message "[INFO] Audit logs written to $filePath" -ForegroundColor Green
-			} else {
-				Write-LogFile -Message "[INFO] No data to write for current batch."
-			}
-			$apiUrl = $response.'@odata.nextLink'
+			} 
+			$apiUrl = $responseJson.'@odata.nextLink'
 		} While ($apiUrl)
 	}
 	catch {
-		write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph command before executing this script" -Color "Yellow"
 		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
     }	
 	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		

@@ -32,10 +32,8 @@ function Get-RiskyUsers {
         [string]$Encoding = "UTF8"
     )
 
-    $authType = Get-GraphAuthType
-    if ($authType -eq "Delegated") {
-        Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All -NoWelcome > $null
-    }
+    $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyServicePrincipal.Read.All","IdentityRiskyUser.Read.All")
+    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
     if (!(test-path $OutputDir)) {
         New-Item -ItemType Directory -Force -Name $OutputDir > $null
@@ -82,7 +80,6 @@ function Get-RiskyUsers {
             $uri = $response.'@odata.nextLink'
         } while ($uri -ne $null)
     } catch {
-        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All command before executing this script" -Color "Yellow"
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
         throw
     }
@@ -133,10 +130,8 @@ function Get-RiskyDetections {
         [string]$Encoding = "UTF8"
     )
 
-    $authType = Get-GraphAuthType
-    if ($authType -eq "Delegated") {
-        Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All -NoWelcome > $null
-    }
+    $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyServicePrincipal.Read.All","IdentityRiskyUser.Read.All")
+    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
     if (!(test-path $OutputDir)) {
         New-Item -ItemType Directory -Force -Name $OutputDir > $null
@@ -197,7 +192,6 @@ function Get-RiskyDetections {
             $uri = $response.'@odata.nextLink'
         } while ($uri -ne $null)
     } catch {
-        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes IdentityRiskEvent.Read.All,IdentityRiskyServicePrincipal.Read.All,IdentityRiskyUser.Read.All command before executing this script" -Color "Yellow"
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 	Write-LogFile -Message "[ERROR (Continued)] Check the below, as the target tenant may not be licenced for this feature $($_.ErrorDetails.Message)" -Color "Red"
         throw

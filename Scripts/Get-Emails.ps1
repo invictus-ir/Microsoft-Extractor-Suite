@@ -47,7 +47,10 @@ Function Get-Email {
 		[string]$outputDir = "Output\EmailExport",
         [switch]$attachment,
         [string]$inputFile
-	)  
+	) 
+
+    $requiredScopes = @("Mail.ReadBasic.All")
+    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
     Write-logFile -Message "[INFO] Running Get-Email" -Color "Green"
 
@@ -87,8 +90,8 @@ Function Get-Email {
                     $filePath = "$outputDir\$ReceivedDateTime-$subject.eml"
                 }
 
-                $contentUri = "https://graph.microsoft.com/v1.0/users/$userIds/messages/$messageId/\$value"            
-                Invoke-MgGraphRequest -Uri $contentUri -Method Get -OutputFilePath $filePath
+                $contentUri = "https://graph.microsoft.com/v1.0/users/$userIds/messages/" + $messageId + "/`$value"
+                Invoke-MgGraphRequest -Method GET $contentUri -OutputFilePath $filePath 
                 Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
 
                 if ($attachment.IsPresent){
@@ -129,8 +132,8 @@ Function Get-Email {
                 $filePath = "$outputDir\$ReceivedDateTime-$subject.eml"
             }
 
-            $contentUri = "https://graph.microsoft.com/v1.0/users/$userIds/messages/$messageId/\$value"               
-            Invoke-MgGraphRequest -Uri $contentUri -Method Get -OutputFilePath $filePath
+            $contentUri = "https://graph.microsoft.com/v1.0/users/$userIds/messages/" + $messageId + "/`$value"
+            Invoke-MgGraphRequest -Method GET $contentUri -OutputFilePath $filePath
             Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
 
             if ($attachment.IsPresent){
@@ -138,8 +141,8 @@ Function Get-Email {
             }
         }
         catch {
-            write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Mail.ReadBasic.All command before executing this script" -Color "Yellow"
             Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
+            Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)"
             return
         }  
     }   
@@ -252,6 +255,9 @@ Function Show-Email {
 		[Parameter(Mandatory=$true)]$internetMessageId
 	)
 
+    $requiredScopes = @("Mail.ReadBasic.All")
+    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+
     Write-logFile -Message "[INFO] Running Show-Email" -Color "Green"
 
     try {
@@ -259,7 +265,6 @@ Function Show-Email {
         $message = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages?filter=internetMessageId eq '$internetMessageId'" -ErrorAction stop
     }
     catch {
-        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Mail.ReadBasic.All command before executing this script" -Color "Yellow"
         Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
         throw

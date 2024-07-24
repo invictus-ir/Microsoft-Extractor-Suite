@@ -89,7 +89,7 @@ function Get-ActivityLogs {
 			$subScription = $subscriptionsResponse.value
 		}
 		catch {
-			write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-Az command before executing this script" -Color "Yellow"
+			write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-AzureAz command before executing this script" -Color "Yellow"
 			Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 			throw
 		}
@@ -104,7 +104,7 @@ function Get-ActivityLogs {
 			$subScription = Get-AzSubscription -SubscriptionId $SubscriptionID
 		}
 		catch {
-			write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-Az command before executing this script" -Color "Yellow"
+			write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-AzureAz command before executing this script" -Color "Yellow"
 			Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
 			throw
 		}

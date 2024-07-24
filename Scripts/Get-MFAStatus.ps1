@@ -37,10 +37,8 @@ function Get-MFA {
         [string]$Encoding = "UTF8"
     )
 
-    $authType = Get-GraphAuthType
-    if ($authType -eq "Delegated") {
-        Connect-MgGraph -Scopes UserAuthenticationMethod.Read.All,User.Read.All > $null
-    }
+    $requiredScopes = @("UserAuthenticationMethod.Read.All","User.Read.All")
+    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
     if (!(Test-Path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir > $null

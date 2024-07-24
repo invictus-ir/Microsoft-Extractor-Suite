@@ -42,11 +42,9 @@ Function Get-ConditionalAccessPolicies {
         [switch]$Application
     )
 
-    $authType = Get-GraphAuthType
-    if ($authType -eq "Delegated") {
-        Connect-MgGraph -Scopes Policy.Read.All > $null
-    }
-
+    $requiredScopes = @("Policy.Read.All")
+    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+    
     if (!(test-path $OutputDir)) {
         New-Item -ItemType Directory -Force -Name $OutputDir > $null
         write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
@@ -104,7 +102,6 @@ Function Get-ConditionalAccessPolicies {
     }
 
     catch {
-        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Policy.Read.All command before executing this script" -Color "Yellow"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" 
         throw
     }

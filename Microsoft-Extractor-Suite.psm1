@@ -105,10 +105,55 @@ function versionCheck{
 }
 
 function Get-GraphAuthType {
-	$authContext = Get-MgContext | Select-Object -ExpandProperty AuthType
-    switch ($authContext) {
-        "AppOnly" { return "application" }
-        "Delegated" { return "delegated" }
+    param (
+        [string[]]$RequiredScopes
+    )
+
+    $context = Get-MgContext
+    if (-not $context) {
+        $authType = "none"
+        $scopes = @()
+    } else {
+        $authType = $context | Select-Object -ExpandProperty AuthType
+        $scopes = $context | Select-Object -ExpandProperty Scopes
+    }
+
+    $missingScopes = @()
+    foreach ($requiredScope in $RequiredScopes) {
+        if (-not ($scopes -contains $requiredScope)) {
+            $missingScopes += $requiredScope
+        }
+    }
+
+    $joinedScopes = $RequiredScopes -join ","
+    switch ($authType) {
+        "delegated" {
+            if ($missingScopes.Count -gt 0) {
+                foreach ($missingScope in $missingScopes) {
+                    Write-LogFile -Message "[INFO] Missing Graph scope detected: $missingScope" -Color "Yellow"
+                }
+                
+                Write-LogFile -Message "[INFO] Attempting to re-authenticate with the appropriate scope(s): $joinedScopes" -Color "Green"
+                Connect-MgGraph -NoWelcome -Scopes $joinedScopes > $null
+            }
+        }
+        "application" {
+            if ($missingScopes.Count -gt 0) {
+                foreach ($missingScope in $missingScopes) {
+                    Write-LogFile -Message "[INFO] The connected application is missing Graph scope detected: $missingScope" -Color "Red"
+                }
+            }
+        }
+        "none" {
+            Write-LogFile -Message "[INFO] No active Connect-MgGraph session found. Attempting to connect with the appropriate scope(s): $joinedScopes" -Color "Green"
+            Connect-MgGraph -NoWelcome -Scopes $joinedScopes
+        }
+    }
+
+    return @{
+        AuthType = $authType
+        Scopes = $scopes
+        MissingScopes = $missingScopes
     }
 }
 
@@ -148,4 +193,3 @@ function Merge-OutputFiles {
 versionCheck
 
 Export-ModuleMember -Function * -Alias * -Variable * -Cmdlet *
-
