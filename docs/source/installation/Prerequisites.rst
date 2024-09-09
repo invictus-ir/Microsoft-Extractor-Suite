@@ -90,7 +90,7 @@ Each functionality requires one of the following permissions:
 +---------------------------+-----------------------------------------+
 | E-mails/Attachments       | Mail.Read                               |
 |                           +-----------------------------------------+
-|                           | Mail.ReadBasic.All (Application only)   |
+|                           | Mail.Readwrite (Application only)       |
 +---------------------------+-----------------------------------------+
 | User/Admin information    | User.Read.All                           |
 |                           +-----------------------------------------+

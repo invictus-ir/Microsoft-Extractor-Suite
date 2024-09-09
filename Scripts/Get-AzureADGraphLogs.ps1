@@ -12,6 +12,10 @@ function Get-ADSignInLogsGraph {
 	.PARAMETER endDate
     The Before parameter specifies the date endDate which all logs need to be collected.
 
+	.PARAMETER MergeOutput
+	MergeOutput is the parameter specifying if you wish to merge outputs to a single file
+	Default: No
+
     .PARAMETER OutputDir
     outputDir is the parameter specifying the output directory.
     Default: The output will be written to: Output\AzureAD\{date_SignInLogs}\SignInLogs.json
@@ -45,6 +49,7 @@ function Get-ADSignInLogsGraph {
 		[string]$endDate,
         [string]$OutputDir,
         [string]$UserIds,
+		[switch]$MergeOutput,
         [string]$Encoding = "UTF8"
 	)
 
@@ -58,7 +63,7 @@ function Get-ADSignInLogsGraph {
 		$OutputDir = "Output\AzureAD\$($date)-SignInLogs"
 		if (!(test-path $OutputDir)) {
 			write-logFile -Message "[INFO] Creating the following output directory: $OutputDir"
-			New-Item -ItemType Directory -Force -Name $OutputDir > $null
+			New-Item -ItemType Directory -Force -path $OutputDir > $null
 		}
 	}
 	else {
@@ -103,6 +108,12 @@ function Get-ADSignInLogsGraph {
     catch {
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
     }
+
+	if ($MergeOutput.IsPresent) {
+		Write-LogFile -Message "[INFO] Merging output files into one file"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "SignInLogs-Combined.json"
+	}
+
 	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		
 }
 
@@ -131,6 +142,10 @@ function Get-ADAuditLogsGraph {
 	Encoding is the parameter specifying the encoding of the JSON output file.
 	Default: UTF8
 
+	.PARAMETER MergeOutput
+	MergeOutput is the parameter specifying if you wish to merge outputs to a single file
+	Default: No
+
 	.EXAMPLE
 	Get-ADAuditLogsGraph
 	Get directory audit logs.
@@ -153,6 +168,7 @@ function Get-ADAuditLogsGraph {
 		[string]$endDate,
 		[string]$OutputDir,
 		[string]$Encoding = "UTF8",
+		[switch]$MergeOutput,
 		[string]$UserIds
 	)
 
@@ -208,7 +224,13 @@ function Get-ADAuditLogsGraph {
 	}
 	catch {
 		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-    }	
+    }
+	
+	if ($MergeOutput.IsPresent) {
+		Write-LogFile -Message "[INFO] Merging output files into one file"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "AuditLogs-Combined.json"
+	}
+	
 	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		
 }
 	

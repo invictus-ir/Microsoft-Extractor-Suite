@@ -35,6 +35,9 @@ Parameters
     - Encoding is the parameter specifying the encoding of the JSON output file.
     - Default: UTF8
 
+-MergeOutput (optional)
+    - MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
+
 -UserIds (optional)
     - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 

@@ -70,10 +70,21 @@ function Get-ActivityLogs {
 		}
 	}
 
-	$currentContext = Get-AzContext
-	$azureRmProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
-	$profileClient = [Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient]::new($azureRmProfile)
-	$token = $profileClient.AcquireAccessToken($currentContext.Tenant.Id)
+	Write-logFile -Message "[INFO] Running Get-ActivityLogs" -Color "Green"
+
+
+	try {
+		$currentContext = Get-AzContext
+		$azureRmProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+		$profileClient = [Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient]::new($azureRmProfile)
+		$token = $profileClient.AcquireAccessToken($currentContext.Tenant.Id)
+	}
+	catch {
+		write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-AzureAz command before executing this script" -Color "Yellow"
+		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+		throw
+	}
+
 
 	if ($SubscriptionID -eq "") {
 		write-logFile -Message "[INFO] Retrieving all subscriptions linked to the logged-in user account" -Color "Green"

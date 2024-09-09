@@ -67,7 +67,7 @@ function Get-UALStatistics
 	Write-LogFile -Message "[INFO] Calculating the number of audit logs for each of the 236 Record Types between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Green"
 	
 	try {
-		$totalCount = Search-UnifiedAuditLog -Userids $UserIds -StartDate $script:StartDate -EndDate $script:EndDate -ResultSize 1 |  Format-List -Property ResultCount| out-string -Stream | select-string ResultCount
+		$totalCount = Search-UnifiedAuditLog -Userids $UserIds -StartDate $script:StartDate -EndDate $script:EndDate -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 	}
 	catch {
 		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
@@ -86,12 +86,11 @@ function Get-UALStatistics
 	}
 
 	if ($totalCount) {
-		$numbertotal = $totalCount.tostring().split(":")[1]
 		Write-LogFile -Message "--------------------------------------"
-		Write-LogFile -Message "Total count:$($numbertotal)" -Color "Green"
+		Write-LogFile -Message "Total count:$($totalCount)" -Color "Green"
 		Write-LogFile -Message "[INFO] Count complete file is written to $outputFile" -Color "Green"
 		$stringTotalCount = "Total Count:"
-		Write-Output "$stringTotalCount : $numbertotal" | Out-File $outputDirectory -Append
+		Write-Output "$stringTotalCount : $totalCount" | Out-File $outputDirectory -Append
 	}
 	
 	else {

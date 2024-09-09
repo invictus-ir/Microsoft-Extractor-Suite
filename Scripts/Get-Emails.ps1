@@ -49,7 +49,7 @@ Function Get-Email {
         [string]$inputFile
 	) 
 
-    $requiredScopes = @("Mail.ReadBasic.All")
+    $requiredScopes = @("Mail.Readwrite")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
     Write-logFile -Message "[INFO] Running Get-Email" -Color "Green"
@@ -78,7 +78,7 @@ Function Get-Email {
             try {
                 $getMessage = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages?filter=internetMessageId eq '$id'"
                 $message = $getMessage.value[0]
-                $ReceivedDateTime = [datetime]::Parse($message.ReceivedDateTime).ToString("yyyyMMdd_HHmmss")
+                $ReceivedDateTime = [datetime]::Parse($message.receivedDateTime).ToString("yyyyMMdd_HHmmss")
                 $messageId = $message.Id
                 $subject = $message.Subject -replace '[\\/:*?"<>|]', '_'
         
@@ -120,8 +120,8 @@ Function Get-Email {
         try {
             $getMessage = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages?filter=internetMessageId eq '$internetMessageId'"
             $message = $getMessage.value[0]
-            $ReceivedDateTime = [datetime]::Parse($message.ReceivedDateTime).ToString("yyyyMMdd_HHmmss")
-            $messageId = $message.Id
+            $ReceivedDateTime = [datetime]::Parse($message.receivedDateTime).ToString("yyyyMMdd_HHmmss")
+            $messageId = $message.id
             $subject = $message.Subject -replace '[\\/:*?"<>|]', '_'
 
             if ($output -eq "txt") {
@@ -141,7 +141,7 @@ Function Get-Email {
             }
         }
         catch {
-            Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
+            Write-logFile -Message "[WARNING] The 'Mail.Readwrite' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
             Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)"
             return
         }  
@@ -195,8 +195,8 @@ Function Get-Attachment {
         $getMessage = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages?filter=internetMessageId eq '$internetMessageId'" -ErrorAction stop
     }
     catch {
-        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Mail.ReadBasic.All command before executing this script" -Color "Yellow"
-        Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
+        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Mail.Readwrite command before executing this script" -Color "Yellow"
+        Write-logFile -Message "[WARNING] The 'Mail.Readwrite' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
         throw
     }
@@ -255,7 +255,7 @@ Function Show-Email {
 		[Parameter(Mandatory=$true)]$internetMessageId
 	)
 
-    $requiredScopes = @("Mail.ReadBasic.All")
+    $requiredScopes = @("Mail.Readwrite")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
     Write-logFile -Message "[INFO] Running Show-Email" -Color "Green"
@@ -265,7 +265,7 @@ Function Show-Email {
         $message = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages?filter=internetMessageId eq '$internetMessageId'" -ErrorAction stop
     }
     catch {
-        Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
+        Write-logFile -Message "[WARNING] The 'Mail.Readwrite' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
         throw
     }

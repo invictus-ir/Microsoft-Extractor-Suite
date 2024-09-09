@@ -178,9 +178,18 @@ function Merge-OutputFiles {
             Write-LogFile -Message "[INFO] CSV files merged into $mergedPath"
         }
         'JSON' {
-			$allJsonObjects = Get-ChildItem $OutputDir -Filter *.json | ForEach-Object {
-                Get-Content -Path $_.FullName -Raw | ConvertFrom-Json
+            $allJsonObjects = @()
+
+			Get-ChildItem $OutputDir -Filter *.json | ForEach-Object {
+                $jsonContent = Get-Content -Path $_.FullName -Raw | ConvertFrom-Json
+                if ($jsonContent -is [System.Collections.ArrayList] -or $jsonContent -is [System.Collections.Generic.List[object]]) {
+                    $allJsonObjects += $jsonContent
+                }
+                else {
+                    $allJsonObjects += @($jsonContent)
+                }
             }
+
             $allJsonObjects | ConvertTo-Json -Depth 100 | Set-Content $mergedPath
             Write-Host "[INFO] JSON files merged into $mergedPath"
         }

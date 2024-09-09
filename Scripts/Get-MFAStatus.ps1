@@ -40,12 +40,21 @@ function Get-MFA {
     $requiredScopes = @("UserAuthenticationMethod.Read.All","User.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-        Write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
+    if (!(test-path $OutputDir)) {
+        New-Item -ItemType Directory -Force -Name $OutputDir > $null
+        write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
     }
+    else {
+		if (Test-Path -Path $OutputDir) {
+			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
+		}	
+		else {
+			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
+		}
+	}
   
-    Write-LogFile -Message "[INFO] Running Get-MFA"
+    Write-LogFile -Message "[INFO] Running Get-MFA" -Color "Green"
     Write-LogFile -Message "[INFO] Identifying all the authentication methods utilized within the environment" -Color "Green"     
   
     $results = @()

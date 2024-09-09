@@ -171,16 +171,9 @@ Function Get-AdminUsers {
                 else {
                     $results=@();
 
-                    $myObject = [PSCustomObject]@{
-                        UserName          = "-"
-                        UserId            = "_"
-                        Role              = "-"
-                    }
-
                     $count = 0
-                    $areThereUsers | ForEach-Object {
-
-                        $userid = $_.Id
+                    foreach ($user in $areThereUsers) {
+                        $userid = $user.Id
 
                         if ($userid -eq ".") {
                             write-host "."
@@ -189,12 +182,15 @@ Function Get-AdminUsers {
                         else {
                             $count = $count +1
                             try{
-                                $getUserName = Get-MgUser -Filter ("Id eq '$userid'")
+                                $getUserName = Get-MgUser -Filter ("Id eq '$userid'") -ErrorAction Stop
                                 $userName = $getUserName.UserPrincipalName
+                                $userid = $getUserName.Id
 
-                                $myObject.UserName = $userName
-                                $myObject.UserId = $userid
-                                $myObject.Role = $roleName
+                                $myObject = [PSCustomObject]@{
+                                    UserName = $userName
+                                    UserId = $userid
+                                    Role = $roleName
+                                }
 
                                 $results+= $myObject;
                             }

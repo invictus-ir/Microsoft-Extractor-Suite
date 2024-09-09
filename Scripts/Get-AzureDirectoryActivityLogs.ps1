@@ -66,10 +66,17 @@ function Get-DirectoryActivityLogs {
 		}
 	}
 
-    $currentContext = Get-AzContext
-    $azureRmProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
-    $profileClient = [Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient]::new($azureRmProfile)
-    $token = $profileClient.AcquireAccessToken($currentContext.Tenant.Id)
+    try {
+        $currentContext = Get-AzContext
+        $azureRmProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
+        $profileClient = [Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient]::new($azureRmProfile)
+        $token = $profileClient.AcquireAccessToken($currentContext.Tenant.Id)
+    }
+    catch {
+		write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-AzureAz command before executing this script" -Color "Yellow"
+		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+		throw
+	}
 
     $uriBase = "https://management.azure.com/providers/microsoft.insights/eventtypes/management/values?api-version=2015-04-01&`$filter=eventTimestamp ge '$script:StartDate' and eventTimestamp le '$script:endDate'"
     $events = @()
@@ -89,7 +96,7 @@ function Get-DirectoryActivityLogs {
         $uriBase = $response.nextLink
     } while ($null -ne $uriBase)
 
-    $filteredEvents = $events | Where-Object { $_.id -match '/providers/Microsoft.Management/' } | ForEach-Object {
+    $processedEvents = $events | ForEach-Object {
         $eventProps = @{}
         foreach ($prop in $_.PSObject.Properties) {
             $eventProps[$prop.Name] = $prop.Value
@@ -99,11 +106,11 @@ function Get-DirectoryActivityLogs {
 
     $date = [datetime]::Now.ToString('yyyyMMddHHmmss')
     if ($output -eq "JSON") {
-        $filteredEvents | ConvertTo-Json -Depth 100 | Set-Content -Path "$OutputDir/$($date)-DirectoryActivityLogs.JSON"   
+        $processedEvents | ConvertTo-Json -Depth 100 | Set-Content -Path "$OutputDir/$($date)-DirectoryActivityLogs.JSON"   
     }
 
     elseif ($output -eq "CSV") {
-        $filteredEvents | Export-Csv -Path "$OutputDir/$($date)-DirectoryActivityLogs.csv" -NoTypeInformation
+        $processedEvents | Export-Csv -Path "$OutputDir/$($date)-DirectoryActivityLogs.csv" -NoTypeInformation
     }
 
     Write-LogFile -Message "[INFO] Done all Directory Activity Logs are collected" -Color "Green"

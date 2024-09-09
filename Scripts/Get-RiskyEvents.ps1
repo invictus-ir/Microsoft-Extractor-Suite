@@ -32,7 +32,7 @@ function Get-RiskyUsers {
         [string]$Encoding = "UTF8"
     )
 
-    $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyServicePrincipal.Read.All","IdentityRiskyUser.Read.All")
+    $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
     if (!(test-path $OutputDir)) {
@@ -130,7 +130,7 @@ function Get-RiskyDetections {
         [string]$Encoding = "UTF8"
     )
 
-    $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyServicePrincipal.Read.All","IdentityRiskyUser.Read.All")
+    $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
     if (!(test-path $OutputDir)) {

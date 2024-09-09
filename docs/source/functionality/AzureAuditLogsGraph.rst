@@ -31,6 +31,9 @@ Parameters
     - OutputDir is the parameter specifying the output directory.
     - Default: The output will be written to: "Output\AzureAD\{date_AuditLogs}\Auditlogs.json
 
+-MergeOutput (optional)
+    - MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
+
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the JSON output file.
     - Default: UTF8
