@@ -46,6 +46,12 @@ Function Get-UALGraph {
 	
 	.PARAMETER SearchName
     Specifies the name of the search query. This parameter is required.
+
+    .PARAMETER ObjecIDs 
+    Exact data returned depends on the service in the current `@odatatype.microsoft.graph.security.auditLogQuery` record.
+    For Exchange admin audit logging, the name of the object modified by the cmdlet.
+    For SharePoint activity, the full URL path name of the file or folder accessed by a user. 
+    For Microsoft Entra activity, the name of the user account that was modified.|
     
     .EXAMPLE
     Get-UALGraph -searchName Test 
@@ -76,7 +82,8 @@ Function Get-UALGraph {
         [string]$Service = "",
         [string[]]$Operations = @(),
         [string[]]$UserIds = @(),
-        [string[]]$IPAddress = @()
+        [string[]]$IPAddress = @(),
+        [string[]]$ObjecIDs = @()
     )
 
     $requiredScopes = @("AuditLogsQuery.Read.All")
@@ -114,7 +121,7 @@ Function Get-UALGraph {
         operationFilters = $Operations
         userPrincipalNameFilters = $UserIds
         ipAddressFilters = $IPAddress
-        objectIdFilters = @()
+        objectIdFilters = $ObjecIDs
         administrativeUnitIdFilters = @()
         status = ""
     } | ConvertTo-Json

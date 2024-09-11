@@ -71,6 +71,12 @@ Parameters
     - The RecordType parameter filters the log entries by record type.
     - Options are: ExchangeItem, ExchangeAdmin, etc. A total of 236 RecordTypes are supported.
 
+-ObjecIDs (optional)
+    - Exact data returned depends on the service in the current `@odatatype.microsoft.graph.security.auditLogQuery` record.
+    - For Exchange admin audit logging, the name of the object modified by the cmdlet. 
+    - For SharePoint activity, the full URL path name of the file or folder accessed by a user. 
+    - For Microsoft Entra activity, the name of the user account that was modified.|
+
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
     - Default: UnifiedAuditLog
