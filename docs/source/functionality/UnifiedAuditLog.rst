@@ -124,6 +124,10 @@ Parameters
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
+-ObjecIDs (optional)
+    - The ObjectIds parameter filters the log entries by object ID. The object ID is the target object that was acted upon, and depends on the RecordType and Operations values of the event.
+	- You can enter multiple values separated by commas.
+
 .. note::
 
   **Important note** regarding the StartDate and EndDate variables. 
@@ -279,6 +283,10 @@ Parameters
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
+-ObjecIDs (optional)
+    - The ObjectIds parameter filters the log entries by object ID. The object ID is the target object that was acted upon, and depends on the RecordType and Operations values of the event.
+	- You can enter multiple values separated by commas.
+
 .. note::
 
   **Important note** regarding the StartDate and EndDate variables. 
@@ -357,6 +365,10 @@ Parameters
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
+
+-ObjecIDs (optional)
+    - The ObjectIds parameter filters the log entries by object ID. The object ID is the target object that was acted upon, and depends on the RecordType and Operations values of the event.
+	- You can enter multiple values separated by commas.
 
 .. note::
 

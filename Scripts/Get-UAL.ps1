@@ -40,6 +40,10 @@ function Get-UALAll
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.
 	Default: UTF8
+
+	.PARAMETER ObjecIDs 
+    The ObjectIds parameter filters the log entries by object ID. The object ID is the target object that was acted upon, and depends on the RecordType and Operations values of the event.
+	You can enter multiple values separated by commas.
     
     .EXAMPLE
     Get-UALAll
@@ -79,7 +83,8 @@ function Get-UALAll
         [string]$Output = "CSV",
         [switch]$MergeOutput,
         [string]$OutputDir,
-        [string]$Encoding = "UTF8"
+        [string]$Encoding = "UTF8",
+		[string]$ObjectIds
     )
 	
 	try {
@@ -123,10 +128,19 @@ function Get-UALAll
 
 	Write-LogFile -Message "[INFO] Extracting all available audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Green"
 	
+	$baseSearchQuery = @{
+        UserIds    = $UserIds
+    }
+
+	if ($ObjectIds) {
+        $baseSearchQuery.ObjectIds = $ObjectIds
+        Write-LogFile -Message "[INFO] Filtering by ObjectIds: $ObjectIds" -Color "Green"
+    }
+
 	while ($currentStart -lt $script:EndDate) {	
 		$currentEnd = $currentStart.AddMinutes($Interval)
-		$amountResults = Search-UnifiedAuditLog -UserIds $UserIds -StartDate $currentStart -EndDate $currentEnd -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
-		
+		$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd @baseSearchQuery -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+
 		if ($null -eq $amountResults) {
 			Write-LogFile -Message "[INFO] No audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")). Moving on!"
 			$CurrentStart = $CurrentEnd
@@ -134,7 +148,7 @@ function Get-UALAll
 		
 		elseif ($amountResults -gt 5000) {
 			while ($amountResults -gt 5000) {
-				$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $CurrentEnd -UserIds $UserIds -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+				$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $CurrentEnd -ResultSize 1 @baseSearchQuery | Select-Object -First 1 -ExpandProperty ResultCount
 				if ($amountResults -lt 5000) {
 					if ($Interval -eq 0) {
 						Exit
@@ -161,7 +175,7 @@ function Get-UALAll
 			$sessionID = $currentStart.ToString("yyyyMMddHHmmss")
 				
 			while ($true) {
-				[Array]$results = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $currentEnd -UserIds $UserIds -SessionCommand ReturnLargeSet -ResultSize $resultSize
+				[Array]$results = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $currentEnd -SessionCommand ReturnLargeSet -ResultSize $resultSize @baseSearchQuery 
 				$currentCount = 0
 				
 				if ($null -eq $results -or $results.Count -eq 0) {
@@ -253,11 +267,15 @@ function Get-UALGroup
 	Default: Output\UnifiedAuditLog
  
  	.PARAMETER MergeOutput
-    MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file
+    MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
     
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.
 	Default: UTF8
+
+	.PARAMETER ObjecIDs 
+    The ObjectIds parameter filters the log entries by object ID. The object ID is the target object that was acted upon, and depends on the RecordType and Operations values of the event.
+	You can enter multiple values separated by commas.
 	
 	.EXAMPLE
 	Get-UALGroup -Group Azure
@@ -293,7 +311,8 @@ function Get-UALGroup
 		[string]$Output = "CSV",
   		[switch]$MergeOutput,
 		[string]$OutputDir,
-		[string]$Encoding = "UTF8"
+		[string]$Encoding = "UTF8",
+		[string]$ObjectIds
 	)
 
 	try {
@@ -355,6 +374,15 @@ function Get-UALGroup
 
 	write-logFile -Message "[INFO] Extracting all available audit logs between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
 	write-logFile -Message "[INFO] The following RecordType(s) are configured to be extracted:"
+
+	$baseSearchQuery = @{
+        UserIds    = $UserIds
+    }
+
+	if ($ObjectIds) {
+        $baseSearchQuery.ObjectIds = $ObjectIds
+        Write-LogFile -Message "[INFO] Filtering by ObjectIds: $ObjectIds" -Color "Green"
+    }
 	
 	foreach ($record in $recordTypes) {
 		write-logFile -Message "-$record"
@@ -365,7 +393,7 @@ function Get-UALGroup
 		[DateTime]$currentStart = $script:StartDate
 		[DateTime]$currentEnd = $script:EndDate
 		
-		$specificResult = Search-UnifiedAuditLog -StartDate $script:StartDate -EndDate $script:EndDate -RecordType $record -UserIds $UserIds -ResultSize 1 |  Format-List -Property ResultCount| out-string -Stream | select-string ResultCount
+		$specificResult = Search-UnifiedAuditLog -StartDate $script:StartDate -EndDate $script:EndDate -RecordType $record @baseSearchQuery -ResultSize 1 |  Format-List -Property ResultCount| out-string -Stream | select-string ResultCount
 		
 		if (($null -ne $specificResult) -and ($specificResult -ne 0)) {
 			$number = $specificResult.tostring().split(":")[1]
@@ -373,7 +401,7 @@ function Get-UALGroup
 
 			while ($currentStart -lt $script:EndDate) {	
 				$currentEnd = $currentStart.AddMinutes($Interval)
-				$amountResults = Search-UnifiedAuditLog -UserIds $UserIds -StartDate $currentStart -EndDate $currentEnd -RecordType $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+				$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -RecordType $record @baseSearchQuery -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 
 				if ($null -eq $amountResults) {
 					Write-LogFile -Message "[INFO] No audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")). Moving on!"
@@ -382,7 +410,7 @@ function Get-UALGroup
 
 				elseif ($amountResults -gt 5000) {
 					while ($amountResults -gt 5000) {
-						$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -UserIds $UserIds -RecordType $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+						$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -RecordType $record @baseSearchQuery -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 						if ($amountResults -lt 5000) {
 							if ($Interval -eq 0) {
 								Exit
@@ -410,7 +438,7 @@ function Get-UALGroup
 					$SessionID = $currentStart.ToString("yyyyMMddHHmmss")
 						
 					while ($true) {					
-						[Array]$results = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -UserIds $UserIds -RecordType $record -SessionCommand ReturnLargeSet -ResultSize $ResultSize
+						[Array]$results = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -RecordType $record @baseSearchQuery -SessionCommand ReturnLargeSet -ResultSize $ResultSize
 						$currentCount = 0
 						
 						if ($null -eq $results -or $results.Count -eq 0) {
@@ -511,7 +539,11 @@ function Get-UALSpecific
 	Default: UTF8
 
   	.PARAMETER MergeOutput
-    MergeOutput is the parameter specifying if you wish to merge CSV/JSON outputs to a single file
+    MergeOutput is the parameter specifying if you wish to merge CSV/JSON outputs to a single file.
+
+	.PARAMETER ObjecIDs 
+    The ObjectIds parameter filters the log entries by object ID. The object ID is the target object that was acted upon, and depends on the RecordType and Operations values of the event.
+	You can enter multiple values separated by commas.
 
 	.EXAMPLE
 	Get-UALSpecific -RecordType ExchangeItem
@@ -547,7 +579,8 @@ function Get-UALSpecific
 		[string]$Output = "CSV",
   		[switch]$MergeOutput,
   		[string]$OutputDir,
-		[string]$Encoding = "UTF8"
+		[string]$Encoding = "UTF8",
+		[string]$ObjectIds
 	)
 
 	try {
@@ -576,6 +609,15 @@ function Get-UALSpecific
 	write-logFile -Message "[INFO] Extracting all available audit logs between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
 	write-logFile -Message "[INFO] The following RecordType(s) are configured to be extracted:"
 
+	$baseSearchQuery = @{
+        UserIds    = $UserIds
+    }
+
+	if ($ObjectIds) {
+        $baseSearchQuery.ObjectIds = $ObjectIds
+        Write-LogFile -Message "[INFO] Filtering by ObjectIds: $ObjectIds" -Color "Green"
+    }
+
 	foreach ($record in $recordType) {
 		write-logFile -Message "-$record"
 	}
@@ -586,7 +628,7 @@ function Get-UALSpecific
 		[DateTime]$currentStart = $script:StartDate
 		[DateTime]$currentEnd = $script:EndDate
 		
-		$specificResult = Search-UnifiedAuditLog -StartDate $script:StartDate -EndDate $script:EndDate -RecordType $record -UserIds $UserIds -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+		$specificResult = Search-UnifiedAuditLog -StartDate $script:StartDate -EndDate $script:EndDate -RecordType $record @baseSearchQuery -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 		
 		if (($null -ne $specificResult) -and ($specificResult -ne 0)) {
 			if ($OutputDir -eq "" ){
@@ -613,7 +655,7 @@ function Get-UALSpecific
 			
 			while ($currentStart -lt $script:EndDate) {	
 				$currentEnd = $currentStart.AddMinutes($Interval)
-				$amountResults = Search-UnifiedAuditLog -UserIds $UserIds -StartDate $currentStart -EndDate $currentEnd -RecordType $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+				$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -RecordType $record @baseSearchQuery -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 				
 				
 				if ($null -eq $amountResults) {
@@ -623,7 +665,7 @@ function Get-UALSpecific
 				
 				elseif ($amountResults -gt 5000) {
 					while ($amountResults -gt 5000) {
-						$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -UserIds $UserIds -RecordType $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+						$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -RecordType $record @baseSearchQuery -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 						if ($amountResults -lt 5000) {
 							if ($Interval -eq 0) {
 								Exit
@@ -650,7 +692,7 @@ function Get-UALSpecific
 					$sessionID = $currentStart.ToString("yyyyMMddHHmmss")
 						
 					while ($true) {					
-						[Array]$results = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -UserIds $UserIds -RecordType $record -SessionCommand ReturnLargeSet -ResultSize $ResultSize
+						[Array]$results = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -RecordType $record @baseSearchQuery -SessionCommand ReturnLargeSet -ResultSize $ResultSize
 						$CurrentCount = 0
 						
 						if ($null -eq $results -or $results.Count -eq 0) {
@@ -814,7 +856,7 @@ function Get-UALSpecificActivity
 		[DateTime]$currentStart = $script:StartDate
 		[DateTime]$currentEnd = $script:EndDate
 		
-		$specificResult = Search-UnifiedAuditLog -StartDate $script:StartDate -EndDate $script:EndDate -Operations $record -UserIds $UserIds -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+		$specificResult = Search-UnifiedAuditLog -StartDate $script:StartDate -EndDate $script:EndDate -Operations $record -UserIds $UserIds @baseSearchQuery -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 		
 		if (($null -ne $specificResult) -and ($specificResult -ne 0)) {
 			if ($OutputDir -eq "" ){
@@ -841,7 +883,7 @@ function Get-UALSpecificActivity
 			
 			while ($currentStart -lt $script:EndDate) {	
 				$currentEnd = $currentStart.AddMinutes($Interval)
-				$amountResults = Search-UnifiedAuditLog -UserIds $UserIds -StartDate $currentStart -EndDate $currentEnd -Operations $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+				$amountResults = Search-UnifiedAuditLog -UserIds $UserIds -StartDate $currentStart -EndDate $currentEnd -Operations $record @baseSearchQuery -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 				
 				
 				if ($null -eq $amountResults) {
@@ -851,7 +893,7 @@ function Get-UALSpecificActivity
 				
 				elseif ($amountResults -gt 5000) {
 					while ($amountResults -gt 5000) {
-						$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -UserIds $UserIds -Operations $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+						$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -UserIds $UserIds -Operations $record @baseSearchQuery -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 						if ($amountResults -lt 5000) {
 							if ($Interval -eq 0) {
 								Exit
@@ -878,7 +920,7 @@ function Get-UALSpecificActivity
 					$sessionID = $currentStart.ToString("yyyyMMddHHmmss")
 						
 					while ($true) {					
-						[Array]$results = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -UserIds $UserIds -Operations $record -SessionCommand ReturnLargeSet -ResultSize $ResultSize
+						[Array]$results = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd -UserIds $UserIds -Operations $record @baseSearchQuery -SessionCommand ReturnLargeSet -ResultSize $ResultSize
 						$CurrentCount = 0
 						
 						if ($null -eq $results -or $results.Count -eq 0) {
