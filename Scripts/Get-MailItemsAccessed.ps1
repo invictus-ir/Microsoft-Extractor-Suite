@@ -276,7 +276,6 @@ function Get-MessageIDs {
 
     .PARAMETER Download
     To specifiy whether the messages and their attachments should be saved.
-	Default: No
 
 	.EXAMPLE
     Get-MessageIDs -StartDate 1/4/2023 -EndDate 5/4/2023
@@ -287,7 +286,7 @@ function Get-MessageIDs {
 	Collects all sessions for the IP address 1.1.1.1.
 
     .EXAMPLE
-    Get-MessageIDs -StartDate 1/4/2023 -EndDate 5/4/2023 -IP 1.1.1.1 -Download Yes
+    Get-MessageIDs -StartDate 1/4/2023 -EndDate 5/4/2023 -IP 1.1.1.1 -Download
 	Collects all sessions for the IP address 1.1.1.1 and downloads the e-mails and attachments.
 #>
     [CmdletBinding()]
@@ -299,7 +298,7 @@ function Get-MessageIDs {
 		[string]$Encoding = "UTF8",
         [string]$Sessions,
         [string]$Output,
-        [string]$Download = "No"
+        [switch]$Download
 	)
 
     if (!(test-path $OutputDir)) {
@@ -345,6 +344,7 @@ function Get-MessageIDs {
                 $SessionId = $AuditData.SessionId
                 $ClientIP = $AuditData.ClientIPAddress
                 $userId = $AuditData.UserId
+                $sizeInBytes = $AuditData.SizeInBytes
                                 
                 if ($AuditData.OperationCount -gt 1){
                     foreach ($message in $InternetMessageId){
@@ -362,16 +362,15 @@ function Get-MessageIDs {
                         
                         $results += $resultObject
 
-                        if ($Download -eq "Yes" ){
+                        if ($Download.IsPresent){
                             DownloadMails($iMessageID,$userId)
-                        } 
+                        }
                     }
                 }
                             
                 else {
                     $SessionID = ""
-                    $iMessageID = $message.InternetMessageId
-                    $sizeInBytes = $message.SizeInBytes
+                    $iMessageID = $AuditData.Folders.FolderItems.InternetMessageId
                     
                     $resultObject = [PSCustomObject]@{
                         Timestamp           = $TimeStamp
@@ -383,8 +382,7 @@ function Get-MessageIDs {
                     }
                     
                     $results += $resultObject
-
-                    if ($Download -eq "Yes" ){
+                    if ($Download.IsPresent){
                         DownloadMails($iMessageID,$userId)
                     }
                 }
@@ -425,6 +423,7 @@ function Get-MessageIDs {
                 $SessionId = $AuditData.SessionId
                 $ClientIP = $AuditData.ClientIPAddress
                 $userId = $AuditData.UserId
+                $sizeInBytes = $AuditData.SizeInBytes
         
                 if($SessionId){
                     if($Sessions.Contains($SessionId)){
@@ -446,7 +445,7 @@ function Get-MessageIDs {
                                     
                                     $results += $resultObject
 
-                                    if ($Download -eq "Yes" ){
+                                    if ($Download.IsPresent){
                                         DownloadMails($iMessageID,$userId)
                                     }
                                 }
@@ -454,8 +453,7 @@ function Get-MessageIDs {
                                         
                             else {
                                 $SessionID = ""
-                                $iMessageID = $message.InternetMessageId
-                                $sizeInBytes = $message.SizeInBytes
+                                $iMessageID = $AuditData.Folders.FolderItems.InternetMessageId
                                 
                                 $resultObject = [PSCustomObject]@{
                                     Timestamp           = $TimeStamp
@@ -468,7 +466,7 @@ function Get-MessageIDs {
                                 
                                 $results += $resultObject
 
-                                if ($Download -eq "Yes" ){
+                                if ($Download.IsPresent){
                                     DownloadMails($iMessageID,$userId)
                                 }
                             }                               
@@ -512,6 +510,7 @@ function Get-MessageIDs {
                 $SessionId = $AuditData.SessionId
                 $ClientIP = $AuditData.ClientIPAddress
                 $userId = $AuditData.UserId
+                $sizeInBytes = $AuditData.SizeInBytes
 
                 if($SessionId){
                     if($Sessions.Contains($SessionId)){
@@ -531,7 +530,7 @@ function Get-MessageIDs {
                                 
                                 $results += $resultObject
 
-                                if ($Download -eq "Yes" ){
+                                if ($Download.IsPresent){
                                     DownloadMails($iMessageID,$userId)
                                 }
                             }
@@ -539,8 +538,7 @@ function Get-MessageIDs {
                                     
                         else {
                             $SessionID = ""
-                            $iMessageID = $message.InternetMessageId
-                            $sizeInBytes = $message.SizeInBytes
+                            $iMessageID = $AuditData.Folders.FolderItems.InternetMessageId
                             
                             $resultObject = [PSCustomObject]@{
                                 Timestamp           = $TimeStamp
@@ -553,7 +551,7 @@ function Get-MessageIDs {
                             
                             $results += $resultObject
 
-                            if ($Download -eq "Yes" ){
+                            if ($Download.IsPresent){
                                 DownloadMails($iMessageID,$userId)
                             }
                         }                               
@@ -593,6 +591,7 @@ function Get-MessageIDs {
                 $TimeStamp = $AuditData.CreationTime
                 $SessionId = $AuditData.SessionId
                 $ClientIP = $AuditData.ClientIPAddress
+                $sizeInBytes = $AuditData.SizeInBytes
 
                 $userId = $AuditData.UserId
                   
@@ -613,7 +612,7 @@ function Get-MessageIDs {
                             
                             $results += $resultObject
 
-                            if ($Download -eq "Yes" ){
+                            if ($Download.IsPresent){
                                 DownloadMails($iMessageID,$userId)
                             }
                         }
@@ -621,8 +620,7 @@ function Get-MessageIDs {
                                 
                     else {
                         $SessionID = ""
-                        $iMessageID = $message.InternetMessageId
-                        $sizeInBytes = $message.SizeInBytes
+                        $iMessageID = $AuditData.Folders.FolderItems.InternetMessageId
                         
                         $resultObject = [PSCustomObject]@{
                             Timestamp           = $TimeStamp
@@ -635,7 +633,7 @@ function Get-MessageIDs {
                         
                         $results += $resultObject
 
-                        if ($Download -eq "Yes" ){
+                        if ($Download.IsPresent){
                             DownloadMails($iMessageID,$userId)
                         }
                     }                               
@@ -654,7 +652,6 @@ function Get-MessageIDs {
 }
 
 function DownloadMails($iMessageID,$UserIds){
-
     $onlyMessageID = $iMessageID.Split(" ")[0]
     if ($outputDir -eq "" ){
         $outputDir = "Output\MailItemsAccessed\Emails"
@@ -669,6 +666,13 @@ function DownloadMails($iMessageID,$UserIds){
         $messageId = $getMessage.Id
         $attachment = $getMessage.Attachments
         $ReceivedDateTime = $getMessage.ReceivedDateTime.ToString("yyyyMMdd_HHmmss")
+
+        if ($getMessage.ReceivedDateTime -is [DateTime]) {
+            $ReceivedDateTime = $getMessage.ReceivedDateTime.ToString("yyyyMMdd_HHmmss")
+        } else {
+            $ReceivedDateTime = "unabletogetdate"  # Fallback to custom string
+            write-logFile -Message "[WARNING] ReceivedDateTime is not a valid DateTime object, using 'unabletogetdate'" -Color "Yellow"
+        }
 
         $subject = $getMessage.Subject
         $subject = $subject -replace '[\\/:*?"<>|]', '_'
@@ -699,7 +703,7 @@ function DownloadMails($iMessageID,$UserIds){
     catch {
         write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Mail.ReadBasic.All command before executing this script" -Color "Yellow"
         Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
-        Write-Host "[WARNING] Error Message: $($_.Exception.Message)" -Color "Red"
+        Write-Host "[WARNING] Error Message: $($_.Exception.Message)"
         throw
     }
 }
