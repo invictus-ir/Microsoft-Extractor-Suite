@@ -665,7 +665,6 @@ function DownloadMails($iMessageID,$UserIds){
         $getMessage = Get-MgUserMessage -Filter "internetMessageId eq '$onlyMessageID'" -UserId $userId -ErrorAction stop
         $messageId = $getMessage.Id
         $attachment = $getMessage.Attachments
-        $ReceivedDateTime = $getMessage.ReceivedDateTime.ToString("yyyyMMdd_HHmmss")
 
         if ($getMessage.ReceivedDateTime -is [DateTime]) {
             $ReceivedDateTime = $getMessage.ReceivedDateTime.ToString("yyyyMMdd_HHmmss")
