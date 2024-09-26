@@ -82,8 +82,7 @@ function Write-LogFile([String]$message,$color)
         default  { [Console]::ResetColor() }
     }
 
-    [Console]::WriteLine($message)
-    [Console]::ResetColor()
+    Write-Host $message
     $logToWrite = [DateTime]::Now.ToString() + ": " + $message
     $logToWrite | Out-File -FilePath $LogFile -Append
 }

@@ -81,6 +81,7 @@ function Get-ADSignInLogsGraph {
 
 	$StartDate = $script:StartDate.ToString('yyyy-MM-ddTHH:mm:ssZ')
     $EndDate = $script:EndDate.ToString('yyyy-MM-ddTHH:mm:ssZ')
+	$TotalTicks = ($script:EndDate-$script:StartDate).Ticks
 
 	$filterQuery = "createdDateTime ge $StartDate and createdDateTime le $EndDate"
 	if ($UserIds) {
@@ -101,10 +102,14 @@ function Get-ADSignInLogsGraph {
 
 				$responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
 				$dates = $responseJson.value | ForEach-Object { $_.CreatedDateTime } | Sort-Object
-                $from =  ($dates | Select-Object -First 1).ToString('yyyy-MM-ddTHH:mmZ')
+                $from =  $dates | Select-Object -First 1
+                $fromstr =  $from.ToString('yyyy-MM-ddTHH:mmZ')
                 $to = ($dates | Select-Object -Last 1).ToString('yyyy-MM-ddTHH:mmZ')
                 $count = ($responseJson.value | measure).Count
-                Write-LogFile -Message "[INFO] Sign-in logs written to $filePath ($count records between $from and $to)" -ForegroundColor Green
+                Write-LogFile -Message "[INFO] Sign-in logs written to $filePath ($count records between $fromstr and $to)" -ForegroundColor Green
+
+			    $progress = [Math]::Round(($script:EndDate-$from).Ticks / $TotalTicks * 100, 2)
+                Write-Progress -Activity "Collecting Sign-in logs" -Status "$progress% Complete" -PercentComplete $progress
             }
             $apiUrl = $responseJson.'@odata.nextLink'
         } While ($apiUrl)
@@ -204,6 +209,7 @@ function Get-ADAuditLogsGraph {
 
 	$StartDate = $script:StartDate.ToString('yyyy-MM-ddTHH:mm:ssZ')
 	$EndDate = $script:EndDate.ToString('yyyy-MM-ddTHH:mm:ssZ')
+	$TotalTicks = ($script:EndDate-$script:StartDate).Ticks
 
 	$filterQuery = "activityDateTime ge $StartDate and activityDateTime le $EndDate"
 	if ($UserIds) {
@@ -222,11 +228,15 @@ function Get-ADAuditLogsGraph {
 				$filePath = Join-Path -Path $OutputDir -ChildPath "$($date)-AuditLogs.json"
                 $responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
                 $dates = $responseJson.value | ForEach-Object { $_.activityDateTime } | Sort-Object
-                $from =  ($dates | Select-Object -First 1).ToString('yyyy-MM-ddTHH:mmZ')
+                $from =  $dates | Select-Object -First 1
+                $fromstr =  $from.ToString('yyyy-MM-ddTHH:mmZ')
                 $to = ($dates | Select-Object -Last 1).ToString('yyyy-MM-ddTHH:mmZ')
                 $count = ($responseJson.value | measure).Count
-				Write-LogFile -Message "[INFO] Audit logs written to $filePath ($count records between $from and $to))" -ForegroundColor Green
-			} 
+				Write-LogFile -Message "[INFO] Audit logs written to $filePath ($count records between $fromstr and $to))" -ForegroundColor Green
+
+			    $progress = [Math]::Round(($script:EndDate-$from).Ticks / $TotalTicks * 100, 2)
+                Write-Progress -Activity "Collecting Audit logs" -Status "$progress% Complete" -PercentComplete $progress
+			}
 			$apiUrl = $responseJson.'@odata.nextLink'
 		} While ($apiUrl)
 	}
