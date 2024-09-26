@@ -101,8 +101,8 @@ function Get-ADSignInLogsGraph {
 
 				$responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
 				$dates = $responseJson.value | ForEach-Object { $_.CreatedDateTime } | Sort-Object
-                $from =  ($dates | Select-Object -First 1).ToString('yyyy-MM-dd')
-                $to = ($dates | Select-Object -Last 1).ToString('yyyy-MM-dd')
+                $from =  ($dates | Select-Object -First 1).ToString('yyyy-MM-ddTHH:mmZ')
+                $to = ($dates | Select-Object -Last 1).ToString('yyyy-MM-ddTHH:mmZ')
                 $count = ($responseJson.value | measure).Count
                 Write-LogFile -Message "[INFO] Sign-in logs written to $filePath ($count records between $from and $to)" -ForegroundColor Green
             }
@@ -222,8 +222,8 @@ function Get-ADAuditLogsGraph {
 				$filePath = Join-Path -Path $OutputDir -ChildPath "$($date)-AuditLogs.json"
                 $responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
                 $dates = $responseJson.value | ForEach-Object { $_.activityDateTime } | Sort-Object
-                $from =  ($dates | Select-Object -First 1).ToString('yyyy-MM-dd')
-                $to = ($dates | Select-Object -Last 1).ToString('yyyy-MM-dd')
+                $from =  ($dates | Select-Object -First 1).ToString('yyyy-MM-ddTHH:mmZ')
+                $to = ($dates | Select-Object -Last 1).ToString('yyyy-MM-ddTHH:mmZ')
                 $count = ($responseJson.value | measure).Count
 				Write-LogFile -Message "[INFO] Audit logs written to $filePath ($count records between $from and $to))" -ForegroundColor Green
 			} 
