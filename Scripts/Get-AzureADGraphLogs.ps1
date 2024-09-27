@@ -101,7 +101,7 @@ function Get-ADSignInLogsGraph {
                 $filePath = Join-Path -Path $OutputDir -ChildPath "$($date)-SignInLogsGraph.json"
 
 				$responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
-				$$dates = $responseJson.value | ForEach-Object { [DateTime]::Parse($_.CreatedDateTime) } | Sort-Object
+				$dates = $responseJson.value | ForEach-Object { [DateTime]::Parse($_.CreatedDateTime) } | Sort-Object
                 $from =  $dates | Select-Object -First 1
                 $fromstr =  $from.ToString('yyyy-MM-ddTHH:mmZ')
                 $to = ($dates | Select-Object -Last 1).ToString('yyyy-MM-ddTHH:mmZ')
