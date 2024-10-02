@@ -201,12 +201,18 @@ function Get-UALAll
 					if ($currentTotal -eq $results[$results.Count - 1].ResultIndex) {
 						$message = "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range. Moving on!"
 						
-						if ($Output -eq "JSON") {
-							$results = $results | Select-Object AuditData -ExpandProperty AuditData
-							$results | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
-							Write-LogFile -Message $message -Color "Green"
-						}
+						if ($Output -eq "JSON")
+						{
+							$results = $results | ForEach-Object {
+								$_.AuditData = $_.AuditData | ConvertFrom-Json
+								$_
+							}
 
+							$json = $results | ConvertTo-Json -Depth 100
+							$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
+							Add-Content "$OutputDir/UAL-$sessionID.json" "`n"
+							Write-LogFile -Message $message
+						}
 						elseif ($Output -eq "CSV") {
 							$results | export-CSV "$OutputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding $Encoding
 							Write-LogFile -Message $message -Color "Green"
@@ -466,8 +472,14 @@ function Get-UALGroup
 								
 								if ($Output -eq "JSON")
 								{
-									$results = $results|Select-Object AuditData -ExpandProperty AuditData
-									$results | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
+									$results = $results | ForEach-Object {
+										$_.AuditData = $_.AuditData | ConvertFrom-Json
+										$_
+									}
+
+									$json = $results | ConvertTo-Json -Depth 100
+									$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
+									Add-Content "$OutputDir/UAL-$sessionID.json" "`n"
 									Write-LogFile -Message $message
 								}
 								elseif ($Output -eq "CSV")
@@ -715,8 +727,14 @@ function Get-UALSpecific
 
 							if ($Output -eq "JSON")
 							{
-								$results = $results|Select-Object AuditData -ExpandProperty AuditData
-								$results | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
+								$results = $results | ForEach-Object {
+									$_.AuditData = $_.AuditData | ConvertFrom-Json
+									$_
+								}
+
+								$json = $results | ConvertTo-Json -Depth 100
+								$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
+								Add-Content "$OutputDir/UAL-$sessionID.json" "`n"
 								Write-LogFile -Message $message
 							}
 							elseif ($Output -eq "CSV")
@@ -783,6 +801,9 @@ function Get-UALSpecificActivity
 	OutputDir is the parameter specifying the output directory.
 	Default: Output\UnifiedAuditLog
 
+	.PARAMETER MergeOutput
+    MergeOutput is the parameter specifying if you wish to merge CSV/JSON outputs into a single file at the end of the acquisition.
+
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.
 	Default: UTF8
@@ -816,7 +837,8 @@ function Get-UALSpecificActivity
 		[Parameter(Mandatory=$true)]$ActivityType,
 		[string]$Output = "CSV",
 		[string]$OutputDir,
-		[string]$Encoding = "UTF8"
+		[string]$Encoding = "UTF8",
+        [switch]$MergeOutput
 	)
 
 	try {
@@ -942,8 +964,14 @@ function Get-UALSpecificActivity
 
 							if ($Output -eq "JSON")
 							{
-								$results = $results | Select-Object AuditData -ExpandProperty AuditData
-								$results | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
+								$results = $results | ForEach-Object {
+									$_.AuditData = $_.AuditData | ConvertFrom-Json
+									$_
+								}
+
+								$json = $results | ConvertTo-Json -Depth 100
+								$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
+								Add-Content "$OutputDir/UAL-$sessionID.json" "`n"
 								Write-LogFile -Message $message
 							}
 							elseif ($Output -eq "CSV")
@@ -963,5 +991,14 @@ function Get-UALSpecificActivity
 			Write-LogFile -Message "[INFO] No Records found for $record"
 		}
 	}
+	if ($Output -eq "CSV" -and ($MergeOutput.IsPresent)) {
+		Write-LogFile -Message "[INFO] Merging output files into one file"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "CSV" -MergedFileName "UAL-Combined.csv"
+	}
+	elseif ($Output -eq "JSON" -and ($MergeOutput.IsPresent)) {
+		Write-LogFile -Message "[INFO] Merging output files into one file"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "UAL-Combined.json"
+	}
+
 	Write-LogFile -Message "[INFO] Acquisition complete, check the Output directory for your files.." -Color "Green"
 }

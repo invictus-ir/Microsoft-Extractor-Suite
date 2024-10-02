@@ -666,6 +666,9 @@ Parameters
     - EndDate is the parameter specifying the end date of the date range.
     - Default: Now
 
+-MergeOutput (optional)
+    - MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
+
 -Interval (optional)
     - Interval is the parameter specifying the interval in which the logs are being gathered.
     - Default: 60 minutes

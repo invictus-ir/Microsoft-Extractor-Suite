@@ -4,7 +4,7 @@ Use **Get-ADAuditLogsGraph** to collect the contents of the Azure Active Directo
 
 Usage
 """"""""""""""""""""""""""
-Running the script without any parameters will gather the Azure Active Directory Audit Log for the last 90 days:
+Running the script without any parameters will gather the Azure Active Directory Audit Log for the last 30 days:
 ::
 
    Get-ADAuditLogsGraph

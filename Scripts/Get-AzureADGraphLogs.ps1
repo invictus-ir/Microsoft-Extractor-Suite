@@ -89,7 +89,7 @@ function Get-ADSignInLogsGraph {
 	}
 
     $encodedFilterQuery = [System.Web.HttpUtility]::UrlEncode($filterQuery)
-    $apiUrl = "https://graph.microsoft.com/v1.0/auditLogs/signIns?`$filter=$encodedFilterQuery"
+    $apiUrl = "https://graph.microsoft.com/beta/auditLogs/signIns?`$filter=$encodedFilterQuery"
 
 	try {
         Do {
@@ -232,7 +232,7 @@ function Get-ADAuditLogsGraph {
                 $fromstr =  $from.ToString('yyyy-MM-ddTHH:mmZ')
                 $to = ($dates | Select-Object -Last 1).ToString('yyyy-MM-ddTHH:mmZ')
                 $count = ($responseJson.value | measure).Count
-    				Write-Host "[INFO] Audit logs written to $filePath ($count records between $fromstr and $to)" -ForegroundColor Green 
+    			Write-Host "[INFO] Audit logs written to $filePath ($count records between $fromstr and $to)" -ForegroundColor Green 
 
 			    $progress = [Math]::Round(($script:EndDate-$from).Ticks / $TotalTicks * 100, 2)
                 Write-Progress -Activity "Collecting Audit logs" -Status "$progress% Complete" -PercentComplete $progress

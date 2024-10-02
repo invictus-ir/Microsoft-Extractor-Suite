@@ -318,6 +318,11 @@ function Get-MessageIDs {
     Write-logFile -Message "[INFO] Running Get-MessageIDs" -Color "Green"
 
     $results=@();
+
+    if ($Download.IsPresent) {
+        $requiredScopes = @("Mail.ReadWrite")
+        $graphAuth = Get-GraphAuthType -RequiredScopes $requiredScopes
+    }
 	
 	if (!$Sessions -And !$IP){
 
@@ -670,15 +675,23 @@ function DownloadMails($iMessageID,$UserIds){
             $ReceivedDateTime = $getMessage.ReceivedDateTime.ToString("yyyyMMdd_HHmmss")
         } else {
             $ReceivedDateTime = "unabletogetdate"  # Fallback to custom string
-            write-logFile -Message "[WARNING] ReceivedDateTime is not a valid DateTime object, using 'unabletogetdate'" -Color "Yellow"
+            #write-logFile -Message "[WARNING] ReceivedDateTime is not a valid DateTime object, using 'unabletogetdate'" -Color "Yellow"
         }
 
         $subject = $getMessage.Subject
         $subject = $subject -replace '[\\/:*?"<>|]', '_'
         $filePath = "$outputDir\$ReceivedDateTime-$subject.elm"
 
-        Get-MgUserMessageContent -MessageId $messageId -UserId $userId -OutFile $filePath
-        Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
+        try {
+            Get-MgUserMessageContent -MessageId $messageId -UserId $userId -OutFile $filePath
+            Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green"
+        } catch {
+            if ($_.Exception.Message -like "*Cannot bind argument to parameter 'MessageId' because it is an empty string*") {
+                Write-logFile -Message "[WARNING] Unable to download message with ID '$iMessageID' was likely deleted." -Color "Red"
+            } else {
+                throw 
+            }
+        }
 
         if ($attachment -eq "True"){
             Write-logFile -Message "[INFO] Found Attachment file!"
@@ -700,8 +713,7 @@ function DownloadMails($iMessageID,$UserIds){
         }
     }
     catch {
-        write-logFile -Message "[INFO] Ensure you are connected to Microsoft Graph by running the Connect-MgGraph -Scopes Mail.ReadBasic.All command before executing this script" -Color "Yellow"
-        Write-logFile -Message "[WARNING] The 'Mail.ReadBasic.All' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
+        Write-logFile -Message "[WARNING] The 'Mail.ReadWrite' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red"
         Write-Host "[WARNING] Error Message: $($_.Exception.Message)"
         throw
     }

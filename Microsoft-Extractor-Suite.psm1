@@ -128,7 +128,10 @@ function Get-GraphAuthType {
     $joinedScopes = $RequiredScopes -join ","
     switch ($authType) {
         "delegated" {
-            if ($missingScopes.Count -gt 0) {
+            if ($RequiredScopes -contains "Mail.ReadWrite") {
+                Write-LogFile -Message "[WARNING] 'Mail.ReadWrite' is being requested under a delegated authentication type. 'Mail.ReadWrite' permissions only work when authenticating with an application." -Color "Yellow"
+            }
+            elseif ($missingScopes.Count -gt 0) {
                 foreach ($missingScope in $missingScopes) {
                     Write-LogFile -Message "[INFO] Missing Graph scope detected: $missingScope" -Color "Yellow"
                 }
@@ -145,8 +148,13 @@ function Get-GraphAuthType {
             }
         }
         "none" {
-            Write-LogFile -Message "[INFO] No active Connect-MgGraph session found. Attempting to connect with the appropriate scope(s): $joinedScopes" -Color "Green"
-            Connect-MgGraph -NoWelcome -Scopes $joinedScopes
+            if ($RequiredScopes -contains "Mail.ReadWrite") {
+                Write-LogFile -Message "[WARNING] 'Mail.ReadWrite' is being requested under a delegated authentication type. 'Mail.ReadWrite' permissions only work when authenticating with an application." -Color "Yellow"
+            }
+            else {
+                Write-LogFile -Message "[INFO] No active Connect-MgGraph session found. Attempting to connect with the appropriate scope(s): $joinedScopes" -Color "Green"
+                Connect-MgGraph -NoWelcome -Scopes $joinedScopes
+            }
         }
     }
 
