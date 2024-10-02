@@ -211,7 +211,7 @@ function Get-UALAll
 							$json = $results | ConvertTo-Json -Depth 100
 							$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
 							Add-Content "$OutputDir/UAL-$sessionID.json" "`n"
-							Write-LogFile -Message $message
+							Write-LogFile -Message $message  -Color "Green"
 						}
 						elseif ($Output -eq "CSV") {
 							$results | export-CSV "$OutputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding $Encoding
@@ -229,6 +229,10 @@ function Get-UALAll
 	if ($Output -eq "CSV" -and ($MergeOutput.IsPresent)) {
 		Write-LogFile -Message "[INFO] Merging output files into one file"
 		Merge-OutputFiles -OutputDir $OutputDir -OutputType "CSV" -MergedFileName "UAL-Combined.csv"
+	}
+	elseif ($Output -eq "JSON" -and ($MergeOutput.IsPresent)) {
+		Write-LogFile -Message "[INFO] Merging output files into one file"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "UAL-Combined.json"
 	}
 
 	Write-LogFile -Message "[INFO] Acquisition complete, check the Output directory for your files.." -Color "Green"
@@ -480,12 +484,12 @@ function Get-UALGroup
 									$json = $results | ConvertTo-Json -Depth 100
 									$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
 									Add-Content "$OutputDir/UAL-$sessionID.json" "`n"
-									Write-LogFile -Message $message
+									Write-LogFile -Message $message -Color "Green"
 								}
 								elseif ($Output -eq "CSV")
 								{
 									$results | export-CSV "$OutputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding $Encoding
-									Write-LogFile -Message $message
+									Write-LogFile -Message $message -Color "Green"
 								}
 								break
 							}
@@ -503,6 +507,10 @@ function Get-UALGroup
 	if ($Output -eq "CSV" -and ($MergeOutput.IsPresent)) {
 		Write-LogFile -Message "[INFO] Merging output files into one file"
 		Merge-OutputFiles -OutputDir $OutputDir -OutputType "CSV" -MergedFileName "UAL-Combined.csv"
+	}
+	elseif ($Output -eq "JSON" -and ($MergeOutput.IsPresent)) {
+		Write-LogFile -Message "[INFO] Merging output files into one file"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "UAL-Combined.json"
 	}
 	
 	Write-LogFile -Message "[INFO] Acquisition complete, check the Output directory for your files.." -Color "Green"
@@ -735,12 +743,12 @@ function Get-UALSpecific
 								$json = $results | ConvertTo-Json -Depth 100
 								$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
 								Add-Content "$OutputDir/UAL-$sessionID.json" "`n"
-								Write-LogFile -Message $message
+								Write-LogFile -Message $message -Color "Green"
 							}
 							elseif ($Output -eq "CSV")
 							{
 								$results | export-CSV "$OutputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding $Encoding
-								Write-LogFile -Message $message
+								Write-LogFile -Message $message -Color "Green"
 							}
 							break
 						}
@@ -758,6 +766,10 @@ function Get-UALSpecific
 	if ($Output -eq "CSV" -and ($MergeOutput.IsPresent)) {
 		Write-LogFile -Message "[INFO] Merging output files into one file"
 		Merge-OutputFiles -OutputDir $OutputDir -OutputType "CSV" -MergedFileName "UAL-Combined.csv"
+	}
+	elseif ($Output -eq "JSON" -and ($MergeOutput.IsPresent)) {
+		Write-LogFile -Message "[INFO] Merging output files into one file"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "UAL-Combined.json"
 	}
 
 	Write-LogFile -Message "[INFO] Acquisition complete, check the Output directory for your files.." -Color "Green"
@@ -957,7 +969,7 @@ function Get-UALSpecificActivity
 								
 						$currentTotal = $results[0].ResultCount
 						$currentCount = $currentCount + $results.Count
-						Write-LogFile -Message "[INFO] Found $currentTotal audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Green"
+						Write-LogFile -Message "[INFO] Found $currentTotal audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
 
 						if ($currentTotal -eq $results[$results.Count - 1].ResultIndex) {
 							$message = "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range. Moving on!"
@@ -972,12 +984,12 @@ function Get-UALSpecificActivity
 								$json = $results | ConvertTo-Json -Depth 100
 								$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
 								Add-Content "$OutputDir/UAL-$sessionID.json" "`n"
-								Write-LogFile -Message $message
+								Write-LogFile -Message $message -Color "Green"
 							}
 							elseif ($Output -eq "CSV")
 							{
 								$results | export-CSV "$OutputDir/UAL-$sessionID.csv" -NoTypeInformation -Append -Encoding $Encoding
-								Write-LogFile -Message $message
+								Write-LogFile -Message $message -Color "Green"
 							}
 							break
 						}
