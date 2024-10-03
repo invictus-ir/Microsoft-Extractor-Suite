@@ -170,10 +170,12 @@ Function Get-UALGraph {
         $apiUrl = "https://graph.microsoft.com/beta/security/auditLog/queries/$scanId/records"
         
         Do {
-            $response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl -ContentType 'application/json'
-            if ($response.value) {
+            $response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl  -ContentType "application/json; odata.metadata=minimal; odata.streaming=true;" -OutputType Json
+            $responseJson = $response | ConvertFrom-Json 
+
+            if ($responseJson.value) {
                 $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
-                $response.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
+                $responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
                 
             } else {
                 Write-logFile -Message "[INFO] No results matched your search." -color Yellow
