@@ -180,7 +180,7 @@ Function Get-UALGraph {
             } else {
                 Write-logFile -Message "[INFO] No results matched your search." -color Yellow
             }
-            $apiUrl = $response.'@odata.nextLink'
+            $apiUrl = $responseJson.'@odata.nextLink'
         } While ($apiUrl)
         
         write-logFile -Message "[INFO] Audit log records have been saved to $outputFilePath" -Color "Green"
