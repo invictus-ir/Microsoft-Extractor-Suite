@@ -13,6 +13,10 @@ function Get-RiskyUsers {
     .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
     Default: UTF8
+
+    .PARAMETER UserIds
+    An array of User IDs to retrieve risky user information for.
+    If not specified, retrieves all risky users.
     
     .EXAMPLE
     Get-RiskyUsers
@@ -24,12 +28,17 @@ function Get-RiskyUsers {
 		
     .EXAMPLE
     Get-RiskyUsers -OutputDir C:\Windows\Temp
-    Retrieves all risky users and saves the output to the C:\Windows\Temp folder.	
+    Retrieves all risky users and saves the output to the C:\Windows\Temp folder.
+
+    .EXAMPLE
+    Get-RiskyUsers -UserIds "user-id-1","user-id-2"
+    Retrieves risky user information for the specified User IDs.
 #>
     [CmdletBinding()]
     param(
         [string]$OutputDir = "Output\RiskyEvents",
-        [string]$Encoding = "UTF8"
+        [string]$Encoding = "UTF8",
+        [string[]]$UserIds
     )
 
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
@@ -54,31 +63,68 @@ function Get-RiskyUsers {
     $count = 0
     
     try {
-        $uri = "https://graph.microsoft.com/v1.0/identityProtection/riskyUsers"
-        do {
-            $response = Invoke-MgGraphRequest -Method GET -Uri $uri
+        $baseUri = "https://graph.microsoft.com/v1.0/identityProtection/riskyUsers"
 
-            if ($response.value) {
-                foreach ($user in $response.value) {
-                    $results += [PSCustomObject]@{
-                        Id = $user.Id
-                        IsDeleted = $user.IsDeleted
-                        IsProcessing = $user.IsProcessing
-                        RiskDetail = $user.RiskDetail
-                        RiskLastUpdatedDateTime = $user.RiskLastUpdatedDateTime
-                        RiskLevel = $user.RiskLevel
-                        RiskState = $user.RiskState
-                        UserDisplayName = $user.UserDisplayName
-                        UserPrincipalName = $user.UserPrincipalName
-                        AdditionalProperties = $user.AdditionalProperties -join ", "
+        if ($UserIds) {
+            foreach ($userId in $UserIds) {
+                $encodedUserId = [System.Web.HttpUtility]::UrlEncode($userId)
+                $uri = "$baseUri`?`$filter=userPrincipalName eq '$encodedUserId'"
+                Write-LogFile -Message "[INFO] Retrieving risky user for UPN: $userId"
+
+                try {
+                    $response = Invoke-MgGraphRequest -Method GET -Uri $uri
+
+                    if ($response.value -and $response.value.Count -gt 0) {
+                        foreach ($user in $response.value) {
+                            $results += [PSCustomObject]@{
+                                Id                          = $user.Id
+                                IsDeleted                   = $user.IsDeleted
+                                IsProcessing                = $user.IsProcessing
+                                RiskDetail                  = $user.RiskDetail
+                                RiskLastUpdatedDateTime     = $user.RiskLastUpdatedDateTime
+                                RiskLevel                   = $user.RiskLevel
+                                RiskState                   = $user.RiskState
+                                UserDisplayName             = $user.UserDisplayName
+                                UserPrincipalName           = $user.UserPrincipalName
+                                AdditionalProperties = $user.AdditionalProperties -join ", "
+                            }
+                            $count++
+                        }
+                    } else {
+                        Write-LogFile -Message "[INFO] User ID $userId not found or not risky."
                     }
-
-                    $count++
+                } catch {
+                    Write-LogFile -Message "[ERROR] Failed to retrieve data for User ID $userId : $($_.Exception.Message)" -Color "Red"
                 }
             }
-        
-            $uri = $response.'@odata.nextLink'
-        } while ($uri -ne $null)
+        }
+        else {
+            $uri = "https://graph.microsoft.com/v1.0/identityProtection/riskyUsers"
+            do {
+                $response = Invoke-MgGraphRequest -Method GET -Uri $uri
+
+                if ($response.value) {
+                    foreach ($user in $response.value) {
+                        $results += [PSCustomObject]@{
+                            Id                          = $user.Id
+                            IsDeleted                   = $user.IsDeleted
+                            IsProcessing                = $user.IsProcessing
+                            RiskDetail                  = $user.RiskDetail
+                            RiskLastUpdatedDateTime     = $user.RiskLastUpdatedDateTime
+                            RiskLevel                   = $user.RiskLevel
+                            RiskState                   = $user.RiskState
+                            UserDisplayName             = $user.UserDisplayName
+                            UserPrincipalName           = $user.UserPrincipalName
+                            AdditionalProperties        = $user.AdditionalProperties -join ", "
+                        }
+
+                        $count++
+                    }
+                }
+
+                $uri = $response.'@odata.nextLink'
+            } while ($uri -ne $null)
+        }
     } catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
         throw
@@ -111,6 +157,10 @@ function Get-RiskyDetections {
     .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
     Default: UTF8
+
+    .PARAMETER UserIds
+    An array of User IDs to retrieve risky detections information for.
+    If not specified, retrieves all risky detections.
         
     .EXAMPLE
     Get-RiskyDetections
@@ -122,12 +172,17 @@ function Get-RiskyDetections {
 		
     .EXAMPLE
     Get-RiskyDetections -OutputDir C:\Windows\Temp
-    Retrieves the risky detections and saves the output to the C:\Windows\Temp folder.	
+    Retrieves the risky detections and saves the output to the C:\Windows\Temp folder.
+    
+    .EXAMPLE
+    Get-RiskyDetections -UserIds "user-id-1","user-id-2"
+    Retrieves risky detections for the specified User IDs.
 #>
     [CmdletBinding()]
     param(
         [string]$OutputDir= "Output\RiskyEvents",
-        [string]$Encoding = "UTF8"
+        [string]$Encoding = "UTF8",
+        [string[]]$UserIds
     )
 
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
@@ -154,46 +209,93 @@ function Get-RiskyDetections {
     $count = 0
 
     try {
-        $uri = "https://graph.microsoft.com/v1.0/identityProtection/riskDetections"
-        do {
-            $response = Invoke-MgGraphRequest -Method GET -Uri $uri
+        $baseUri = "https://graph.microsoft.com/v1.0/identityProtection/riskDetections"
 
-            if ($response.value) {
-                foreach ($detection in $response.value) {
-                    $results += [PSCustomObject]@{
-                        Activity = $detection.Activity
-                        ActivityDateTime = $detection.ActivityDateTime
-                        AdditionalInfo = $detection.AdditionalInfo
-                        CorrelationId = $detection.CorrelationId
-                        DetectedDateTime = $detection.DetectedDateTime
-                        IPAddress = $detection.IPAddress
-                        Id = $detection.Id
-                        LastUpdatedDateTime = $detection.LastUpdatedDateTime
-                        City = $detection.Location.City
-                        CountryOrRegion = $detection.Location.CountryOrRegion
-                        State = $detection.Location.State
-                        RequestId = $detection.RequestId
-                        RiskDetail = $detection.RiskDetail
-                        RiskEventType = $detection.RiskEventType
-                        RiskLevel = $detection.RiskLevel
-                        RiskState = $detection.RiskState
-                        DetectionTimingType = $detection.DetectionTimingType
-                        Source = $detection.Source
-                        TokenIssuerType = $detection.TokenIssuerType
-                        UserDisplayName = $detection.UserDisplayName
-                        UserId = $detection.UserId
-                        UserPrincipalName = $detection.UserPrincipalName
-                        AdditionalProperties = $detection.AdditionalProperties -join ", "
+        if ($UserIds) {
+            foreach ($userId in $UserIds) {
+                $encodedUserId = [System.Web.HttpUtility]::UrlEncode($userId)
+                $uri = "$baseUri`?`$filter=UserPrincipalName eq '$encodedUserId'"
+                Write-LogFile -Message "[INFO] Retrieving risky detections for User ID: $userId"
+
+                do {
+                    $response = Invoke-MgGraphRequest -Method GET -Uri $uri
+
+                    if ($response.value) {
+                        foreach ($detection in $response.value) {
+                            $results += [PSCustomObject]@{
+                                Activity = $detection.Activity
+                                ActivityDateTime = $detection.ActivityDateTime
+                                AdditionalInfo = $detection.AdditionalInfo
+                                CorrelationId = $detection.CorrelationId
+                                DetectedDateTime = $detection.DetectedDateTime
+                                IPAddress = $detection.IPAddress
+                                Id = $detection.Id
+                                LastUpdatedDateTime = $detection.LastUpdatedDateTime
+                                City = $detection.Location.City
+                                CountryOrRegion = $detection.Location.CountryOrRegion
+                                State = $detection.Location.State
+                                RequestId = $detection.RequestId
+                                RiskDetail = $detection.RiskDetail
+                                RiskEventType = $detection.RiskEventType
+                                RiskLevel = $detection.RiskLevel
+                                RiskState = $detection.RiskState
+                                DetectionTimingType = $detection.DetectionTimingType
+                                Source = $detection.Source
+                                TokenIssuerType = $detection.TokenIssuerType
+                                UserDisplayName = $detection.UserDisplayName
+                                UserId = $detection.UserId
+                                UserPrincipalName = $detection.UserPrincipalName
+                                AdditionalProperties = $detection.AdditionalProperties -join ", "
+                            }
+                            $count++
+                        }
                     }
-                    $count++
-                }
-            }
 
-            $uri = $response.'@odata.nextLink'
-        } while ($uri -ne $null)
+                    $uri = $response.'@odata.nextLink'
+                } while ($uri -ne $null)
+            }
+        }
+        else {
+            do {
+                $response = Invoke-MgGraphRequest -Method GET -Uri $baseUri
+
+                if ($response.value) {
+                    foreach ($detection in $response.value) {
+                        $results += [PSCustomObject]@{
+                            Activity = $detection.Activity
+                            ActivityDateTime = $detection.ActivityDateTime
+                            AdditionalInfo = $detection.AdditionalInfo
+                            CorrelationId = $detection.CorrelationId
+                            DetectedDateTime = $detection.DetectedDateTime
+                            IPAddress = $detection.IPAddress
+                            Id = $detection.Id
+                            LastUpdatedDateTime = $detection.LastUpdatedDateTime
+                            City = $detection.Location.City
+                            CountryOrRegion = $detection.Location.CountryOrRegion
+                            State = $detection.Location.State
+                            RequestId = $detection.RequestId
+                            RiskDetail = $detection.RiskDetail
+                            RiskEventType = $detection.RiskEventType
+                            RiskLevel = $detection.RiskLevel
+                            RiskState = $detection.RiskState
+                            DetectionTimingType = $detection.DetectionTimingType
+                            Source = $detection.Source
+                            TokenIssuerType = $detection.TokenIssuerType
+                            UserDisplayName = $detection.UserDisplayName
+                            UserId = $detection.UserId
+                            UserPrincipalName = $detection.UserPrincipalName
+                            AdditionalProperties = $detection.AdditionalProperties -join ", "
+                        }
+                        $count++
+                    }
+                }
+
+                $baseUri = $response.'@odata.nextLink'
+            } while ($baseUri -ne $null)
+        }
     } catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-	Write-LogFile -Message "[ERROR (Continued)] Check the below, as the target tenant may not be licenced for this feature $($_.ErrorDetails.Message)" -Color "Red"
+        Write-LogFile -Message "[ERROR (Continued)] Check the below, as the target tenant may not be licenced for this feature $($_.ErrorDetails.Message)" -Color "Red"
         throw
     }
 

@@ -141,6 +141,10 @@ Parameters
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
+-UserIds (optional)
+    - An array of User IDs to retrieve risky user information for.
+    - Default: If not specified, retrieves all risky users.
+
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'RiskyEvents' directory within the 'Output' directory.
@@ -171,6 +175,10 @@ Parameters
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
+
+-UserIds (optional)
+    - An array of User IDs to retrieve risky detections information for.
+    - Default: If not specified, retrieves all risky detections.
 
 Output
 """"""""""""""""""""""""""

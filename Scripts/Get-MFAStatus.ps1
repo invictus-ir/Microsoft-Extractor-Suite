@@ -34,7 +34,8 @@ function Get-MFA {
     [CmdletBinding()]
     param(
         [string]$OutputDir = "Output\MFA",
-        [string]$Encoding = "UTF8"
+        [string]$Encoding = "UTF8",
+        [string[]]$UserIds
     )
 
     $requiredScopes = @("UserAuthenticationMethod.Read.All","User.Read.All")
@@ -59,13 +60,25 @@ function Get-MFA {
   
     $results = @()
     $allUsers = @()
-    $nextLink = "https://graph.microsoft.com/v1.0/users"
 
-    do {
-        $response = Invoke-MgGraphRequest -Uri $nextLink -Method Get -OutputType PSObject
-        $allUsers += $response.value
-        $nextLink = $response.'@odata.nextLink'
-    } while ($nextLink)
+    if ($UserIds) {
+        foreach ($userId in $UserIds) {
+            $userUri = "https://graph.microsoft.com/v1.0/users/$userId"
+            try {
+                $user = Invoke-MgGraphRequest -Uri $userUri -Method Get -OutputType PSObject
+                $allUsers += $user
+            } catch {
+                Write-LogFile -Message "[WARNING] User with ID $userId not found" -Color "Yellow"
+            }
+        }
+    } else {
+        $nextLink = "https://graph.microsoft.com/v1.0/users"
+        do {
+            $response = Invoke-MgGraphRequest -Uri $nextLink -Method Get -OutputType PSObject
+            $allUsers += $response.value
+            $nextLink = $response.'@odata.nextLink'
+        } while ($nextLink)
+    }
 
     $MFAEmail = 0
     $MFAfido2 = 0
@@ -199,11 +212,13 @@ function Get-MFA {
         $nextLink = $response.'@odata.nextLink'
 
         ForEach ($detail in $userDetails) {
-          $myObject = [PSCustomObject]@{}
-          $detail.PSObject.Properties | ForEach-Object {
-              $myObject | Add-Member -Type NoteProperty -Name $_.Name -Value $_.Value
+          if (!$UserIds -or $UserIds -contains $detail.userPrincipalName) {
+            $myObject = [PSCustomObject]@{}
+            $detail.PSObject.Properties | ForEach-Object {
+                $myObject | Add-Member -Type NoteProperty -Name $_.Name -Value $_.Value
+            }
+            $results += $myObject
           }
-          $results += $myObject
         }
     } while ($nextLink)
 

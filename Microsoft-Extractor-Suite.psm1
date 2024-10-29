@@ -1,3 +1,7 @@
+param (
+    [switch]$NoWelcome = $false
+)
+
 # Set supported TLS methods
 [Net.ServicePointManager]::SecurityProtocol = "Tls12, Tls13"
 
@@ -5,7 +9,8 @@ $manifest = Import-PowerShellDataFile "$PSScriptRoot\Microsoft-Extractor-Suite.p
 $version = $manifest.ModuleVersion
 $host.ui.RawUI.WindowTitle = "Microsoft-Extractor-Suite $version"
 
-$logo=@"
+if (-not $NoWelcome) {
+    $logo=@"
  +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+
  |M|i|c|r|o|s|o|f|t| |E|x|t|r|a|c|t|o|r| |S|u|i|t|e|
  +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+                                                                                                                                                                     
@@ -13,7 +18,8 @@ Copyright 2024 Invictus Incident Response
 Created by Joey Rentenaar & Korstiaan Stam
 "@
 
-Write-Host $logo -ForegroundColor Yellow
+    Write-Host $logo -ForegroundColor Yellow
+}
 
 $outputDir = "Output"
 if (!(test-path $outputDir)) {
@@ -186,20 +192,33 @@ function Merge-OutputFiles {
             Write-LogFile -Message "[INFO] CSV files merged into $mergedPath"
         }
         'JSON' {
-            $allJsonObjects = @()
+            "[" | Set-Content $mergedPath -Encoding UTF8
 
-			Get-ChildItem $OutputDir -Filter *.json | ForEach-Object {
-                $jsonContent = Get-Content -Path $_.FullName -Raw | ConvertFrom-Json
-                if ($jsonContent -is [System.Collections.ArrayList] -or $jsonContent -is [System.Collections.Generic.List[object]]) {
-                    $allJsonObjects += $jsonContent
+            $firstFile = $true
+            Get-ChildItem $OutputDir -Filter *.json | ForEach-Object {
+                $content = Get-Content -Path $_.FullName -Raw
+                
+                $content = $content.Trim()
+                if ($content.StartsWith('[')) {
+                    $content = $content.Substring(1)
                 }
-                else {
-                    $allJsonObjects += @($jsonContent)
+                if ($content.EndsWith(']')) {
+                    $content = $content.Substring(0, $content.Length - 1)
+                }
+                $content = $content.Trim()
+
+                if (-not $firstFile -and $content) {
+                    Add-Content -Path $mergedPath -Value "," -Encoding UTF8
+                }
+
+                if ($content) {
+                    Add-Content -Path $mergedPath -Value $content -Encoding UTF8
+                    $firstFile = $false
                 }
             }
 
-            $allJsonObjects | ConvertTo-Json -Depth 100 | Set-Content $mergedPath
-            Write-Host "[INFO] JSON files merged into $mergedPath"
+            "]" | Add-Content $mergedPath -Encoding UTF8
+            Write-LogFile -Message "[INFO] JSON files merged into $mergedPath"
         }
         default {
             Write-LogFile -Message "[ERROR] Unsupported file type specified: $OutputType" -Color Red

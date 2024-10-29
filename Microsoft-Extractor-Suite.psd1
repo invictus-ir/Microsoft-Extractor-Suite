@@ -8,7 +8,7 @@ Author = 'Joey Rentenaar & Korstiaan Stam'
 CompanyName = 'Invictus-IR'
 
 # Version number of this module.
-ModuleVersion = '2.1.0' 
+ModuleVersion = '2.1.1' 
 
 # ID used to uniquely identify this module
 GUID = '4376306b-0078-4b4d-b565-e22804e3be01'

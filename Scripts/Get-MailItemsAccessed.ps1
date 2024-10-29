@@ -680,7 +680,7 @@ function DownloadMails($iMessageID,$UserIds){
 
         $subject = $getMessage.Subject
         $subject = $subject -replace '[\\/:*?"<>|]', '_'
-        $filePath = "$outputDir\$ReceivedDateTime-$subject.elm"
+        $filePath = "$outputDir\$ReceivedDateTime-$subject.eml"
 
         try {
             Get-MgUserMessageContent -MessageId $messageId -UserId $userId -OutFile $filePath

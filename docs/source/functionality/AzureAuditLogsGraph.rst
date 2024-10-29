@@ -19,6 +19,11 @@ Get the Azure Active Directory Audit Log after 2023-04-12:
 
    Get-ADAuditLogsGraph -endDate 2023-04-12
 
+Get sign-in logs for 'user@example.com', including both userPrincipalName and targetResources in the filter:
+::
+
+   Get-ADAuditLogsGraph -UserIds 'user@example.com' -All
+
 Parameters
 """"""""""""""""""""""""""
 -startDate (optional)
@@ -40,6 +45,9 @@ Parameters
 
 -UserIds (optional)
     - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
+
+-All (optional)
+    - When specified along with UserIds, this parameter filters the results to include events where the provided UserIds match any user principal name found in either the userPrincipalNames or targetResources fields.
 
 Output
 """"""""""""""""""""""""""

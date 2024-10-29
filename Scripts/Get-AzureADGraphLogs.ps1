@@ -81,7 +81,6 @@ function Get-ADSignInLogsGraph {
 
 	$StartDate = $script:StartDate.ToString('yyyy-MM-ddTHH:mm:ssZ')
     $EndDate = $script:EndDate.ToString('yyyy-MM-ddTHH:mm:ssZ')
-	$TotalTicks = ($script:EndDate-$script:StartDate).Ticks
 
 	$filterQuery = "createdDateTime ge $StartDate and createdDateTime le $EndDate"
 	if ($UserIds) {
@@ -100,16 +99,18 @@ function Get-ADSignInLogsGraph {
 				$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
                 $filePath = Join-Path -Path $OutputDir -ChildPath "$($date)-SignInLogsGraph.json"
 
-				$responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
-				$dates = $responseJson.value | ForEach-Object { [DateTime]::Parse($_.CreatedDateTime) } | Sort-Object
-                $from =  $dates | Select-Object -First 1
-                $fromstr =  $from.ToString('yyyy-MM-ddTHH:mmZ')
-                $to = ($dates | Select-Object -Last 1).ToString('yyyy-MM-ddTHH:mmZ')
-                $count = ($responseJson.value | measure).Count
-                Write-Host "[INFO] Sign-in logs written to $filePath ($count records between $fromStr and $to)" -ForegroundColor Green 
+				$responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding			
+				#$dates = $responseJson.value | ForEach-Object { [DateTime]::Parse($_.CreatedDateTime) } | Sort-Object
 
-			    $progress = [Math]::Round(($script:EndDate-$from).Ticks / $TotalTicks * 100, 2)
-                Write-Progress -Activity "Collecting Sign-in logs" -Status "$progress% Complete" -PercentComplete $progress
+				$dates = $responseJson.value | ForEach-Object {
+					[DateTime]::Parse($_.CreatedDateTime, [System.Globalization.CultureInfo]::InvariantCulture)
+				} | Sort-Object
+				
+                $from =  $dates | Select-Object -First 1
+               # $fromstr =  $from.ToString('yyyy-MM-ddTHH:mmZ')
+                $to = ($dates | Select-Object -Last 1) #.ToString('yyyy-MM-ddTHH:mmZ')
+                $count = ($responseJson.value | measure).Count
+                Write-LogFile -Message "[INFO] Sign-in logs written to $filePath ($count records between $from and $to)" -Color Green
             }
             $apiUrl = $responseJson.'@odata.nextLink'
         } While ($apiUrl)
@@ -147,6 +148,9 @@ function Get-ADAuditLogsGraph {
 	.PARAMETER UserIds
 	UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
+	.PARAMETER All
+    When specified along with UserIds, this parameter filters the results to include events where the provided UserIds match any user principal name found in either the userPrincipalNames or targetResources fields.
+
 	.PARAMETER Encoding
 	Encoding is the parameter specifying the encoding of the JSON output file.
 	Default: UTF8
@@ -164,6 +168,10 @@ function Get-ADAuditLogsGraph {
 	Get directory audit logs via application authentication.
 
 	.EXAMPLE
+    Get-ADAuditLogsGraph -UserIds 'user@example.com' -All
+    Get sign-in logs for 'user@example.com', including both userPrincipalName and targetResources in the filter.
+
+	.EXAMPLE
 	Get-ADAuditLogsGraph -Before 2023-04-12
 	Get directory audit logs before 2023-04-12.
 
@@ -178,7 +186,8 @@ function Get-ADAuditLogsGraph {
 		[string]$OutputDir,
 		[string]$Encoding = "UTF8",
 		[switch]$MergeOutput,
-		[string]$UserIds
+		[string]$UserIds,
+        [switch]$All
 	)
 
 	$requiredScopes = @("AuditLog.Read.All", "Directory.Read.All")
@@ -209,12 +218,20 @@ function Get-ADAuditLogsGraph {
 
 	$StartDate = $script:StartDate.ToString('yyyy-MM-ddTHH:mm:ssZ')
 	$EndDate = $script:EndDate.ToString('yyyy-MM-ddTHH:mm:ssZ')
-	$TotalTicks = ($script:EndDate-$script:StartDate).Ticks
 
 	$filterQuery = "activityDateTime ge $StartDate and activityDateTime le $EndDate"
 	if ($UserIds) {
 		$filterQuery += " and startsWith(initiatedBy/user/userPrincipalName, '$UserIds')"
+
+		if ($All.IsPresent) {
+            $filterQuery = "($filterQuery) or (targetResources/any(tr: tr/userPrincipalName eq '$UserIds'))"
+        }
 	}
+	else {
+        if ($All.IsPresent) {
+            Write-LogFile -Message "[WARNING] '-All' switch has no effect without specifying UserIds"
+        }
+    }
 
 	$encodedFilterQuery = [System.Web.HttpUtility]::UrlEncode($filterQuery)
 	$apiUrl = "https://graph.microsoft.com/v1.0/auditLogs/directoryAudits?`$filter=$encodedFilterQuery"
@@ -227,15 +244,18 @@ function Get-ADAuditLogsGraph {
 				$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 				$filePath = Join-Path -Path $OutputDir -ChildPath "$($date)-AuditLogs.json"
                 $responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
-                $dates = $responseJson.value | ForEach-Object { [DateTime]::Parse($_.activityDateTime) } | Sort-Object
+                
+				#$dates = $responseJson.value | ForEach-Object { [DateTime]::Parse($_.activityDateTime) } | Sort-Object
+				
+				$dates = $responseJson.value | ForEach-Object {
+					[DateTime]::Parse($_.activityDateTime, [System.Globalization.CultureInfo]::InvariantCulture)
+				} | Sort-Object
+
                 $from =  $dates | Select-Object -First 1
                 $fromstr =  $from.ToString('yyyy-MM-ddTHH:mmZ')
                 $to = ($dates | Select-Object -Last 1).ToString('yyyy-MM-ddTHH:mmZ')
                 $count = ($responseJson.value | measure).Count
-    			Write-Host "[INFO] Audit logs written to $filePath ($count records between $fromstr and $to)" -ForegroundColor Green 
-
-			    $progress = [Math]::Round(($script:EndDate-$from).Ticks / $TotalTicks * 100, 2)
-                Write-Progress -Activity "Collecting Audit logs" -Status "$progress% Complete" -PercentComplete $progress
+    			Write-LogFile -Message "[INFO] Audit logs written to $filePath ($count records between $fromstr and $to)" -Color Green
 			}
 			$apiUrl = $responseJson.'@odata.nextLink'
 		} While ($apiUrl)

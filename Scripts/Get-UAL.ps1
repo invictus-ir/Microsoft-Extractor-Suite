@@ -88,7 +88,7 @@ function Get-UALAll
     )
 	
 	try {
-		$areYouConnected = Get-AdminAuditLogConfig -ErrorAction stop
+		$areYouConnected = Search-UnifiedAuditLog -StartDate (Get-Date).AddDays(-1) -EndDate (Get-Date) -ResultSize 1 -ErrorAction Stop
 	}
 	catch {
 		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
@@ -326,7 +326,7 @@ function Get-UALGroup
 	)
 
 	try {
-		$areYouConnected = Get-AdminAuditLogConfig -ErrorAction stop
+		$areYouConnected = Search-UnifiedAuditLog -StartDate (Get-Date).AddDays(-1) -EndDate (Get-Date) -ResultSize 1 -ErrorAction Stop
 	}
 	catch {
 		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
@@ -604,7 +604,7 @@ function Get-UALSpecific
 	)
 
 	try {
-		$areYouConnected = Get-AdminAuditLogConfig -ErrorAction stop
+		$areYouConnected = Search-UnifiedAuditLog -StartDate (Get-Date).AddDays(-1) -EndDate (Get-Date) -ResultSize 1 -ErrorAction Stop
 	}
 	catch {
 		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
@@ -854,7 +854,7 @@ function Get-UALSpecificActivity
 	)
 
 	try {
-		$areYouConnected = Get-AdminAuditLogConfig -ErrorAction stop
+		$areYouConnected = Search-UnifiedAuditLog -StartDate (Get-Date).AddDays(-1) -EndDate (Get-Date) -ResultSize 1 -ErrorAction Stop
 	}
 	catch {
 		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"

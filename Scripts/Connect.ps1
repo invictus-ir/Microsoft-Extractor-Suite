@@ -1,18 +1,177 @@
 Function Connect-M365
 {
-	versionCheck
-	Connect-ExchangeOnline > $null
+    PARAM(
+        [string]
+        $ConnectionUri,
+        [string]
+        $AzureADAuthorizationEndpointUri,
+        [ValidateSet('O365China', 'O365Default', 'O365GermanyCloud', 'O365USGovDoD', 'O365USGovGCCHigh')]
+        [string]
+        $ExchangeEnvironmentName,
+        [string[]]
+        $PSSessionOptions,
+        [string]
+        $DelegatedOrganization,
+        [string]
+        $Prefix,
+        [string[]]
+        $CommandName,
+        [string[]]
+        $FormatTypeName,
+        [string]
+        $AccessToken,
+        [string]
+        $AppId,
+        [switch]
+        $BypassMailboxAnchoring,
+        [X509Certificate]
+        $Certificate,
+        [string]
+        $CertificateFilePath,
+        [SecureString]
+        $CertificatePassword,
+        [string]
+        $CertificateThumbprint,
+        [PSCredential]
+        $Credential,
+        [switch]
+        $Device,
+        [switch]
+        $EnableErrorReporting,
+        [switch]
+        $InlineCredential,
+        [string]
+        $LogDirectoryPath,
+        [string]
+        $LogLevel,
+        [switch]
+        $ManagedIdentity,
+        [string]
+        $ManagedIdentityAccountId,
+        [string]
+        $Organization,
+        [int]
+        $PageSize,
+        [switch]
+        $ShowBanner,
+        [X509Certificate]
+        $SigningCertificate,
+        [switch]
+        $SkipLoadingCmdletHelp,
+        [switch]
+        $SkipLoadingFormatData,
+        [Boolean]
+        $TrackPerformance,
+        [Boolean]
+        $UseMultithreading,
+        [string]
+        $UserPrincipalName,
+        [Switch]
+        $UseRPSSession
+    )
+    versionCheck
+    Connect-ExchangeOnline @PSBoundParameters > $null;
 }
 
 Function Connect-Azure
 {
-	versionCheck
-	Connect-AzureAD > $null
+    PARAM(
+        [ValidateSet('AzureChinaCloud', 'AzureCloud', 'AzureGermanyCloud', 'AzurePPE', 'AzureUSGovernment', 'AzureUSGovernment2', 'AzureUSGovernment3')]
+        [string]
+        $AzureEnvironmentName,
+        [string]
+        $TenantId,
+        [pscredential]
+        $Credential,
+        [string]
+        $CertificateThumbprint,
+        [string]
+        $ApplicationId,
+        [string]
+        $AadAccessToken,
+        [string]
+        $MsAccessToken,
+        [string]
+        $AccountId,
+        [ValidateSet('Error', 'Info', 'None', 'Warning')]
+        [string]
+        $LogLevel,
+        [string]
+        $LogFilePath,
+        [switch]
+        $WhatIf,
+        [switch]
+        $Confirm,
+        [Switch]
+        $Verbose,
+        [switch]
+        $Debug
+    )
+    versionCheck
+    Connect-AzureAD @PSBoundParameters > $null;
 }
 
 Function Connect-AzureAZ
 {
-	versionCheck
-	Connect-AzAccount > $null
+    PARAM(
+        [String]
+        $AccessToken ,
+        [String]
+        $AccountId ,
+        [String]
+        $ApplicationId ,
+        [String]
+        $AuthScope ,
+        [SecureString]
+        $CertificatePassword,
+        [String]
+        $CertificatePath ,
+        [String]
+        $CertificateThumbprint ,
+        [String]
+        $ContextName ,
+        [PSCredential]
+        $Credential,
+        [string]
+        $DefaultProfile ,
+        [String]
+        $Environment ,
+        [String]
+        $FederatedToken ,
+        [switch]
+        $Force ,
+        [String]
+        $GraphAccessToken ,
+        [switch]
+        $Identity,
+        [String]
+        $KeyVaultAccessToken ,
+        [int]
+        $MaxContextPopulation,
+        [String]
+        $MicrosoftGraphAccessToken ,
+        [ValidateSet('CurrentUser', 'Process')]
+        [string]
+        $Scope,
+        [switch]
+        $SendCertificateChain,
+        [switch]
+        $ServicePrincipal,
+        [switch]
+        $SkipContextPopulation ,
+        [switch]
+        $SkipValidation ,
+        [String]
+        $Subscription ,
+        [String]
+        $Tenant ,
+        [switch]
+        $UseDeviceAuthentication,
+        [switch]
+        $Confirm,
+        [switch]
+        $WhatIf
+    )
+    versionCheck
+    Connect-AzAccount @PSBoundParameters > $null;
 }
-

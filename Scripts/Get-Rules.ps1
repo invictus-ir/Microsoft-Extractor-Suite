@@ -126,7 +126,7 @@ function Show-MailboxRules
 
 	else {	
 		if ($UserIds -match ",") {
-			$UserIds.Split(",") | Foreach {
+			$UserIds.Split(",") | ForEach-Object {
 				$user = $_
 				Write-Output ('[INFO] Checking {0}...' -f $user)
 				
@@ -167,8 +167,15 @@ function Show-MailboxRules
 			}
 		}
 	}
+
+	if ($amountofRules -gt 0) {
+		write-LogFile -Message "[INFO] A total of $amountofRules Inbox Rules found" -Color "Green"
+	}
+	else {
+		write-LogFile -Message "[INFO] No Inbox Rules found!" -Color "Yellow"
+	}
 		
-	write-LogFile -Message "[INFO] A total of $amountofRules InboxRules found" -Color "Green"
+	
 }
 
 function Get-MailboxRules
@@ -228,7 +235,7 @@ function Get-MailboxRules
 		$totalRules = 0
 		Get-mailbox -resultsize unlimited  |
 		ForEach-Object {
-			Write-Output ('[INFO] Checking {0}...' -f $_.UserPrincipalName)
+			write-LogFile -Message ('[INFO] Checking {0}...' -f $_.UserPrincipalName)
 			
 			$inboxrule = Get-inboxrule -Mailbox $_.UserPrincipalName  
 			if ($inboxrule) {
@@ -259,10 +266,10 @@ function Get-MailboxRules
 	
 	else {	
 		if ($UserIds -match ",") {
-			$UserIds.Split(",") | Foreach {
+			$UserIds.Split(",") | ForEach-Object {
 				$User = $_
 	
-				Write-Output ('[INFO] Checking {0}...' -f $User)
+				write-LogFile -Message ('[INFO] Checking {0}...' -f $User)
 				$inboxrule = get-inboxrule -Mailbox $User
 				if ($inboxrule) {
 					$amountofRules = 0
@@ -294,7 +301,7 @@ function Get-MailboxRules
 			Write-Output ('[INFO] Checking {0}...' -f $UserIds)
 			$inboxrule = get-inboxrule -Mailbox $UserIds 
 			if ($inboxrule) {
-				write-host ('[INFO] Found InboxRule(s) for: {0}...' -f $UserIds) -ForegroundColor Yellow
+				write-LogFile -Message ('[INFO] Found InboxRule(s) for: {0}...' -f $UserIds) -ForegroundColor Yellow
 				foreach($rule in $inboxrule){
 					$amountofRules = $amountofRules + 1
 					$tempval = [pscustomobject]@{
@@ -318,6 +325,11 @@ function Get-MailboxRules
 		}
 	}
 
-	write-LogFile -Message "[INFO] A total of $totalRules InboxRules found!" -Color "Green"
-	write-LogFile -Message "[INFO] InboxRules rules are collected and writen to: $outputDirectory" -Color "Green"
+	if ($RuleCount -gt 0) {
+		write-LogFile -Message "[INFO] A total of $RuleCount Inbox Rules found!" -Color "Green"
+		write-LogFile -Message "[INFO] Inbox rules are collected and written to: $outputDirectory" -Color "Green"
+	}
+	else {
+		write-LogFile -Message "[INFO] No Inbox Rules found!" -Color "Yellow"
+	}
 }

@@ -8,7 +8,7 @@ Microsoft-Extractor-Suite documentation!
 
 .. note::
 
-   🆘 Incident Response support reach out to cert@invictus-ir.com or go to https://www.invictus-ir.com/247
+   🆘 Incident Response support reach out to cert@invictus-ir.com or go to https://www.invictus-ir.com/24-7-emergency-response
 
 Supported sources
 -------
@@ -60,12 +60,17 @@ To import the Microsoft-Extractor-Suite:
 
    Import-Module .\Microsoft-Extractor-Suite.psd1
 
+To import the Microsoft-Extractor-Suite without the logo output:
+::
+
+   Import-Module .\Microsoft-Extractor-Suite.psd1 -ArgumentList $true
+
 Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage before M365-Toolkit functions are made available. To sign in, use the cmdlets:
 ::
 
-   Connect-M365
-   Connect-Azure
-   Connect-AzureAZ
+   Connect-M365 or Connect-ExchangeOnline
+   Connect-Azure or Connect-AzureAD
+   Connect-AzureAZ or Connect-AzAccount
 
 Getting Help
 ------------
