@@ -212,13 +212,18 @@ function Get-MFA {
         $nextLink = $response.'@odata.nextLink'
 
         ForEach ($detail in $userDetails) {
-          if (!$UserIds -or $UserIds -contains $detail.userPrincipalName) {
-            $myObject = [PSCustomObject]@{}
-            $detail.PSObject.Properties | ForEach-Object {
-                $myObject | Add-Member -Type NoteProperty -Name $_.Name -Value $_.Value
+            if (!$UserIds -or $UserIds -contains $detail.userPrincipalName) {
+                $myObject = [PSCustomObject]@{}
+                $detail.PSObject.Properties | ForEach-Object {
+                    $value = if ($_.Value -is [System.Array]) {
+                        ($_.Value -join ', ')
+                    } else {
+                        $_.Value
+                    }
+                    $myObject | Add-Member -Type NoteProperty -Name $_.Name -Value $value
+                }
+                $results += $myObject
             }
-            $results += $myObject
-          }
         }
     } while ($nextLink)
 
