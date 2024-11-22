@@ -64,7 +64,7 @@ function Get-AdminAuditLog {
     Write-LogFile -Message "[INFO] Extracting all available Admin Audit Logs between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Green"
 
 	try {
-		$results = Search-AdminAuditLog -ResultSize 250000 -StartDate $script:startDate -EndDate $script:EndDate
+		$results = Search-UnifiedAuditLog -RecordType 'ExchangeAdmin' -ResultSize 5000 -StartDate $script:startDate -EndDate $script:EndDate
 		$results | Export-Csv $outputDirectory -NoTypeInformation -Append -Encoding UTF8
 	}
 	catch {
