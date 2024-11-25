@@ -32,7 +32,7 @@ Function StartDate
 {
 	if (($startDate -eq "") -Or ($null -eq $startDate)) {
 		$script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-90)
-		write-LogFile -Message "[INFO] No start date provived by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
+		write-LogFile -Message "[INFO] No start date provided by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
 	}
 	else
 	{
@@ -47,7 +47,7 @@ Function StartDateAz
 {
 	if (($startDate -eq "") -Or ($null -eq $startDate)) {
 		$script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-30)
-		write-LogFile -Message "[INFO] No start date provived by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
+		write-LogFile -Message "[INFO] No start date provided by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
 	}
 	else
 	{
@@ -62,7 +62,7 @@ function EndDate
 {
 	if (($endDate -eq "") -Or ($null -eq $endDate)) {
 		$script:EndDate = [datetime]::Now.ToUniversalTime()
-		write-LogFile -Message "[INFO] No end date provived by user setting the end date to: $($script:EndDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
+		write-LogFile -Message "[INFO] No end date provided by user setting the end date to: $($script:EndDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
 	}
 
 	else {
