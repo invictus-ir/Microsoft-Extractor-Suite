@@ -23,6 +23,7 @@ NestedModules = @(
 	".\Scripts\Get-UAL.ps1"
 	".\Scripts\Get-UALStatistics.ps1"
 	".\Scripts\Connect.ps1"
+ 	".\Scripts\Disconnect.ps1"
 	".\Scripts\Get-Rules.ps1"
 	".\Scripts\Get-MailboxAuditLog.ps1"
 	".\Scripts\Get-MessageTraceLog.ps1"
@@ -46,7 +47,12 @@ FunctionsToExport = @(
 	"Connect-M365"
 	"Connect-Azure"
 	"Connect-AzureAZ"
-	
+
+	# Disconnect.ps1
+	"Disconnect-M365"
+	"Disconnect-Azure"
+	"Disconnect-AzureAZ"
+
 	# Get-UAL.ps1
 	"Get-UALAll"
 	"Get-UALGroup"
