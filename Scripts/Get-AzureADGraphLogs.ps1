@@ -16,6 +16,10 @@ function Get-ADSignInLogsGraph {
 	MergeOutput is the parameter specifying if you wish to merge outputs to a single file
 	Default: No
 
+	.PARAMETER Output
+    Output is the parameter specifying the JSON or JSON-ELK output type. The JSON-ELK output can be imported into the sof-elk project.
+	Default: JSON
+
     .PARAMETER OutputDir
     outputDir is the parameter specifying the output directory.
     Default: The output will be written to: Output\AzureAD\{date_SignInLogs}\SignInLogs.json
@@ -42,11 +46,16 @@ function Get-ADSignInLogsGraph {
     .EXAMPLE
     Get-ADSignInLogsGraph -startDate 2023-04-12
     Get audit logs after 2023-04-12.
+
+	.EXAMPLE
+    Get-ADSignInLogsGraph -Output JSON-ELK -MergeOutput
+    Get the Azure Active Directory SignIn Log in a sof-elk format and merge all data into a single file.
 #>
     [CmdletBinding()]
     param(
         [string]$startDate,
 		[string]$endDate,
+		[string]$Output = "JSON",
         [string]$OutputDir,
         [string]$UserIds,
 		[switch]$MergeOutput,
@@ -98,8 +107,16 @@ function Get-ADSignInLogsGraph {
 			if ($responseJson.value) {
 				$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
                 $filePath = Join-Path -Path $OutputDir -ChildPath "$($date)-SignInLogsGraph.json"
-
-				$responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding			
+				if ($Output -eq "JSON" )
+				{
+					$responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding	
+				} 
+				elseif ($Output -eq "JSON-ELK"){
+					# UTF8 is fixed, as it is required by sof-elk
+					foreach ($item in $responseJson.value) {
+						$item | ConvertTo-Json -Depth 100 -Compress | Out-File -FilePath $filePath -Append -Encoding UTF8	
+					}
+				}
 				#$dates = $responseJson.value | ForEach-Object { [DateTime]::Parse($_.CreatedDateTime) } | Sort-Object
 
 				$dates = $responseJson.value | ForEach-Object {
@@ -119,9 +136,13 @@ function Get-ADSignInLogsGraph {
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
     }
 
-	if ($MergeOutput.IsPresent) {
+	if ($Output -eq "JSON" -and ($MergeOutput.IsPresent)) {
 		Write-LogFile -Message "[INFO] Merging output files into one file"
 		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "SignInLogs-Combined.json"
+	}
+	elseif ($Output -eq "JSON-ELK" -and ($MergeOutput.IsPresent)) {
+		Write-LogFile -Message "[INFO] Merging output files into one file"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON-ELK" -MergedFileName "SignInLogs-Combined.json"
 	}
 
 	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		
