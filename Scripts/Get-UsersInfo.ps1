@@ -223,3 +223,99 @@ Function Get-AdminUsers {
     $date = Get-Date -Format "yyyyMMddHHmm"
     Get-ChildItem $OutputDir -Filter "*Administrator.csv" | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/$($date)-All-Administrators.csv" -NoTypeInformation -Append  
 }
+
+Function Get-UserDevices {
+    <#
+        .SYNOPSIS
+        Retrieves devices registered for each user in Azure AD with detailed device information.
+    
+        .DESCRIPTION
+        Retrieves devices registered to users in Azure AD, including key properties like `accountEnabled`, `approximateLastSignInDateTime`, `createdDateTime`, `displayName`, `operatingSystem`, and `operatingSystemVersion`. Outputs the results to a CSV file.
+    
+        .PARAMETER OutputDir
+        Specifies the directory where output files will be saved.
+        Default: Output\Devices
+    
+        .PARAMETER Encoding
+        Specifies the encoding for the CSV output file.
+        Default: UTF8
+    
+        .EXAMPLE
+        Get-UserDevices
+        Retrieves detailed device information for all users in Azure AD.
+    
+        .EXAMPLE
+        Get-UserDevices -Encoding utf32
+        Retrieves device details and exports the output in UTF-32 encoding.
+    
+        .EXAMPLE
+        Get-UserDevices -OutputDir C:\Temp
+        Retrieves device details and saves the output in the C:\Temp directory.
+    #>
+    
+        [CmdletBinding()]
+        param(
+            [string]$OutputDir = "Output\Users",
+            [string]$Encoding = "UTF8"
+        )
+    
+        $requiredScopes = @("User.Read.All", "Directory.Read.All", "Device.Read.All")
+        $graphAuth = Get-GraphAuthType -RequiredScopes $requiredScopes
+    
+        if (!(Test-Path -Path $OutputDir)) {
+            New-Item -ItemType Directory -Force -Path $OutputDir > $null
+            Write-Logfile -Message "[INFO] Creating the following directory: $OutputDir"
+        }
+        else {
+            Write-Logfile -Message "[INFO] Using existing directory: $OutputDir"
+        }
+    
+        Write-Logfile -Message "[INFO] Running Get-UserDevices" -Color "Green"
+    
+        try {
+            $users = Get-MgUser -All -Property Id, DisplayName
+            $results = @()
+    
+            foreach ($user in $users) {
+                Write-Logfile -Message "[INFO] Fetching devices for user: $($user.DisplayName)"
+                try {
+                    $devices = Get-MgUserRegisteredDevice -UserId $user.Id -All
+    
+                    foreach ($device in $devices) {
+                        $results += [PSCustomObject]@{
+                            UserName                    = $user.DisplayName
+                            UserId                      = $user.Id
+                            DeviceName                  = $device.AdditionalProperties.displayName
+                            OperatingSystem             = $device.AdditionalProperties.operatingSystem
+                            OperatingSystemVersion      = $device.AdditionalProperties.operatingSystemVersion
+                            AccountEnabled              = $device.AdditionalProperties.accountEnabled
+                            ApproximateLastSignInDate   = $device.AdditionalProperties.approximateLastSignInDateTime
+                            CreatedDateTime             = $device.AdditionalProperties.createdDateTime
+                        }
+                    }
+                }
+                catch {
+                    Write-Logfile -Message "[WARNING] Failed to retrieve devices for user: $($user.DisplayName)" -Color "Yellow"
+                }
+            }
+    
+            $date = Get-Date -Format "yyyyMMddHHmm"
+            $filePath = "$OutputDir\$($date)-UserDevices.csv"
+            $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+            Write-Logfile -Message "[INFO] Output written to $filePath" -Color "Green"
+        }
+        catch {
+            Write-Logfile -Message "[ERROR] An error occurred: $($_.Exception.Message)"
+            throw
+        }
+    
+        $outputDirMerged = "$OutputDir\Merged\"
+        if (!(Test-Path -Path $outputDirMerged)) {
+            Write-Logfile -Message "[INFO] Creating the following directory: $outputDirMerged"
+            New-Item -ItemType Directory -Force -Path $outputDirMerged > $null
+        }
+    
+        Write-Logfile -Message "[INFO] Merging User Device CSV Output Files" -Color 'Green'
+        $date = Get-Date -Format "yyyyMMddHHmm"
+        Get-ChildItem $OutputDir -Filter "*UserDevices.csv" | Select-Object -ExpandProperty FullName | Import-Csv | Export-Csv "$outputDirMerged/$($date)-All-UserDevices.csv" -NoTypeInformation -Append
+}    
