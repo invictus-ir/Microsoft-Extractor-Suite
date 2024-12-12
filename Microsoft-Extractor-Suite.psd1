@@ -97,9 +97,10 @@ FunctionsToExport = @(
 	"Get-ADSignInLogsGraph"
 	"Get-ADAuditLogsGraph"
 
-	# Get-Users.ps1
+	# Get-UsersInfo.ps1
 	"Get-Users"
 	"Get-AdminUsers"
+ 	"Get-UserDevices"
 
 	# Get-MFAStatus.ps1
 	"Get-MFA"
