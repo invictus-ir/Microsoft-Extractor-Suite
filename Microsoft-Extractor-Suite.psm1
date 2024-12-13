@@ -192,7 +192,7 @@ function Merge-OutputFiles {
             Write-LogFile -Message "[INFO] CSV files merged into $mergedPath"
         }
         'JSON-ELK' {
-			Get-ChildItem $OutputDir -Filter *.json | Select-Object -ExpandProperty FullName | ForEach-Object { Get-Content -Path $_ } | Out-File -Append $mergedPath -Encoding UTF8 
+			Get-ChildItem $OutputDir -Filter *.json | Select-Object -ExpandProperty FullName | ForEach-Object { Get-Content -Path $_ | Where-Object { $_.Trim() -ne "" } } | Out-File -Append $mergedPath -Encoding UTF8 
             Write-LogFile -Message "[INFO] JSON-ELK files merged into $mergedPath"
         }
         'JSON' {

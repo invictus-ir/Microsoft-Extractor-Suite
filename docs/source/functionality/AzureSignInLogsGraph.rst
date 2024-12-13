@@ -19,6 +19,11 @@ Get the Azure Active Directory Audit Log after 2023-04-12:
 
    Get-ADSignInLogsGraph -startDate 2023-04-12
 
+Get the Azure Active Directory SignIn Log in a sof-elk format and merge all data into a single file:
+::
+
+   Get-ADSignInLogsGraph -Output JSON-ELK -MergeOutput
+
 Parameters
 """"""""""""""""""""""""""
 -startDate (optional)
@@ -26,6 +31,11 @@ Parameters
 
 -endDate (optional)
     - endDate is the parameter specifying the end date of the date range.
+
+-Output (optional)
+    - Output is the parameter specifying the JSON or JSON-ELK output type.
+    - The JSON-ELK output type can be used to export logs in a [sof-elk](https://github.com/philhagen/sof-elk) compatible format.
+    - Default: JSON
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
