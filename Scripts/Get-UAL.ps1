@@ -27,7 +27,7 @@ function Get-UALAll
 	Default: 720 minutes
 
 	.PARAMETER Output
-    Output is the parameter specifying the CSV, JSON or JSON-ELK output type. The JSON-ELK output can be imported into the sof-elk project.
+    Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
 	Default: CSV
 
 	.PARAMETER OutputDir
@@ -35,7 +35,7 @@ function Get-UALAll
 	Default: Output\UnifiedAuditLog
 
  	.PARAMETER MergeOutput
-    MergeOutput is the parameter specifying if you wish to merge CSV/JSON/JSON-ELK outputs to a single file.
+    MergeOutput is the parameter specifying if you wish to merge CSV/JSON/SOF-ELK outputs to a single file.
 
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.
@@ -204,7 +204,7 @@ function Get-UALAll
 					if ($currentTotal -eq $results[$results.Count - 1].ResultIndex) {
 						$message = "[INFO] Successfully retrieved $($currentCount) records out of total $($currentTotal) for the current time range. Moving on!"
 						
-						if ($Output -eq "JSON" -or $Output -eq "JSON-ELK")
+						if ($Output -eq "JSON" -or $Output -eq "SOF-ELK")
 						{
 							$results = $results | ForEach-Object {
 								$_.AuditData = $_.AuditData | ConvertFrom-Json
@@ -217,7 +217,7 @@ function Get-UALAll
 								$json = $results | ConvertTo-Json -Depth 100
 								$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
 							} 
-							elseif ($Output -eq "JSON-ELK"){
+							elseif ($Output -eq "SOF-ELK"){
 								# Converts the JSON structure [{"AuditData":[data1],...},{"AuditData":[data2],...},...] to [[data1],[data2],...] with one data object per line in the final .json file.
 								# Encoding is hard-coded to UTF8 as UTF16 causes problems when importing the data into SOF-ELK
 								foreach ($item in $results) {
@@ -248,9 +248,9 @@ function Get-UALAll
 		Write-LogFile -Message "[INFO] Merging output files into one file"
 		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "UAL-Combined.json"
 	}
-	elseif ($Output -eq "JSON-ELK" -and ($MergeOutput.IsPresent)) {
+	elseif ($Output -eq "SOF-ELK" -and ($MergeOutput.IsPresent)) {
 		Write-LogFile -Message "[INFO] Merging output files into one file"
-		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON-ELK" -MergedFileName "UAL-Combined.json"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "SOF-ELK" -MergedFileName "UAL-Combined.json"
 	}
 
 	Write-LogFile -Message "[INFO] Acquisition complete, check the Output directory for your files.." -Color "Green"
@@ -287,7 +287,7 @@ function Get-UALGroup
 	Options are: Exchange, Azure, Sharepoint, Skype and Defender
 
 	.PARAMETER Output
-    Output is the parameter specifying the CSV, JSON or JSON-ELK output type. The JSON-ELK output can be imported into the sof-elk project.
+    Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
 	Default: CSV
 
 	.PARAMETER OutputDir
@@ -295,7 +295,7 @@ function Get-UALGroup
 	Default: Output\UnifiedAuditLog
  
  	.PARAMETER MergeOutput
-    MergeOutput is the parameter specifying if you wish to merge CSV/JSON/JSON-ELK outputs to a single file.
+    MergeOutput is the parameter specifying if you wish to merge CSV/JSON/SOF-ELK outputs to a single file.
     
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.
@@ -504,7 +504,7 @@ function Get-UALGroup
 										$json = $results | ConvertTo-Json -Depth 100
 										$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
 									} 
-									elseif ($Output -eq "JSON-ELK"){
+									elseif ($Output -eq "SOF-ELK"){
 										# Converts the JSON structure [{"AuditData":[data1],...},{"AuditData":[data2],...},...] to [[data1],[data2],...] with one data object per line in the final .json file.
 										foreach ($item in $results) {
 												$item.AuditData | ConvertTo-Json -Compress -Depth 100 | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding UTF8
@@ -539,9 +539,9 @@ function Get-UALGroup
 		Write-LogFile -Message "[INFO] Merging output files into one file"
 		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "UAL-Combined.json"
 	}
-	elseif ($Output -eq "JSON-ELK" -and ($MergeOutput.IsPresent)) {
+	elseif ($Output -eq "SOF-ELK" -and ($MergeOutput.IsPresent)) {
 		Write-LogFile -Message "[INFO] Merging output files into one file"
-		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON-ELK" -MergedFileName "UAL-Combined.json"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "SOF-ELK" -MergedFileName "UAL-Combined.json"
 	}
 	
 	Write-LogFile -Message "[INFO] Acquisition complete, check the Output directory for your files.." -Color "Green"
@@ -578,7 +578,7 @@ function Get-UALSpecific
 	Options are: ExchangeItem, ExchangeAdmin, etc. A total of 236 RecordTypes are supported.
 
 	.PARAMETER Output
-    Output is the parameter specifying the CSV, JSON or JSON-ELK output type. The JSON-ELK output can be imported into the sof-elk project.
+    Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
 	Default: CSV
 
 	.PARAMETER OutputDir
@@ -590,7 +590,7 @@ function Get-UALSpecific
 	Default: UTF8
 
   	.PARAMETER MergeOutput
-    MergeOutput is the parameter specifying if you wish to merge CSV/JSON/JSON-ELK outputs to a single file.
+    MergeOutput is the parameter specifying if you wish to merge CSV/JSON/SOF-ELK outputs to a single file.
 
 	.PARAMETER ObjecIDs 
     The ObjectIds parameter filters the log entries by object ID. The object ID is the target object that was acted upon, and depends on the RecordType and Operations values of the event.
@@ -776,7 +776,7 @@ function Get-UALSpecific
 									$json = $results | ConvertTo-Json -Depth 100
 									$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
 								} 
-								elseif ($Output -eq "JSON-ELK"){
+								elseif ($Output -eq "SOF-ELK"){
 									# Converts the JSON structure [{"AuditData":[data1],...},{"AuditData":[data2],...},...] to [[data1],[data2],...] with one data object per line in the final .json file.
 									foreach ($item in $results) {
 											$item.AuditData | ConvertTo-Json -Compress -Depth 100 | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding UTF8
@@ -811,9 +811,9 @@ function Get-UALSpecific
 		Write-LogFile -Message "[INFO] Merging output files into one file"
 		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "UAL-Combined.json"
 	}
-	elseif ($Output -eq "JSON-ELK" -and ($MergeOutput.IsPresent)) {
+	elseif ($Output -eq "SOF-ELK" -and ($MergeOutput.IsPresent)) {
 		Write-LogFile -Message "[INFO] Merging output files into one file"
-		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON-ELK" -MergedFileName "UAL-Combined.json"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "SOF-ELK" -MergedFileName "UAL-Combined.json"
 	}
 
 	Write-LogFile -Message "[INFO] Acquisition complete, check the Output directory for your files.." -Color "Green"
@@ -850,7 +850,7 @@ function Get-UALSpecificActivity
 	Options are: New-MailboxRule, MailItemsAccessed, etc. A total of 108 common ActivityTypes are supported.
 
 	.PARAMETER Output
-    Output is the parameter specifying the CSV, JSON or JSON-ELK output type. The JSON-ELK output can be imported into the sof-elk project.
+    Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
 	Default: CSV
 
 	.PARAMETER OutputDir
@@ -1030,7 +1030,7 @@ function Get-UALSpecificActivity
 									$json = $results | ConvertTo-Json -Depth 100
 									$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
 								} 
-								elseif ($Output -eq "JSON-ELK"){
+								elseif ($Output -eq "SOF-ELK"){
 									# Converts the JSON structure [{"AuditData":[data1],...},{"AuditData":[data2],...},...] to [[data1],[data2],...] with one data object per line in the final .json file.
 									foreach ($item in $results) {
 											$item.AuditData | ConvertTo-Json -Compress -Depth 100 | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding UTF8
@@ -1064,9 +1064,9 @@ function Get-UALSpecificActivity
 		Write-LogFile -Message "[INFO] Merging output files into one file"
 		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "UAL-Combined.json"
 	}
-	elseif ($Output -eq "JSON-ELK" -and ($MergeOutput.IsPresent)) {
+	elseif ($Output -eq "SOF-ELK" -and ($MergeOutput.IsPresent)) {
 		Write-LogFile -Message "[INFO] Merging output files into one file"
-		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON-ELK" -MergedFileName "UAL-Combined.json"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "SOF-ELK" -MergedFileName "UAL-Combined.json"
 	}
 
 	Write-LogFile -Message "[INFO] Acquisition complete, check the Output directory for your files.." -Color "Green"

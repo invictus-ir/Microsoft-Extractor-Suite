@@ -17,7 +17,7 @@ function Get-ADSignInLogsGraph {
 	Default: No
 
 	.PARAMETER Output
-    Output is the parameter specifying the JSON or JSON-ELK output type. The JSON-ELK output can be imported into the sof-elk project.
+    Output is the parameter specifying the JSON or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
 	Default: JSON
 
     .PARAMETER OutputDir
@@ -48,8 +48,8 @@ function Get-ADSignInLogsGraph {
     Get audit logs after 2023-04-12.
 
 	.EXAMPLE
-    Get-ADSignInLogsGraph -Output JSON-ELK -MergeOutput
-    Get the Azure Active Directory SignIn Log in a sof-elk format and merge all data into a single file.
+    Get-ADSignInLogsGraph -Output SOF-ELK -MergeOutput
+    Get the Azure Active Directory SignIn Log in a format compatible with the SOF-ELK platform and merge all data into a single file.
 #>
     [CmdletBinding()]
     param(
@@ -111,8 +111,8 @@ function Get-ADSignInLogsGraph {
 				{
 					$responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding	
 				} 
-				elseif ($Output -eq "JSON-ELK"){
-					# UTF8 is fixed, as it is required by sof-elk
+				elseif ($Output -eq "SOF-ELK"){
+					# UTF8 is fixed, as it is required by SOF-ELK
 					foreach ($item in $responseJson.value) {
 						$item | ConvertTo-Json -Depth 100 -Compress | Out-File -FilePath $filePath -Append -Encoding UTF8	
 					}
@@ -140,9 +140,9 @@ function Get-ADSignInLogsGraph {
 		Write-LogFile -Message "[INFO] Merging output files into one file"
 		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "SignInLogs-Combined.json"
 	}
-	elseif ($Output -eq "JSON-ELK" -and ($MergeOutput.IsPresent)) {
+	elseif ($Output -eq "SOF-ELK" -and ($MergeOutput.IsPresent)) {
 		Write-LogFile -Message "[INFO] Merging output files into one file"
-		Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON-ELK" -MergedFileName "SignInLogs-Combined.json"
+		Merge-OutputFiles -OutputDir $OutputDir -OutputType "SOF-ELK" -MergedFileName "SignInLogs-Combined.json"
 	}
 
 	Write-LogFile -Message "[INFO] Acquisition complete, check the $($OutputDir) directory for your files.." -Color "Green"		

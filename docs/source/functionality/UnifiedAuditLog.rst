@@ -110,12 +110,12 @@ Parameters
     - Default: 60 minutes
 
 -Output (optional)
-    - Output is the parameter specifying the CSV, JSON or JSON-ELK output type.
-    - The JSON-ELK output type can be used to export logs in a [sof-elk](https://github.com/philhagen/sof-elk) compatible format.
+    - Output is the parameter specifying the CSV, JSON or SOF-ELK output type.
+    - The SOF-ELK output type can be used to export logs in a format suitable for the [platform of the same name](https://github.com/philhagen/sof-elk).
     - Default: CSV
 
 -MergeOutput (optional)
-    - MergeOutput is the parameter specifying if you wish to merge CSV, JSON or JSON-ELK outputs to a single file.
+    - MergeOutput is the parameter specifying if you wish to merge CSV, JSON or SOF-ELK outputs to a single file.
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
@@ -270,12 +270,12 @@ Parameters
     - Default: 60 minutes
 
 -Output (optional)
-    - Output is the parameter specifying the CSV, JSON or JSON-ELK output type.
-    - The JSON-ELK output type can be used to export logs in a [sof-elk](https://github.com/philhagen/sof-elk) compatible format.
+    - Output is the parameter specifying the CSV, JSON or SOF-ELK output type.
+    - The SOF-ELK output type can be used to export logs in a format suitable for the [platform of the same name](https://github.com/philhagen/sof-elk).
     - Default: CSV
 
 -MergeOutput (optional)
-    - MergeOutput is the parameter specifying if you wish to merge CSV, JSON or JSON-ELK outputs to a single file.
+    - MergeOutput is the parameter specifying if you wish to merge CSV, JSON or SOF-ELK outputs to a single file.
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
@@ -354,12 +354,12 @@ Parameters
     - Default: 60 minutes
 
 -Output (optional)
-    - Output is the parameter specifying the CSV, JSON or JSON-ELK output type.
-    - The JSON-ELK output type can be used to export logs in a [sof-elk](https://github.com/philhagen/sof-elk) compatible format.
+    - Output is the parameter specifying the CSV, JSON or SOF-ELK output type.
+    - The SOF-ELK output type can be used to export logs in a format suitable for the [platform of the same name](https://github.com/philhagen/sof-elk).
     - Default: CSV
 
 -MergeOutput (optional)
-    - MergeOutput is the parameter specifying if you wish to merge CSV, JSON or JSON-ELK outputs to a single file.
+    - MergeOutput is the parameter specifying if you wish to merge CSV, JSON or SOF-ELK outputs to a single file.
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
@@ -670,15 +670,15 @@ Parameters
     - Default: Now
 
 -MergeOutput (optional)
-    - MergeOutput is the parameter specifying if you wish to merge CSV, JSON or JSON-ELK outputs to a single file.
+    - MergeOutput is the parameter specifying if you wish to merge CSV, JSON or SOF-ELK outputs to a single file.
 
 -Interval (optional)
     - Interval is the parameter specifying the interval in which the logs are being gathered.
     - Default: 60 minutes
 
 -Output (optional)
-    - Output is the parameter specifying the CSV, JSON or JSON-ELK output type.
-    - The JSON-ELK output type can be used to export logs in a [sof-elk](https://github.com/philhagen/sof-elk) compatible format.
+    - Output is the parameter specifying the CSV, JSON or SOF-ELK output type.
+    - The SOF-ELK output type can be used to export logs in a format suitable for the [platform of the same name](https://github.com/philhagen/sof-elk).
     - Default: CSV
 
 -OutputDir (optional)
