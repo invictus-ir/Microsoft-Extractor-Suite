@@ -40,6 +40,7 @@ NestedModules = @(
 	".\Scripts\Get-MailItemsAccessed.ps1"
 	".\Scripts\Get-UALGraph.ps1"
 	".\Scripts\Get-AzureDirectoryActivityLogs.ps1"
+ 	".\Scripts\Get-ProductLicenses.ps1"
 )
 
 FunctionsToExport = @(
@@ -120,6 +121,12 @@ FunctionsToExport = @(
 	# Get-MailItemsAccessed.ps1
 	"Get-Sessions"
 	"Get-MessageIDs"
+
+ 	# Get-ProductLicenses.ps1
+  	"Get-Licenses"
+	"Get-LicenseCompatibility"
+	"Get-EntraSecurityDefaults"
+	"Get-LicensesByUser"
 )
 
 # Variables to export from this module
