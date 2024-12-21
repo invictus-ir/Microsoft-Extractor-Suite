@@ -41,6 +41,7 @@ NestedModules = @(
 	".\Scripts\Get-UALGraph.ps1"
 	".\Scripts\Get-AzureDirectoryActivityLogs.ps1"
  	".\Scripts\Get-ProductLicenses.ps1"
+  	".\Scripts\Get-Groups.ps1"
 )
 
 FunctionsToExport = @(
@@ -127,6 +128,11 @@ FunctionsToExport = @(
 	"Get-LicenseCompatibility"
 	"Get-EntraSecurityDefaults"
 	"Get-LicensesByUser"
+
+ 	# Get-Groups.ps1
+	"Get-Groups"
+	"Get-GroupMembers"
+	"Get-DynamicGroups"
 )
 
 # Variables to export from this module
