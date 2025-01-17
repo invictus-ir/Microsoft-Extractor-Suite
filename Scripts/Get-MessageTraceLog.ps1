@@ -3,7 +3,7 @@ Function StartDateMTL
 {
 	if (($startDate -eq "") -Or ($null -eq $startDate))
 	{
-		$script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-10)
+		$script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-90)
 		write-LogFile -Message "[INFO] No start date provided by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
 	}
 	else
@@ -35,14 +35,14 @@ function Get-MessageTraceLog
 
     .DESCRIPTION
     Collects the trace messages as they pass through the cloud-based organization.
-	Only 10 days of history is available. Output is saved in: Output\MessageTrace\
+	Only 90 days of history is available. Output is saved in: Output\MessageTrace\
 	
 	.PARAMETER UserIds
     UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
 	.PARAMETER StartDate
     startDate is the parameter specifying the start date of the date range.
-	Default: Today 10 days
+	Default: Today 90 days
 
 	.PARAMETER EndDate
     endDate is the parameter specifying the end date of the date range.
