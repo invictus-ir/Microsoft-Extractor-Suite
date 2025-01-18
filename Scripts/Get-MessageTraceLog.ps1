@@ -3,7 +3,7 @@ Function StartDateMTL
 {
 	if (($startDate -eq "") -Or ($null -eq $startDate))
 	{
-		$script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-10)
+		$script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-90)
 		write-LogFile -Message "[INFO] No start date provided by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
 	}
 	else
@@ -35,14 +35,14 @@ function Get-MessageTraceLog
 
     .DESCRIPTION
     Collects the trace messages as they pass through the cloud-based organization.
-	Only 10 days of history is available. Output is saved in: Output\MessageTrace\
+	Only 90 days of history is available. Output is saved in: Output\MessageTrace\
 	
 	.PARAMETER UserIds
     UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
 	.PARAMETER StartDate
     startDate is the parameter specifying the start date of the date range.
-	Default: Today 10 days
+	Default: Today 90 days
 
 	.PARAMETER EndDate
     endDate is the parameter specifying the end date of the date range.
@@ -101,83 +101,78 @@ function Get-MessageTraceLog
 	
 	$date = Get-Date -Format "yyyyMMddHHmm"
 
+    Write-LogFile -Message "[INFO] Output directory set to: $OutputDir"
 	if (!(test-path $OutputDir)) {
 		New-Item -ItemType Directory -Force -Name $OutputDir > $null
 		write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
 	}
-	else {
-		if (Test-Path -Path $OutputDir) {
-			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
-		}
-		else {
-			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
-		}
-	}
 
-	if (($null -eq $UserIds) -Or ($UserIds -eq ""))  {
-		write-logFile -Message "[INFO] No users provided. Getting the Message Trace Log for all users between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
-		Get-mailbox -resultsize unlimited |
-		ForEach-Object {
-			$outputFile = "$OutputDir\"+$($_.PrimarySmtpAddress)+"-MTL.csv"
+    if (($null -eq $UserIds) -Or ($UserIds -eq "")) {
+        Write-LogFile -Message "[INFO] No users provided. Getting the Message Trace Log for all users between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
+        Retrieve-MessageTrace -StartDate $script:StartDate -endDate $script:EndDate -OutputFile "$OutputDir\$($date)-AllUsers-MTL.csv"
+    } else {
+        if($UserIds -match "\*"){
+            Write-LogFile -Message "[INFO] An entire domain has been provided, retrieving all messages between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
+        }
+        $users = $UserIds.Split(",")
 
-			$ResultsRecipient = Get-MessageTrace -RecipientAddress $_.PrimarySmtpAddress -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
-			$ResultsSender = Get-MessageTrace -SenderAddress $_.PrimarySmtpAddress -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
-			
-			$results = $resultsSender + $resultsRecipient
-			if ($results){
-				write-logFile -Message "[INFO] Collecting the Message Trace Log for $($_.PrimarySmtpAddress)"
-				$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation
-				write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
-			}
-			else {
-				write-logFile -Message "[INFO] No message Trace logging found for $($_.PrimarySmtpAddress)" -Color "Yellow"
-			}
-		}
-	}
+        $users | foreach {
+            $user = $_
 
-	elseif ($UserIds -match ",") {			
-		$UserIds.Split(",") | foreach {
-			$user = $_
-			
-			write-logFile -Message "[INFO] Collecting the Message Trace Log for $user between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
-			$outputFile = "$OutputDir\"+$user+"-MTL.csv"
+            write-logFile -Message "[INFO] Collecting the Message Trace Log for $user between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
+            $outputFile = "$OutputDir\$($user.Replace('*@',''))-MTL.csv"
+            Remove-Item $outputFile -ErrorAction SilentlyContinue
 
-			$ResultsRecipient = Get-MessageTrace -RecipientAddress $user -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
-			$ResultsSender = Get-MessageTrace -SenderAddress $user -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
+            Retrieve-MessageTrace -StartDate $script:StartDate -endDate $script:EndDate -OutputFile $outputFile -searchParams @{"RecipientAddress" = $user}
+            Retrieve-MessageTrace -StartDate $script:StartDate -endDate $script:EndDate -OutputFile $outputFile -searchParams @{"SenderAddress" = $user}
 
-			$results = $resultsSender + $resultsRecipient
-			$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding $Encoding
-			write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
-		}
-	}
+            if (test-path $outputFile) {
+                Write-LogFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
+            } else {
+                Write-LogFile -Message "[INFO] No message Trace logging found for $($user)" -Color "Yellow"
+            }
+        }
+    }
+}
 
-	elseif ($UserIds -match "\*") {	
-		write-logFile -Message "[INFO] An entire domain has been provided, retrieving all messages between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
-		write-logFile -Message "[WARNING] Please be aware that the output is restricted to a maximum of 5000 received and 5000 sent emails in the results" -Color "Red"
+#
 
-		$Domain = $UserIds.Replace("*@","")
-		$outputFile = "$OutputDir\$Domain-MTL.csv"
-		
-		$ResultsRecipient = Get-MessageTrace -RecipientAddress $UserIds -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
-		$ResultsSender = Get-MessageTrace -SenderAddress $UserIds -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
-		
-		$results = $resultsSender + $resultsRecipient
+function Retrieve-MessageTrace
+<#
+    Handle the pagination of the MessageTraceV2 API
+#>
+{
+    param(
+		[DateTime]$startDate,
+		[DateTime]$endDate,
+		$searchParams = @{},
+		[string]$OutputFile
+	)
 
-		$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding $Encoding
-		write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
+	$currentEnd = $endDate
+    while($currentEnd -gt $startDate){
+        $currentStart = $currentEnd.addDays(-10)
+        if($currentStart -lt $StartDate) {
+            $currentStart = $StartDate
+        }
 
-	}
-	
-	else {
-		$outputFile = "$OutputDir\"+$UserIds+"-MTL.csv"
-		write-logFile -Message "[INFO] Collecting the Message Trace Log for $UserIds"
+        $searchParams.ResultSize = 5000
+        $searchParams.StartDate = $currentStart
+        $searchParams.EndDate = $currentEnd
+        $resultCount = 5000
+        while($resultCount -ge 5000) {
+            $results = Get-MessageTraceV2 @searchParams
+            $resultCount = $results.Count
 
-		$resultsRecipient = Get-MessageTrace -RecipientAddress $UserIds -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
-		$resultsSender = Get-MessageTrace -SenderAddress $UserIds -StartDate $script:startDate -EndDate $script:endDate -PageSize 5000
+            if($results){
+                $results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Append
+                Write-LogFile -Message "[INFO] Found $resultCount records between $($results[-1].Received) and $($results[0].Received)"
 
-		$results = $resultsSender + $resultsRecipient
-		$results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding $Encoding
-		write-logFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
-	}	
+                $searchParams.EndDate = $results[-1].Received.ToString(“O”)
+                $searchParams.StartingRecipientAddress = $results[-1].RecipientAddress
+            }
+        }
+
+        $currentEnd=$currentStart
+    }
 }
