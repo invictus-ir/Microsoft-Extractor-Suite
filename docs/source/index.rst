@@ -111,7 +111,7 @@ Have a bug report or feature request? Open an issue on the Github repository.
 .. toctree::
    :maxdepth: 2
    :hidden:
-   :caption: Azure & Entra ID Features
+   :caption: Azure & Entra ID functionalities
 
    functionality/Azure/AzureActiveDirectorysign-inlogs
    functionality/Azure/AzureActiveDirectoryAuditLog
