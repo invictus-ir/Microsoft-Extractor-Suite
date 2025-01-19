@@ -72,6 +72,8 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 ### Unified Audit Log
 - `Get-UALAll` - Collect all Unified Audit Logs
 - `Get-UALStatistics` - Displays the total number of logs within the Unified Audit Logs per Record Type
+- `Get-MailboxAuditLog` - Collect Mailbox Audit Logs
+- `Get-AdminAuditLog` - Collect Admin Audit Logs
 
 ### Mailbox & Transport Rules
 - `Show-MailboxRules` - Shows mailbox rules
@@ -80,35 +82,40 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 - `Show-TransportRules` - Shows transport rules
 
 ### Mail and Message Tracking
-- `Get-MailboxAuditLog` - Collect mailbox audit logs
 - `Get-MessageTraceLog` - Collect message tracking logs
 - `Get-Email` - Download specific or bullk emails
-- `Get-Attachment` - Download email attachments
 - `Show-Email` - Show email content
+- `Get-Attachment` - Download email attachments
 - `Get-Sessions` - Collect session information related to MailItemsaccessed events
 - `Get-MessageIDs` - Extract message IDs from MailItemsaccessed events
 
-### Entra ID & Directory Operations
+### Sign-In & Audit Logging
 - `Get-EntraAuditLogs` - Collect audit logs via AzureAD
 - `Get-EntraSignInLogs` - Collect sign-in logs via AzureAD
 - `Get-GraphEntraSignInLogs` - Collect sign-in logs via Graph API
 - `Get-GraphEntraAuditLogs` - Collect audit logs via Graph API
+
+### Activity Logging
 - `Get-ActivityLogs` - Collect activity logs
 - `Get-DirectoryActivityLogs` - Collect directory activity logs
 
-### Security & Compliance
+### OAuth apps
 - `Get-OAuthPermissions` - Collect OAuth application permissions
+
+### User Related
+- `Get-Users` - Collect user information
+- `Get-AdminUsers` - Collect users with administrative privileges
 - `Get-MFA` - Collect MFA status for users
 - `Get-RiskyUsers` - Collect risky users
 - `Get-RiskyDetections` - Collect risky detection events
+
+## Conditional Access Policies
 - `Get-ConditionalAccessPolicies` - Collect conditional access policies
 
-### User & Device Management
-- `Get-Users` - Collect user information
-- `Get-AdminUsers` - Collect users with administrative privileges
+### Device Management
 - `Get-Devices` - Collect device registration information
 
-### Mailbox Administration
+### Permissions and Audit Settings
 - `Get-MailboxAuditStatus` - Collect the mailbox audit configurations
 - `Get-MailboxPermissions` - Collect delegated mailbox permissions
 
