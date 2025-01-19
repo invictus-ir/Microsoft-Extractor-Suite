@@ -6,7 +6,7 @@ all Office 365 events. The UAL contains at least 236 categories of data, includi
 Exchange, SharePoint, OneDrive, and Skype.
 
 Why is the acquisition slow?
-============================
+^^^^^^^^^^^
 To retrieve the Unified Audit Log, we use the `Search-UnifiedAuditLog` cmdlet. Unfortunately, there is a limitation of retrieving only 5,000 records per call. If there are more than 5,000 records within the specified time window, only the first 5,000 records are collected, and the rest are ignored.
 To address this, our script dynamically reduces the time interval to ensure that no more than 5,000 records are collected per call. It iterates through the time windows until all records are retrieved. For each interval (up to 5,000 records), the script typically makes 2–3 API calls to ensure completeness.
 This approach, while effective, results in the script being quite slow due to the number of calls required. If you have any suggestions for optimizing or speeding up the process, we would greatly appreciate your input!

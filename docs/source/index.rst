@@ -130,7 +130,7 @@ Have a bug report or feature request? Open an issue on the Github repository.
    :hidden:
    :caption: Additional Tools
 
-   functionality/tools/EvidenceCollection
+   functionality/Tools/EvidenceCollection
 
 .. toctree::
    :maxdepth: 2
