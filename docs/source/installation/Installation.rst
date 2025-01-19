@@ -21,7 +21,7 @@ Install the Powershell module Az for the Azure Activity log functionality:
 
    Install-module -name Az
 
-Install the Powershell module AzureADPreview for the Azure Active Directory functionalities:
+Install the Powershell module AzureADPreview for the Entra ID functionalities:
 ::
 
    Install-Module -Name AzureADPreview
@@ -55,8 +55,8 @@ Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage
 To sign in, use the following cmdlets:
 ::
 
-   Connect-M365
-   Connect-Azure
-   Connect-AzureAZ
+   Connect-M365 or connect-exchangeonline
+   Connect-Azure or Connect-AzureAD
+   Connect-AzureAZ or Connect-AzAccount
 
 

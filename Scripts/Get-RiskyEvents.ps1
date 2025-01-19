@@ -17,6 +17,13 @@ function Get-RiskyUsers {
     .PARAMETER UserIds
     An array of User IDs to retrieve risky user information for.
     If not specified, retrieves all risky users.
+
+    .PARAMETER LogLevel
+    Specifies the level of logging:
+    None: No logging
+    Minimal: Critical errors only
+    Standard: Normal operational logging
+    Default: Standard
     
     .EXAMPLE
     Get-RiskyUsers
@@ -38,38 +45,49 @@ function Get-RiskyUsers {
     param(
         [string]$OutputDir = "Output\RiskyEvents",
         [string]$Encoding = "UTF8",
-        [string[]]$UserIds
+        [string[]]$UserIds,
+        [ValidateSet('None', 'Minimal', 'Standard')]
+        [string]$LogLevel = 'Standard'
     )
+
+    Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    Write-LogFile -Message "=== Starting Risky Users Collection ===" -Color "Cyan" -Level Minimal
 
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
     if (!(test-path $OutputDir)) {
         New-Item -ItemType Directory -Force -Name $OutputDir > $null
-        write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
     }
     else {
-		if (Test-Path -Path $OutputDir) {
-			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
-		}	
-		else {
-			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
-		}
-	}
+        if (!(Test-Path -Path $OutputDir)) {
+            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
+        }
+    }
 
-    Write-logFile -Message "[INFO] Running Get-RiskyUsers" -Color "Green"
-    $results=@();
+    $results = @()
     $count = 0
+    $riskSummary = @{
+        High = 0
+        Medium = 0
+        Low = 0
+        None = 0
+        AtRisk = 0
+        NotAtRisk = 0
+        Remediated = 0
+        Dismissed = 0
+    }
     
     try {
+        $results = @()
         $baseUri = "https://graph.microsoft.com/v1.0/identityProtection/riskyUsers"
 
         if ($UserIds) {
             foreach ($userId in $UserIds) {
                 $encodedUserId = [System.Web.HttpUtility]::UrlEncode($userId)
                 $uri = "$baseUri`?`$filter=userPrincipalName eq '$encodedUserId'"
-                Write-LogFile -Message "[INFO] Retrieving risky user for UPN: $userId"
+                Write-LogFile -Message "[INFO] Retrieving risky user for UPN: $userId" -Level Standard
 
                 try {
                     $response = Invoke-MgGraphRequest -Method GET -Uri $uri
@@ -88,13 +106,19 @@ function Get-RiskyUsers {
                                 UserPrincipalName           = $user.UserPrincipalName
                                 AdditionalProperties = $user.AdditionalProperties -join ", "
                             }
+                            
+                            if ($user.RiskLevel) { $riskSummary[$user.RiskLevel]++ }
+                            if ($user.RiskState -eq "atRisk") { $riskSummary.AtRisk++ }
+                            elseif ($user.RiskState -eq "notAtRisk") { $riskSummary.NotAtRisk++ }
+                            elseif ($user.RiskState -eq "remediated") { $riskSummary.Remediated++ }
+                            elseif ($user.RiskState -eq "dismissed") { $riskSummary.Dismissed++ }
                             $count++
                         }
                     } else {
-                        Write-LogFile -Message "[INFO] User ID $userId not found or not risky."
+                        Write-LogFile -Message "[INFO] User ID $userId not found or not risky." -Level Standard
                     }
                 } catch {
-                    Write-LogFile -Message "[ERROR] Failed to retrieve data for User ID $userId : $($_.Exception.Message)" -Color "Red"
+                    Write-LogFile -Message "[ERROR] Failed to retrieve data for User ID $userId : $($_.Exception.Message)" -Color "Red" -Level Minimal
                 }
             }
         }
@@ -118,15 +142,19 @@ function Get-RiskyUsers {
                             AdditionalProperties        = $user.AdditionalProperties -join ", "
                         }
 
+                        if ($user.RiskLevel) { $riskSummary[$user.RiskLevel]++ }
+                        if ($user.RiskState -eq "atRisk") { $riskSummary.AtRisk++ }
+                        elseif ($user.RiskState -eq "confirmedSafe") { $riskSummary.NotAtRisk++ }
+                        elseif ($user.RiskState -eq "remediated") { $riskSummary.Remediated++ }
+                        elseif ($user.RiskState -eq "dismissed") { $riskSummary.Dismissed++ }
                         $count++
                     }
                 }
-
                 $uri = $response.'@odata.nextLink'
             } while ($uri -ne $null)
         }
     } catch {
-        Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+        Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
         throw
     }
 
@@ -135,10 +163,25 @@ function Get-RiskyUsers {
 
     if ($results.Count -gt 0) {
         $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
-        Write-LogFile -Message "[INFO] A total of $count Risky Users found"
-        Write-LogFile -Message "[INFO] Output written to $filePath" -Color "Green"
-    } else {
-        Write-LogFile -Message "[INFO] No Risky Users found" -Color "Yellow"
+        Write-LogFile -Message "[INFO] A total of $count Risky Users found" -Level Standard
+        
+        Write-LogFile -Message "`nSummary of Risky Users:" -Color "Cyan" -Level Standard 
+        Write-LogFile -Message "----------------------------------------" -Level Standard
+        Write-LogFile -Message "Total Risky Users: $count" -Level Standard
+        Write-LogFile -Message "  - High Risk: $($riskSummary.High)" -Level Standard
+        Write-LogFile -Message "  - Medium Risk: $($riskSummary.Medium)" -Level Standard
+        Write-LogFile -Message "  - Low Risk: $($riskSummary.Low)" -Level Standard
+
+        Write-LogFile -Message "`nRisk States:" -Level Standard
+        Write-LogFile -Message "  - At Risk: $($riskSummary.AtRisk)" -Level Standard
+        Write-LogFile -Message "  - Confirmed Safe: $($riskSummary.NotAtRisk)" -Level Standard
+        Write-LogFile -Message "  - Remediated: $($riskSummary.Remediated)" -Level Standard
+        Write-LogFile -Message "  - Dismissed: $($riskSummary.Dismissed)" -Level Standard
+
+        Write-LogFile -Message "`nExported Files:" -Level Standard
+        Write-LogFile -Message "  - $filePath" -Level Standard
+        } else {
+        Write-LogFile -Message "[INFO] No Risky Users found" -Color "Yellow" -Level Standard
     }
 }
 
@@ -161,6 +204,13 @@ function Get-RiskyDetections {
     .PARAMETER UserIds
     An array of User IDs to retrieve risky detections information for.
     If not specified, retrieves all risky detections.
+
+    .PARAMETER LogLevel
+    Specifies the level of logging:
+    None: No logging
+    Minimal: Critical errors only
+    Standard: Normal operational logging
+    Default: Standard
         
     .EXAMPLE
     Get-RiskyDetections
@@ -182,31 +232,41 @@ function Get-RiskyDetections {
     param(
         [string]$OutputDir= "Output\RiskyEvents",
         [string]$Encoding = "UTF8",
-        [string[]]$UserIds
+        [string[]]$UserIds,
+        [ValidateSet('None', 'Minimal', 'Standard')]
+        [string]$LogLevel = 'Standard'
     )
+
+    Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    Write-LogFile -Message "=== Starting Risky Detections Collection ===" -Color "Cyan" -Level Minimal
 
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
     if (!(test-path $OutputDir)) {
         New-Item -ItemType Directory -Force -Name $OutputDir > $null
-        write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
+    }
+    else {
+        if (!(Test-Path -Path $OutputDir)) {
+            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
+        }
     }
 
-    else {
-		if (Test-Path -Path $OutputDir) {
-			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
-		}
-	
-		else {
-			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
-		}
-	}
-
-    Write-logFile -Message "[INFO] Running Get-RiskyDetections" -Color "Green"
-    $results=@();
+    $results = @()
     $count = 0
+    $riskSummary = @{
+        High = 0
+        Medium = 0 
+        Low = 0
+        AtRisk = 0
+        NotAtRisk = 0
+        Remediated = 0
+        Dismissed = 0
+        UniqueUsers = @{}
+        UniqueCountries = @{}
+        UniqueCities = @{}
+    }
 
     try {
         $baseUri = "https://graph.microsoft.com/v1.0/identityProtection/riskDetections"
@@ -215,7 +275,7 @@ function Get-RiskyDetections {
             foreach ($userId in $UserIds) {
                 $encodedUserId = [System.Web.HttpUtility]::UrlEncode($userId)
                 $uri = "$baseUri`?`$filter=UserPrincipalName eq '$encodedUserId'"
-                Write-LogFile -Message "[INFO] Retrieving risky detections for User ID: $userId"
+                Write-LogFile -Message "[INFO] Retrieving risky detections for User ID: $userId" -Level Standard
 
                 do {
                     $response = Invoke-MgGraphRequest -Method GET -Uri $uri
@@ -247,6 +307,17 @@ function Get-RiskyDetections {
                                 UserPrincipalName = $detection.UserPrincipalName
                                 AdditionalProperties = $detection.AdditionalProperties -join ", "
                             }
+
+                            if ($detection.RiskLevel) { $riskSummary[$detection.RiskLevel]++ }
+                            if ($detection.RiskState -eq "atRisk") { $riskSummary.AtRisk++ }
+                            elseif ($detection.RiskState -eq "confirmedSafe") { $riskSummary.NotAtRisk++ }
+                            elseif ($detection.RiskState -eq "remediated") { $riskSummary.Remediated++ }
+                            elseif ($detection.RiskState -eq "dismissed") { $riskSummary.Dismissed++ }
+
+                            if ($detection.UserPrincipalName) { $riskSummary.UniqueUsers[$detection.UserPrincipalName] = $true }
+                            if ($detection.Location.CountryOrRegion) { $riskSummary.UniqueCountries[$detection.Location.CountryOrRegion] = $true }
+                            if ($detection.Location.City) { $riskSummary.UniqueCities[$detection.Location.City] = $true }
+
                             $count++
                         }
                     }
@@ -286,6 +357,17 @@ function Get-RiskyDetections {
                             UserPrincipalName = $detection.UserPrincipalName
                             AdditionalProperties = $detection.AdditionalProperties -join ", "
                         }
+
+                        if ($detection.RiskLevel) { $riskSummary[$detection.RiskLevel]++ }
+                        if ($detection.RiskState -eq "atRisk") { $riskSummary.AtRisk++ }
+                        elseif ($detection.RiskState -eq "confirmedSafe") { $riskSummary.NotAtRisk++ }
+                        elseif ($detection.RiskState -eq "remediated") { $riskSummary.Remediated++ }
+                        elseif ($detection.RiskState -eq "dismissed") { $riskSummary.Dismissed++ }
+
+                        if ($detection.UserPrincipalName) { $riskSummary.UniqueUsers[$detection.UserPrincipalName] = $true }
+                        if ($detection.Location.CountryOrRegion) { $riskSummary.UniqueCountries[$detection.Location.CountryOrRegion] = $true }
+                        if ($detection.Location.City) { $riskSummary.UniqueCities[$detection.Location.City] = $true }
+
                         $count++
                     }
                 }
@@ -294,18 +376,37 @@ function Get-RiskyDetections {
             } while ($baseUri -ne $null)
         }
     } catch {
-        Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-        Write-LogFile -Message "[ERROR (Continued)] Check the below, as the target tenant may not be licenced for this feature $($_.ErrorDetails.Message)" -Color "Red"
+        Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        Write-LogFile -Message "[ERROR (Continued)] Check the below, as the target tenant may not be licenced for this feature $($_.ErrorDetails.Message)" -Color "Red" -Level Minimal
         throw
     }
 
     $date = Get-Date -Format "yyyyMMddHHmm"
     $filePath = "$OutputDir\$($date)-RiskyDetections.csv"
+
     if ($results.Count -gt 0) {
         $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
-        Write-LogFile -Message "[INFO] A total of $count Risky Detections found"
-        Write-LogFile -Message "[INFO] Output written to $filePath" -Color "Green"
+
+        Write-LogFile -Message "`nSummary of Risky Detections:" -Color "Cyan" -Level Standard 
+        Write-LogFile -Message "----------------------------------------" -Level Standard
+        Write-LogFile -Message "Total Risky Detections: $count" -Level Standard
+        Write-LogFile -Message "  - High Risk: $($riskSummary.High)" -Level Standard
+        Write-LogFile -Message "  - Medium Risk: $($riskSummary.Medium)" -Level Standard
+        Write-LogFile -Message "  - Low Risk: $($riskSummary.Low)" -Level Standard
+
+        Write-LogFile -Message "`nRisk States:" -Level Standard
+        Write-LogFile -Message "  - At Risk: $($riskSummary.AtRisk)" -Level Standard
+        Write-LogFile -Message "  - Confirmed Safe: $($riskSummary.NotAtRisk)" -Level Standard
+        Write-LogFile -Message "  - Remediated: $($riskSummary.Remediated)" -Level Standard
+        Write-LogFile -Message "  - Dismissed: $($riskSummary.Dismissed)" -Level Standard
+
+        Write-LogFile -Message "`nAffected Resources:" -Level Standard 
+        Write-LogFile -Message "  - Unique Users: $($riskSummary.UniqueUsers.Count)" -Level Standard
+        Write-LogFile -Message "  - Unique Countries: $($riskSummary.UniqueCountries.Count)" -Level Standard
+
+        Write-LogFile -Message "`nExported Files:" -Level Standard
+        Write-LogFile -Message "  - $filePath" -Level Standard
     } else {
-        Write-LogFile -Message "[INFO] No Risky Detections found" -Color "Yellow"
+        Write-LogFile -Message "[INFO] No Risky Detections found" -Color "Yellow" -Level Standard
     }
 }

@@ -1,28 +1,28 @@
 Azure Sign-in Logs via Graph API
 =======
-Use **Get-ADSignInLogsGraph** to collect the contents of the Azure Active Directory sign-in log.
+Use **Get-EntraSignInLogsGraph** to collect the contents of the Entra ID sign-in log.
 
 Usage
 """"""""""""""""""""""""""
-Running the script without any parameters will gather the Azure Active Directory sign-in log for the last 30 days:
+Running the script without any parameters will gather the Entra ID sign-in log for the last 30 days:
 ::
 
-   Get-ADSignInLogsGraph
+   Get-EntraSignInLogsGraph
 
-Get the Azure Active Directory Audit Log before 2023-04-12:
+Get the Entra ID Audit Log before 2024-04-12:
 ::
 
-   Get-ADSignInLogsGraph -endDate 2023-04-12
+   Get-EntraSignInLogsGraph -endDate 2024-04-12
 
-Get the Azure Active Directory Audit Log after 2023-04-12:
+Get the Entra ID Audit Log after 2024-04-12:
 ::
 
-   Get-ADSignInLogsGraph -startDate 2023-04-12
+   Get-EntraSignInLogsGraph -startDate 2024-04-12
 
-Get the Azure Active Directory SignIn Log in a SOF-ELK format and merge all data into a single file:
+Get the Azure Active Directory SignIn Log in a sof-elk format and merge all data into a single file:
 ::
 
-   Get-ADSignInLogsGraph -Output SOF-ELK -MergeOutput
+   Get-GraphEntraSignInLogs -Output SOF-ELK -MergeOutput
 
 Parameters
 """"""""""""""""""""""""""
@@ -32,14 +32,9 @@ Parameters
 -endDate (optional)
     - endDate is the parameter specifying the end date of the date range.
 
--Output (optional)
-    - Output is the parameter specifying the JSON or SOF-ELK output type.
-    - The SOF-ELK output type can be used to export logs in a format suitable for the [platform of the same name](https://github.com/philhagen/sof-elk).
-    - Default: JSON
-
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: The output will be written to: Output\AzureAD\{date_SignInLogs}\SignInLogs.json
+    - Default: The output will be written to: Output\EntraID\{date_SignInLogs}\SignInLogs.json
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the JSON output file.
@@ -48,8 +43,17 @@ Parameters
 -MergeOutput (optional)
     - MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
 
+-Output (optional)
+    - Output is the parameter specifying the JSON or SOF-ELK output type.
+    - The SOF-ELK output type can be used to export logs in a format suitable for the [platform of the same name](https://github.com/philhagen/sof-elk).
+    - Default: JSON
+
 -UserIds (optional)
     - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
+
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
 
 Output
 """"""""""""""""""""""""""

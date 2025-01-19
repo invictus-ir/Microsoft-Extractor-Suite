@@ -5,7 +5,7 @@ Prerequisites
 
 2. Powershell module: ExchangeOnlineManagement for the Microsoft 365 functionalities.
 
-3. Powershell module: AzureADPreview for the Azure Active Directory functionalities.
+3. Powershell module: AzureADPreview for the Entra ID functionalities.
 
 4. Powershell module: Microsoft.Graph for the Graph API functionalities.
 
@@ -60,6 +60,18 @@ Each functionality requires one of the following permissions:
 |                           +-----------------------------------------+
 |                           | ViewOnlyConfiguration                   |
 +---------------------------+-----------------------------------------+
+| Mailbox Audit Status      | Exchange Administrator                  |
+|                           +-----------------------------------------+
+|                           | View-Only Organization Management       |
+|                           +-----------------------------------------+
+|                           | View-Only Audit Logs                    |
++---------------------------+-----------------------------------------+
+| Mailbox Delegated         | Exchange Administrator                  |
+| Permissions               +-----------------------------------------+
+|                           | View-Only Recipients                    |
+|                           +-----------------------------------------+
+|                           | View-Only Configuration                 |
++---------------------------+-----------------------------------------+
 | Message Trace Log         | ComplianceAdmin                         |
 |                           +-----------------------------------------+
 |                           | DataLossPrevention                      |
@@ -97,6 +109,18 @@ Each functionality requires one of the following permissions:
 |                           | Directory.AccessAsUser.All              |
 |                           +-----------------------------------------+
 |                           | User.ReadBasic.all                      |
+|                           +-----------------------------------------+
+|                           | Directory.Read.All                      |
++---------------------------+-----------------------------------------+
+| Device information        | Device.Read.All                         |
+|                           +-----------------------------------------+
+|                           | Directory.Read.All                      |
++---------------------------+-----------------------------------------+
+| Group information         | Group.Read.All                          |
+|                           +-----------------------------------------+
+|                           | Directory.Read.All                      |
++---------------------------+-----------------------------------------+
+| License information       | Organization.Read.All                   |
 |                           +-----------------------------------------+
 |                           | Directory.Read.All                      |
 +---------------------------+-----------------------------------------+

@@ -8,15 +8,15 @@ Find SessionID(s) in the Unified Audit Log. You can filter based on IP address o
 
 Usage
 """"""""""""""""""""""""""
-Collects all sessions for all users between 1/4/2023 and 5/4/2023.
+Collects all sessions for all users between 1/4/2024 and 5/4/2024.
 ::
 
-   Get-Sessions -StartDate 1/4/2023 -EndDate 5/4/2023
+   Get-Sessions -StartDate 1/4/2024 -EndDate 5/4/2024
 
 Collects all sessions for the user HR@invictus-ir.com.
 ::
 
-   Get-Sessions -StartDate 1/4/2023 -EndDate 5/4/2023 -UserIds HR@invictus-ir.com
+   Get-Sessions -StartDate 1/4/2024 -EndDate 5/4/2024 -UserIds HR@invictus-ir.com
 
 Parameters
 """"""""""""""""""""""""""
@@ -40,9 +40,16 @@ Parameters
     - OutputDir is the parameter specifying the output directory.
     - Default: MailItemsAccessed
 
+-UserIds (optional)
+    - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
+
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
+
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
 
 Output
 """"""""""""""""""""""""""
@@ -54,15 +61,15 @@ Find the InternetMessageID(s). You can filter on SessionID(s) or IP addresses. A
 
 Usage
 """"""""""""""""""""""""""
-Collects all sessions for all users between 1/4/2023 and 5/4/2023.
+Collects all sessions for all users between 1/4/2024 and 5/4/2024.
 ::
 
-   Get-MessageIDs -StartDate 1/4/2023 -EndDate 5/4/2023
+   Get-MessageIDs -StartDate 1/4/2024 -EndDate 5/4/2024
 
 Collects all sessions for the IP address 1.1.1.1.
 ::
 
-   Get-MessageIDs -StartDate 1/4/2023 -EndDate 5/4/2023 -IP 1.1.1.1
+   Get-MessageIDs -StartDate 1/4/2024 -EndDate 5/4/2024 -IP 1.1.1.1
 
 Parameters
 """"""""""""""""""""""""""
@@ -93,6 +100,10 @@ Parameters
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
+
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
 
 Output
 """"""""""""""""""""""""""

@@ -23,8 +23,8 @@ Supported sources
   OAuth Permissions                     OAuth is a way of authorizing third-party applications to login into user accounts.                                                                                        
   Inbox Rules                           Inbox rules process messages in the inbox based on conditions and take actions such as moving a message to a specified folder or deleting a message.                       
   Transport Rules                       Transport rules take action on messages while they're in transit.                                                                                                          
-  Azure Active Directory sign-in log    Gets the Azure Active Directory sign-in log.                                                                                                                               
-  Azure Active Directory Audit Log      Gets the Azure Active Directory audit log.  
+  Entra ID sign-in log                  Gets the Entra ID sign-in log.                                                                                                                               
+  Entra ID Audit Log                    Gets the Entra ID audit log.  
   Azure Activity Log                    Gets the Azure Activity log.     
   Azure Directory Activity Log          Gets the Azure Directory Activity log                                                                                                      
 ===================================== =========================================================================================================================================================================== 
@@ -36,13 +36,18 @@ Retrieve other relevant information
   Source                                Description                                                                                                                                                                
 ===================================== =========================================================================================================================================================================== 
   MFA                                   Retrieves the MFA status for all users.   
-  User information                      Retrieves the creation time and date of the last password change for all users.                  
-  Risky users                           Retrieves the risky users.                         
+  User Information                      Retrieves the creation time and date of the last password change for all users.                  
+  Risky Users                           Retrieves the risky users.                         
   Risky Detections                      Retrieves the risky detections from the Entra ID Identity Protection.                                                                                      
   Conditional Access Policies           Retrieves all the conditional access policies.                                                                                        
-  Admin users/roles                     Retrieves Administrator directory roles, including the identification of users associated with each specific role.                      
+  Admin Users/Roles                     Retrieves Administrator directory roles, including the identification of users associated with each specific role.                      
   E-mails                               Get a specific email.                                                                                                          
   Attachments                           Get a specific attachment.                                                                                                                                                                                                                                          
+  Devices                               Retrieves information about all devices registered in Azure AD/Entra ID. 
+  Delegated Permissions                 Retrieves delegated permissions for all mailboxes in Microsoft 365.
+  Audit Log Settings                    Retrieves audit status and settings for all mailboxes in Microsoft 365.
+  Group Information                     Variety of functions designed to gather information about groups.
+  License Information                   Variety of functions designed to gather information about licenses.
 ===================================== =========================================================================================================================================================================== 
 
 Getting Started
@@ -88,26 +93,44 @@ Have a bug report or feature request? Open an issue on the Github repository.
 .. toctree::
    :maxdepth: 2
    :hidden:
-   :caption: Functionality
-   
-   functionality/UnifiedAuditLog
-   functionality/UnifiedAuditLogGraph
-   functionality/AdminAuditLog
-   functionality/MailboxAuditLog
-   functionality/MessageTraceLog
-   functionality/OAuthPermissions
-   functionality/InboxRules
-   functionality/TransportRules
-   functionality/MailItemsAccessed
-   functionality/AzureActiveDirectorysign-inlogs
-   functionality/AzureActiveDirectoryAuditLog
-   functionality/AzureActivityLogs
-   functionality/AzureDirectoryActivityLogs.rst
-   functionality/AzureSignInLogsGraph
-   functionality/AzureAuditLogsGraph
-   functionality/ConditionalAccessPolicies
-   functionality/GetEmails
-   functionality/GetUserInfo
+   :caption: Microsoft 365 functionalities
+
+   functionality/M365/UnifiedAuditLog
+   functionality/M365/UnifiedAuditLogGraph
+   functionality/M365/AdminAuditLog
+   functionality/M365/MailboxAuditLog
+   functionality/M365/MessageTraceLog
+   functionality/M365/InboxRules
+   functionality/M365/TransportRules
+   functionality/M365/MailItemsAccessed
+   functionality/M365/GetEmails
+   functionality/M365/MailboxAuditStatus
+   functionality/M365/MailboxDelegatedPermissions
+   functionality/M365/ProductLicenses
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: Azure & Entra ID Features
+
+   functionality/Azure/AzureActiveDirectorysign-inlogs
+   functionality/Azure/AzureActiveDirectoryAuditLog
+   functionality/Azure/AzureActivityLogs
+   functionality/Azure/AzureDirectoryActivityLogs
+   functionality/Azure/AzureSignInLogsGraph
+   functionality/Azure/AzureAuditLogsGraph
+   functionality/Azure/ConditionalAccessPolicies
+   functionality/Azure/Devices
+   functionality/Azure/OAuthPermissions
+   functionality/Azure/GetUserInfo
+   functionality/Azure/GetGroups
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+   :caption: Additional Tools
+
+   functionality/tools/EvidenceCollection
 
 .. toctree::
    :maxdepth: 2

@@ -1,29 +1,36 @@
 # This contains a function to collect the Message Trace logging.
-Function StartDateMTL
-{
+Function StartDateMTL {
+	param([switch]$Quiet)
+
 	if (($startDate -eq "") -Or ($null -eq $startDate))
 	{
 		$script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-90)
-		write-LogFile -Message "[INFO] No start date provided by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
+		if (-not $Quiet) {
+			write-LogFile -Message "[INFO] No start date provided by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
+		}
 	}
-	else
-	{
+	else {
 		$script:StartDate = $startDate -as [datetime]
-		if (!$startDate) { write-LogFile -Message "[WARNING] Not A valid start date and time, make sure to use YYYY-MM-DD" -Color "Red"} 
+		if (!$startDate -and -not $Quiet) {
+			write-LogFile -Message "[WARNING] Not A valid start date and time, make sure to use YYYY-MM-DD" -Color "Red"
+		} 
 	}
 }
 
-function EndDateMTL
-{
+function EndDateMTL {
+	param([switch]$Quiet)
+
 	if (($endDate -eq "") -Or ($null -eq $endDate))
 	{
 		$script:EndDate = [datetime]::Now.ToUniversalTime()
-		write-LogFile -Message "[INFO] No end date provided by user setting the end date to: $($script:EndDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
+		if (-not $Quiet) {
+			write-LogFile -Message "[INFO] No end date provided by user setting the end date to: $($script:EndDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
+		}
 	}
-	else
-	{
+	else {
 		$script:EndDate = $endDate -as [datetime]
-		if (!$endDate) {write-LogFile -Message "[WARNING] Not A valid end date and time, make sure to use YYYY-MM-DD" -Color "Red"} 
+		if (!$endDate -and -not $Quiet) {
+			write-LogFile -Message "[WARNING] Not A valid end date and time, make sure to use YYYY-MM-DD" -Color "Red"} 
 	}
 }
 
@@ -35,14 +42,14 @@ function Get-MessageTraceLog
 
     .DESCRIPTION
     Collects the trace messages as they pass through the cloud-based organization.
-	Only 90 days of history is available. Output is saved in: Output\MessageTrace\
+	Only 10 days of history is available. Output is saved in: Output\MessageTrace\
 	
 	.PARAMETER UserIds
     UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
 	.PARAMETER StartDate
     startDate is the parameter specifying the start date of the date range.
-	Default: Today 90 days
+	Default: Today 10 days
 
 	.PARAMETER EndDate
     endDate is the parameter specifying the end date of the date range.
@@ -55,6 +62,13 @@ function Get-MessageTraceLog
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
 	Default: UTF8
+
+	.PARAMETER LogLevel
+    Specifies the level of logging:
+    None: No logging
+    Minimal: Critical errors only
+    Standard: Normal operational logging
+    Default: Standard
 
 	.EXAMPLE
     Get-MessageTraceLog
@@ -82,44 +96,54 @@ function Get-MessageTraceLog
 		[string]$StartDate,
 		[string]$EndDate,
 		[string]$OutputDir = "Output\MessageTrace",
-		[string]$Encoding = "UTF8"
+		[string]$Encoding = "UTF8",
+        [ValidateSet('None', 'Minimal', 'Standard')]
+        [string]$LogLevel = 'Standard'
 	)
 
 	try {
 		$areYouConnected = Get-MessageTrace -ErrorAction stop
 	}
 	catch {
-		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
-		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow" -Level Minimal
+		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
 		break
 	}
 		
-	write-logFile -Message "[INFO] Running Get-MessageTraceLog" -Color "Green"
+	Write-LogFile -Message "=== Starting Message Trace Log Collection ===" -Color "Cyan" -Level Minimal
 
-	StartDateMTL
-	EndDateMTL
+	StartDateMTL -Quiet
+	EndDateMTL -Quiet
 	
-	$date = Get-Date -Format "yyyyMMddHHmm"
+	Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $date = Get-Date -Format "yyyyMMddHHmm"
+    $summary = @{
+        StartTime = Get-Date
+        ProcessingTime = $null
+    }
 
-    Write-LogFile -Message "[INFO] Output directory set to: $OutputDir"
 	if (!(test-path $OutputDir)) {
 		New-Item -ItemType Directory -Force -Name $OutputDir > $null
-		write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-	}
+	} else {
+        if (!(Test-Path -Path $OutputDir)) {
+            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal
+        }
+    }
 
-    if (($null -eq $UserIds) -Or ($UserIds -eq "")) {
-        Write-LogFile -Message "[INFO] No users provided. Getting the Message Trace Log for all users between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
+	if (($null -eq $UserIds) -Or ($UserIds -eq "")) {
+        Write-LogFile -Message "[INFO] No users provided. Getting the Message Trace Log for all users between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow" -Level Standard
         Retrieve-MessageTrace -StartDate $script:StartDate -endDate $script:EndDate -OutputFile "$OutputDir\$($date)-AllUsers-MTL.csv"
     } else {
         if($UserIds -match "\*"){
-            Write-LogFile -Message "[INFO] An entire domain has been provided, retrieving all messages between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
+            Write-LogFile -Message "[INFO] An entire domain has been provided, retrieving all messages between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow" -Level Standard
         }
         $users = $UserIds.Split(",")
 
         $users | foreach {
             $user = $_
 
-            write-logFile -Message "[INFO] Collecting the Message Trace Log for $user between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))"
+            write-logFile -Message "[INFO] Collecting the Message Trace Log for $user between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Level Standard
             $outputFile = "$OutputDir\$($user.Replace('*@',''))-MTL.csv"
             Remove-Item $outputFile -ErrorAction SilentlyContinue
 
@@ -127,27 +151,37 @@ function Get-MessageTraceLog
             Retrieve-MessageTrace -StartDate $script:StartDate -endDate $script:EndDate -OutputFile $outputFile -searchParams @{"SenderAddress" = $user}
 
             if (test-path $outputFile) {
-                Write-LogFile -Message "[INFO] Output is written to: $outputFile" -Color "Green"
+                Write-LogFile -Message "[INFO] Output is written to: $outputFile" -Color "Green" -Level Standard
             } else {
-                Write-LogFile -Message "[INFO] No message Trace logging found for $($user)" -Color "Yellow"
+                Write-LogFile -Message "[INFO] No message Trace logging found for $($user)" -Color "Yellow" -Level Standard
             }
         }
     }
+
+	$summary.ProcessingTime = (Get-Date) - $summary.StartTime
+	Write-LogFile -Message "`n=== Message Trace Analysis Summary ===" -Color "Cyan" -Level Standard
+    Write-LogFile -Message "Analysis Period: $($script:StartDate) to $($script:EndDate)" -Level Standard
+    Write-LogFile -Message "Output Statistics:" -Level Standard
+	Write-LogFile -Message "  Output Directory: $OutputDir" -Level Standard
+    Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
+    Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
 }
 
-#
-
-function Retrieve-MessageTrace
-<#
-    Handle the pagination of the MessageTraceV2 API
-#>
-{
+function Retrieve-MessageTrace {
+# Handle the pagination of the MessageTraceV2 API
     param(
 		[DateTime]$startDate,
 		[DateTime]$endDate,
 		$searchParams = @{},
 		[string]$OutputFile
 	)
+
+	$localSummary = @{
+        MessageCount = 0
+        SentCount = 0
+        ReceivedCount = 0
+        StatusCounts = @{}
+    }
 
 	$currentEnd = $endDate
     while($currentEnd -gt $startDate){
@@ -160,15 +194,16 @@ function Retrieve-MessageTrace
         $searchParams.StartDate = $currentStart
         $searchParams.EndDate = $currentEnd
         $resultCount = 5000
+		
         while($resultCount -ge 5000) {
             $results = Get-MessageTraceV2 @searchParams
             $resultCount = $results.Count
 
             if($results){
                 $results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Append
-                Write-LogFile -Message "[INFO] Found $resultCount records between $($results[-1].Received) and $($results[0].Received)"
+                Write-LogFile -Message "[INFO] Found $resultCount records between $($results[-1].Received) and $($results[0].Received)"  -Level Standard
 
-                $searchParams.EndDate = $results[-1].Received.ToString(“O”)
+                $searchParams.EndDate = $results[-1].Received.ToString("O")
                 $searchParams.StartingRecipientAddress = $results[-1].RecipientAddress
             }
         }

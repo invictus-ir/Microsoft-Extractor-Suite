@@ -18,4 +18,3 @@ Function Disconnect-AzureAZ
     Disconnect-AzAccount -Force > $null;
     Remove-Module Az -Force > $null;
 }
-

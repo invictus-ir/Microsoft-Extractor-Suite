@@ -27,6 +27,10 @@ Parameters
     - Encoding is the parameter specifying the encoding of the CSV output file.
     - Default: UTF8
 
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
+    
 Usage
 """"""""""""""""""""""""""
 Get all transport rules in your organization:
