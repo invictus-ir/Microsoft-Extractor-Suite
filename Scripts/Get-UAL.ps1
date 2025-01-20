@@ -351,16 +351,22 @@ function Get-UAL {
 		$resetInterval = $Interval
 		[DateTime]$currentStart = $script:StartDate
 		[DateTime]$currentEnd = $script:EndDate
+		$finalEndDate = $script:EndDate.ToUniversalTime()
 
 		$maxRetries = 3
 		$baseDelay = 10
 		$retryCount = 0 
 
-		while ($currentStart -lt $script:EndDate) {	
+		while ($currentStart -lt $finalEndDate) {	
 			$currentEnd = $currentStart.AddMinutes($Interval)
 	
-			if ($currentEnd -gt $script:EndDate) {
-				$currentEnd = $script:EndDate
+			if ($currentEnd -gt $finalEndDate) {
+				$currentEnd = $finalEndDate
+			}
+
+			if ($currentEnd -le $currentStart) {
+				Write-LogFile -Message "[INFO] Reached end of date range" -Level Standard
+				break
 			}
 			
 			$retryAttempt = 0

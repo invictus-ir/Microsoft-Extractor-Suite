@@ -1,4 +1,4 @@
-Prerequisites and Permissions Guide
+Prerequisites and Permissions 
 =======
 
 System Requirements
@@ -6,24 +6,21 @@ System Requirements
 
 **Platform Compatibility**
 
-- **Operating System**: Windows only  
+- **Operating System**: Windows  
+
   While PowerShell is available on macOS/Linux through WinRM, there are known compatibility issues.  
   A native Windows environment is strongly recommended for optimal performance.
 
 Required PowerShell Modules
 ---------------------------
 
-- **ExchangeOnlineManagement**  
-  Required for Microsoft 365 functionalities.  
+- **ExchangeOnlineManagement** - Required for Microsoft 365 functionalities.  
 
-- **AzureADPreview**  
-  Required for Entra ID functionalities.  
+- **AzureADPreview** - Required for Entra ID functionalities.  
 
-- **Microsoft.Graph**  
-  Required for Graph API functionalities.  
+- **Microsoft.Graph** - Required for Graph API functionalities.  
 
-- **Az**  
-  Required for Azure Activity log functionality.  
+- **Az** - Required for Azure functionalities.  
 
 Initial Setup
 -------------
@@ -139,6 +136,7 @@ Each functionality requires one of the following permissions:
 Our preference
 """"""""""""""""""""""""""
 **An account with the required permissions**
+
 During our investigations we often ask for a Global Reader account with Audit Log roles assigned, which can be accomplished via the following steps:
 
 1. Create a new user account in the Microsoft 365 admin center (admin.microsoft.com)
@@ -148,18 +146,22 @@ During our investigations we often ask for a Global Reader account with Audit Lo
 5. Add the new user to this role group
 
 **Application with the required Graph API Permissions**
+
 1. **Register an Application**:
+
    a. Log in to the Azure Portal with a Global Administrator or administrator-privileged user: `https://portal.azure.com/`.  
    b. Navigate to **Microsoft Entra ID**.  
    c. Select **App registrations** and click on **New registration**.  
    d. Provide a name for the application and click on **Register**.
 
 2. **Generate a Client Secret**:
+
    a. Go to the application’s **Certificates & Secrets** section.  
    b. Create a **Client Secret** and set its expiration to 1 month.  
    c. Copy the **Client Secret**, and share it with Invictus along with the **Application ID** and **Tenant ID** (found on the application’s Overview page).
 
 3. **Assign API Permissions**:
+
    a. Navigate to the **API Permissions** section of the application.  
    b. Click **Add a permission** and assign the following **Graph API permissions** (Application permissions):  
 

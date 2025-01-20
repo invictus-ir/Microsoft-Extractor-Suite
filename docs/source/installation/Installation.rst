@@ -6,7 +6,7 @@ Install the Microsoft-Extractor-Suite toolkit:
 
    Install-Module -Name Microsoft-Extractor-Suite
 
-Install the Powershell module Microsoft.Graph for the Graph API Beta functionalities:
+Install the Powershell module Microsoft.Graph for the Graph API functionalities:
 ::
 
    Install-module -name Microsoft.Graph
