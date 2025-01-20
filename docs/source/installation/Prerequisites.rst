@@ -15,19 +15,15 @@ Required PowerShell Modules
 
 - **ExchangeOnlineManagement**  
   Required for Microsoft 365 functionalities.  
-  Handles Exchange Online operations.
 
 - **AzureADPreview**  
   Required for Entra ID functionalities.  
-  Provides advanced directory management capabilities.
 
 - **Microsoft.Graph**  
   Required for Graph API functionalities.  
-  Enables modern API access to Microsoft 365 services.
 
 - **Az**  
   Required for Azure Activity log functionality.  
-  Provides comprehensive Azure management capabilities.
 
 Initial Setup
 -------------
@@ -142,6 +138,7 @@ Each functionality requires one of the following permissions:
 
 Our preference
 """"""""""""""""""""""""""
+**An account with the required permissions**
 During our investigations we often ask for a Global Reader account with Audit Log roles assigned, which can be accomplished via the following steps:
 
 1. Create a new user account in the Microsoft 365 admin center (admin.microsoft.com)
@@ -150,8 +147,57 @@ During our investigations we often ask for a Global Reader account with Audit Lo
 4. Next, select the ‘Unified Audit’ role and go to ‘Permissions’ and select the ‘View-Only Audit Logs’ permission
 5. Add the new user to this role group
 
+**Application with the required Graph API Permissions**
+1. **Register an Application**:
+   a. Log in to the Azure Portal with a Global Administrator or administrator-privileged user: `https://portal.azure.com/`.  
+   b. Navigate to **Microsoft Entra ID**.  
+   c. Select **App registrations** and click on **New registration**.  
+   d. Provide a name for the application and click on **Register**.
+
+2. **Generate a Client Secret**:
+   a. Go to the application’s **Certificates & Secrets** section.  
+   b. Create a **Client Secret** and set its expiration to 1 month.  
+   c. Copy the **Client Secret**, and share it with Invictus along with the **Application ID** and **Tenant ID** (found on the application’s Overview page).
+
+3. **Assign API Permissions**:
+   a. Navigate to the **API Permissions** section of the application.  
+   b. Click **Add a permission** and assign the following **Graph API permissions** (Application permissions):  
+
+   +---------------------------+-----------------------------------------------------+
+   | Permissions               | Description                                         |
+   +===========================+=====================================================+
+   | Application.Read.All      | Read all applications                               |
+   +---------------------------+-----------------------------------------------------+
+   | AuditLog.Read.All         | Read all audit log data                             |
+   +---------------------------+-----------------------------------------------------+
+   | AuditLogsQuery.Read.All   | Read audit logs data from all services              |
+   +---------------------------+-----------------------------------------------------+
+   | Directory.Read.All        | Read directory data                                 |
+   +---------------------------+-----------------------------------------------------+
+   | IdentityRiskEvent.Read.All| Read all identity risk event information            |
+   +---------------------------+-----------------------------------------------------+
+   | IdentityRiskyUser.Read.All| Read all identity risky user information            |
+   +---------------------------+-----------------------------------------------------+
+   | Mail.ReadBasic.All        | Read metadata of mail in all mailboxes              |
+   +---------------------------+-----------------------------------------------------+
+   | Policy.Read.All           | Read your organization's policies                   |
+   +---------------------------+-----------------------------------------------------+
+   | UserAuthenticationMethod.Read.All | Read all users authentication methods       |
+   +---------------------------+-----------------------------------------------------+
+   | Policy.Read.All           | Read the conditional access policies                |
+   +---------------------------+-----------------------------------------------------+
+   | User.Read.All             | Read all users full profiles                        |
+   +---------------------------+-----------------------------------------------------+
+   | Device.Read.All           | Read all device information                         |
+   +---------------------------+-----------------------------------------------------+
+   | Mail.ReadWrite (optional) | Read the content of emails in all mailboxes.        |
+   |                           | This method requires write permissions.             |
+   |                           | Alternatively, emails can be acquired by other      |
+   |                           | means.                                              |
+   +---------------------------+-----------------------------------------------------+
+
 .. note::
 
-   The simplest method is to obtain an administrator account, which grants unrestricted access to everything needed by the tool.
+   The simplest method is to obtain an administrator account, which grants unrestricted access to everything needed by the Microsoft Extractor Suite.
    
    However,  it's highly recommended to adhere to the principle of least privilege. This principle suggests granting only the necessary level of access to perform specific tasks and limiting access to other functionalities to minimize the risk of unauthorized access or malicious actions. Therefore, it's best to avoid granting administrator privileges unless it's absolutely necessary to perform specific actions.
