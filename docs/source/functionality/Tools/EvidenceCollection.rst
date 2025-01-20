@@ -5,7 +5,7 @@ Automates the collection of evidence from Microsoft 365 and Azure/Entra ID envir
 This functionality is currently in beta. If you run into any issues, please let us know so we can try to fix them.
 
 .. note::
-    It is recommended to run the tool for specific users rather than the entire tenant. While running it for the full tenant is possible, it may take a considerable amount of time to collect all data, depending on the size of the organization. The Unified Audit Log, Audit Settings, and Mailbox Permissions can be particularly slow in large environments.
+    It is recommended to run the tool for specific users rather than the entire environment. While running it for the full environment is possible, it may take a considerable amount of time to collect all data, depending on the size of the organization. The Unified Audit Log, Audit Settings, and Mailbox Permissions can be particularly slow in large environments.
     
     Esure you are properly connected before running the tool. For the Microsoft 365 components, confirm that you are connected using Connect-Exchange or Connect-M365. For the Entra/Azure components, ensure you are connected using Connect-MgGraph.
   

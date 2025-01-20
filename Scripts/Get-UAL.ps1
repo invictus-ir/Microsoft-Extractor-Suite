@@ -508,7 +508,7 @@ function Get-UAL {
 													$backoffDelay = 10
 												}
 												else {
-													Write-LogFile -Message "[WARNING] Microsoft returned corrupt data for period $($currentStart.ToString('yyyy-MM-dd HH:mm:ss')) to $($currentEnd.ToString('yyyy-MM-dd HH:mm:ss'))... Retrying the entire batch ... " -Color "Yellow" -Level Standard
+													Write-LogFile -Message "[WARNING] Microsoft returned corrupt data for the period $($currentStart.ToString('yyyy-MM-dd HH:mm:ss')) to $($currentEnd.ToString('yyyy-MM-dd HH:mm:ss'))... Retrying the entire batch... " -Color "Yellow" -Level Standard
 													$batchAttempts++
 													$allResults = @()
 													$totalProcessed = 0

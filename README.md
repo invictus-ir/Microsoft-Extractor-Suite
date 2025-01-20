@@ -61,14 +61,6 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 
 ## Available Functions
 
-### Authentication & Session Management
-- `Connect-M365` - Connect to Microsoft 365 services
-- `Connect-Azure` - Connect to Azure/Entra ID
-- `Connect-AzureAZ` - Connect using Az module
-- `Disconnect-M365` - Disconnect from Microsoft 365 services
-- `Disconnect-Azure` - Disconnect from Azure/Entra ID
-- `Disconnect-AzureAZ` - Disconnect from Az module session
-
 ### Unified Audit Log
 - `Get-UALAll` - Collect all Unified Audit Logs
 - `Get-UALStatistics` - Displays the total number of logs within the Unified Audit Logs per Record Type
@@ -133,6 +125,13 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 ### Automatically collect everything you wants
 - `Get-AllEvidence` - Collect all (almost) available evidence types automatically
 
+### Authentication & Session Management
+- `Connect-M365` - Connect to Microsoft 365 services
+- `Connect-Azure` - Connect to Azure/Entra ID
+- `Connect-AzureAZ` - Connect using Az module
+- `Disconnect-M365` - Disconnect from Microsoft 365 services
+- `Disconnect-Azure` - Disconnect from Azure/Entra ID
+- `Disconnect-AzureAZ` - Disconnect from Az module session
 
 ## Related Projects
 To enhance your analysis, consider exploring the [Microsoft-Analyzer-Suite](https://github.com/evild3ad/Microsoft-Analyzer-Suite) developed by evild3ad. This suite offers a collection of PowerShell scripts specifically designed for analyzing Microsoft 365 and Microsoft Entra ID data, which can be extracted using the Microsoft-Extractor-Suite.

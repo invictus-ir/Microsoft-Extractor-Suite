@@ -1,24 +1,39 @@
-Prerequisites
+Prerequisites and Permissions Guide
 =======
 
-1. The tool only supports PowerShell on Windows. While it is possible to use PowerShell on MacOS/Linux  through WinRM, there are known issues that can cause issues.
+System Requirements
+""""""""""""""""""""""""""
 
-2. Powershell module: ExchangeOnlineManagement for the Microsoft 365 functionalities.
+**Platform Compatibility**
 
-3. Powershell module: AzureADPreview for the Entra ID functionalities.
+- **Operating System**: Windows only  
+  While PowerShell is available on macOS/Linux through WinRM, there are known compatibility issues.  
+  A native Windows environment is strongly recommended for optimal performance.
 
-4. Powershell module: Microsoft.Graph for the Graph API functionalities.
+Required PowerShell Modules
+---------------------------
 
-5. Powershell module: Az for the Azure Activity log functionality.
+- **ExchangeOnlineManagement**  
+  Required for Microsoft 365 functionalities.  
+  Handles Exchange Online operations.
 
-6. Microsoft 365 account with privileges to access/extract audit logging.
+- **AzureADPreview**  
+  Required for Entra ID functionalities.  
+  Provides advanced directory management capabilities.
 
-7. Check if the Unified Audit Log has been activated.
+- **Microsoft.Graph**  
+  Required for Graph API functionalities.  
+  Enables modern API access to Microsoft 365 services.
 
-8. Ensure that your PowerShell Execution Policy is configured to "Unrestricted".
+- **Az**  
+  Required for Azure Activity log functionality.  
+  Provides comprehensive Azure management capabilities.
 
-9. If using the Graph API functionalities, the first time you'll need to sign in with an admin account to consent to the required scopes.
-
+Initial Setup
+-------------
+- A Microsoft 365 account with appropriate audit logging privileges.
+- An admin account is required for initial Graph API scope consent (first-time setup only).
+- PowerShell Execution Policy to allow execution of scripts, set the PowerShell execution policy:
 ::
 
    Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
@@ -27,7 +42,7 @@ Permissions
 """"""""""""""""""""""""""
 An account is needed with sufficient permissions to collect the mentioned logs. This action is often
 overlooked and forgotten until collection is attempted. Requesting and implementing the correct
-permissions is necessary to avoid these setbacks.
+permissions is necessary.
 
 Each functionality requires one of the following permissions:
 
