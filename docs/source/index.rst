@@ -1,10 +1,10 @@
 .. image:: /Images/Invictus-Incident-Response.jpg
    :alt: Invictus logo
    
-Microsoft-Extractor-Suite documentation!
+Microsoft Extractor Suite documentation!
 ===================================
 
-**Microsoft-Extractor-Suite** is a fully-featured, actively-maintained, Powershell tool designed to streamline the process of collecting all necessary data and information from various sources within Microsoft.
+**Microsoft Extractor Suite** is a fully-featured, actively-maintained, Powershell tool designed to streamline the process of collecting all necessary data and information from various sources within Microsoft.
 
 .. note::
 
@@ -23,7 +23,7 @@ Supported sources
   OAuth Permissions                     OAuth is a way of authorizing third-party applications to login into user accounts.                                                                                        
   Inbox Rules                           Inbox rules process messages in the inbox based on conditions and take actions such as moving a message to a specified folder or deleting a message.                       
   Transport Rules                       Transport rules take action on messages while they're in transit.                                                                                                          
-  Entra ID sign-in log                  Gets the Entra ID Sign-In log.                                                                                                                               
+  Entra ID Sign-in log                  Gets the Entra ID Sign-In log.                                                                                                                               
   Entra ID Audit Log                    Gets the Entra ID Audit log.  
   Azure Activity Log                    Gets the Azure Activity log.     
   Azure Directory Activity Log          Gets the Azure Directory Activity log.                                                                                                     
@@ -55,7 +55,7 @@ Getting Started
 To get started with the Microsoft-Extractor-Suite tool, make sure the requirements are met. If you do not have the **Connect-ExchangeOnline** or/and **Connect-AzureAD** installed check
 the installation page.
 
-Install the Microsoft-Extractor-Suite toolkit:
+Install the Microsoft Extractor Suite:
 ::
 
    Install-Module -Name Microsoft-Extractor-Suite
@@ -65,7 +65,7 @@ To import the Microsoft-Extractor-Suite:
 
    Import-Module .\Microsoft-Extractor-Suite.psd1
 
-To import the Microsoft-Extractor-Suite without the logo output:
+To import the Microsoft Extractor Suite without the logo output:
 ::
 
    Import-Module .\Microsoft-Extractor-Suite.psd1 -ArgumentList $true

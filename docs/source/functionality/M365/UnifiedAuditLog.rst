@@ -5,7 +5,7 @@ The UAL is a critical piece of evidence in a BEC investigation because it is a c
 all Office 365 events. The UAL contains at least 353 categories of data, including events from Azure,
 Exchange, SharePoint, OneDrive, and Skype.
 
-Why is the acquisition slow?
+Why does the acquisition take a lot of time?
 ^^^^^^^^^^^
 To retrieve the Unified Audit Log, we use the `Search-UnifiedAuditLog` cmdlet. Unfortunately, there is a limitation of retrieving only 5,000 records per call. If there are more than 5,000 records within the specified time window, only the first 5,000 records are collected, and the rest are ignored.
 To address this, our script dynamically reduces the time interval to ensure that no more than 5,000 records are collected per call. It iterates through the time windows until all records are retrieved. For each interval (up to 5,000 records), the script typically makes 2–3 API calls to ensure completeness.
@@ -40,7 +40,7 @@ Parameters
 
 -StartDate (optional)
     - StartDate is the parameter specifying the start date of the date range.
-    - Default: Today -90 days
+    - Default: Today -180 days
 
 -EndDate (optional)
     - EndDate is the parameter specifying the end date of the date range.
