@@ -1,6 +1,6 @@
 Entra ID Audit Log
 =======
-Use **Get-ADAuditLogs** to collect the contents of the Entra ID Audit Log.
+Use **Get-EntraAuditLogs** to collect the contents of the Entra ID Audit Log.
 
 .. note::
 
@@ -11,17 +11,17 @@ Usage
 Running the script without any parameters will gather the Entra ID Audit Log for the last 7 days (Entra ID Free) or 30 days (Entra ID P1+P2):
 ::
 
-   Get-ADAuditLogs
+   Get-EntraAuditLogs
 
 Get theEntra ID Audit Log before 2024-04-12:
 ::
 
-   Get-ADAuditLogs -endDate 2024-04-12
+   Get-EntraAuditLogs -endDate 2024-04-12
 
 Get the Entra ID Audit Log after 2024-04-12:
 ::
 
-   Get-ADAuditLogs -startDate 2024-04-12
+   Get-EntraAuditLogs -startDate 2024-04-12
 
 Parameters
 """"""""""""""""""""""""""

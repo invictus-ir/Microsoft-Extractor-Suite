@@ -52,11 +52,11 @@ function Get-UAL {
 
     .PARAMETER RecordType
     The RecordType parameter filters the log entries by record type.
-	Options are: ExchangeItem, ExchangeAdmin, etc. A total of 236 RecordTypes are supported.
+	Options are: ExchangeItem, ExchangeAdmin, etc. A total of 353 RecordTypes are supported.
 
- 	.PARAMETER ActivityType
-    The ActivityType parameter filters the log entries by operation or activity type.
-	Options are: New-MailboxRule, MailItemsAccessed, etc. A total of 108 common ActivityTypes are supported.
+ 	.PARAMETER Operation
+    The Operation parameter filters the log entries by operation or activity type.
+	Options are: New-MailboxRule, MailItemsAccessed, etc. A total of 108 common Operations are supported.
 
 	.PARAMETER LogLevel
 	Specifies the level of logging:
@@ -106,7 +106,7 @@ function Get-UAL {
 	Gets the ExchangeItem and all Azure related logging from the unified audit log.
 
 	.EXAMPLE
-	Get-UAL -ActivityType New-InboxRule
+	Get-UAL -Operation New-InboxRule
 	Gets the New-InboxRule logging from the unified audit log.
 #>
 
@@ -119,7 +119,7 @@ function Get-UAL {
 			[ValidateSet("Exchange", "Azure", "Sharepoint", "Skype", "Defender")]
 			[string]$Group = $null,
 			[array]$RecordType = $null,
-			[array]$ActivityType = $null,
+			[array]$Operation = $null,
 			[ValidateSet("CSV", "JSON", "SOF-ELK")]
 			[string]$Output = "CSV",
 			[switch]$MergeOutput,
@@ -161,8 +161,8 @@ function Get-UAL {
         $baseSearchQuery.ObjectIds = $ObjectIds
     }
 
-	if ($ActivityType) {
-		$baseSearchQuery.Operations = $ActivityType
+	if ($Operation) {
+		$baseSearchQuery.Operations = $Operation
 	}
 
 	$totalResults = 0
@@ -228,9 +228,9 @@ function Get-UAL {
 			Write-LogFile -Message "  - $record" -Level Standard
 		}
 	}
-	if ($ActivityType) {
-		Write-LogFile -Message "`nThe following ActivityType(s) are configured to be extracted:" -Level Standard
-		foreach ($activity in $ActivityType) {
+	if ($Operation) {
+		Write-LogFile -Message "`nThe following Operation(s) are configured to be extracted:" -Level Standard
+		foreach ($activity in $Operation) {
 			Write-LogFile -Message "- $activity" -Level Standard
 		}
 	}

@@ -35,7 +35,7 @@ Function Get-UALGraph {
 
     .PARAMETER RecordType
     The RecordType parameter filters the log entries by record type.
-    Options are: ExchangeItem, ExchangeAdmin, etc. A total of 236 RecordTypes are supported.
+    Options are: ExchangeItem, ExchangeAdmin, etc. A total of 353 RecordTypes are supported.
 
     .PARAMETER Keyword
     The Keyword parameter allows you to filter the Unified Audit Log for specific keywords.

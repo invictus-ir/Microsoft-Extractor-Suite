@@ -2,7 +2,7 @@ Unified Audit Log via Graph API
 =======
 
 The UAL is a critical piece of evidence in a BEC investigation because it is a centralized source for
-all Office 365 events. The UAL contains at least 236 categories of data, including events from Azure,
+all Office 365 events. The UAL contains at least 353 categories of data, including events from Azure,
 Exchange, SharePoint, OneDrive, and Skype.
 
 .. note::
@@ -69,7 +69,7 @@ Parameters
 
 -RecordType (optional)
     - The RecordType parameter filters the log entries by record type.
-    - Options are: ExchangeItem, ExchangeAdmin, etc. A total of 236 RecordTypes are supported.
+    - Options are: ExchangeItem, ExchangeAdmin, etc. A total of 353 RecordTypes are supported.
 
 -ObjecIDs (optional)
     - Exact data returned depends on the service in the current `@odatatype.microsoft.graph.security.auditLogQuery` record.

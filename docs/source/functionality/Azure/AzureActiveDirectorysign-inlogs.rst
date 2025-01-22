@@ -1,6 +1,6 @@
-Azure Entra ID sign-in logs
+Entra ID sign-in logs
 =======
-Use **Get-EntraSignInLogs** to collect the contents of the Azure Entra ID sign-in log.
+Use **Get-EntraSignInLogs** to collect the contents of the Entra ID sign-in log.
 
 .. note::
 
