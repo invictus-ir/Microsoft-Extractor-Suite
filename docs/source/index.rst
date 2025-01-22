@@ -106,7 +106,6 @@ Have a bug report or feature request? Open an issue on the Github repository.
    functionality/M365/GetEmails
    functionality/M365/MailboxAuditStatus
    functionality/M365/MailboxDelegatedPermissions
-   functionality/M365/ProductLicenses
 
 .. toctree::
    :maxdepth: 2
@@ -124,6 +123,7 @@ Have a bug report or feature request? Open an issue on the Github repository.
    functionality/Azure/OAuthPermissions
    functionality/Azure/GetUserInfo
    functionality/Azure/GetGroups
+   functionality/Azure/ProductLicenses
 
 .. toctree::
    :maxdepth: 2
