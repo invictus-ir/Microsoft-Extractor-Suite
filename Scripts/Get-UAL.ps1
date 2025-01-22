@@ -184,12 +184,15 @@ function Get-UAL {
 	$GroupRecordTypes = @{
         "Exchange" = @("ExchangeAdmin","ExchangeAggregatedOperation","ExchangeItem","ExchangeItemGroup",
                       "ExchangeItemAggregated","ComplianceDLPExchange","ComplianceSupervisionExchange",
-                      "MipAutoLabelExchangeItem")
+                      "MipAutoLabelExchangeItem","ExchangeSearch","ComplianceDLPExchangeClassification","ComplianceCCExchangeExecutionResult",
+					  "CdpComplianceDLPExchangeClassification","ComplianceDLMExchange","ComplianceDLPExchangeDiscovery")
         "Azure" = @("AzureActiveDirectory","AzureActiveDirectoryAccountLogon","AzureActiveDirectoryStsLogon")
         "Sharepoint" = @("ComplianceDLPSharePoint","SharePoint","SharePointFileOperation","SharePointSharingOperation",
                         "SharepointListOperation","ComplianceDLPSharePointClassification","SharePointCommentOperation",
                         "SharePointListItemOperation","SharePointContentTypeOperation","SharePointFieldOperation",
-                        "MipAutoLabelSharePointItem","MipAutoLabelSharePointPolicyLocation")
+                        "MipAutoLabelSharePointItem","MipAutoLabelSharePointPolicyLocation","OnPremisesSharePointScannerDlp","SharePointSearch",
+						"SharePointAppPermissionOperation","ComplianceDLPSharePointClassificationExtended","CdpComplianceDLPSharePointClassification",
+						"SharePointESignature","ComplianceDLMSharePoint","SharePointContentSecurityPolicy")
         "Skype" = @("SkypeForBusinessCmdlets","SkypeForBusinessPSTNUsage","SkypeForBusinessUsersBlocked")
         "Defender" = @("ThreatIntelligence","ThreatFinder","ThreatIntelligenceUrl","ThreatIntelligenceAtpContent",
                       "Campaign","AirInvestigation","WDATPAlerts","AirManualInvestigation",

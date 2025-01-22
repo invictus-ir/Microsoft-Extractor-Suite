@@ -147,6 +147,18 @@ Parameters
     - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
     - Default: Standard
 
+-Group (optional)
+    - Group is the group of logging needed to be extracted.
+	- Options are: Exchange, Azure, Sharepoint, Skype and Defender
+
+-RecordType (optional)
+    - The RecordType parameter filters the log entries by record type.
+	- Options are: ExchangeItem, ExchangeAdmin, etc. A total of 353 RecordTypes are supported.
+
+-Operation (optional)
+    - The Operation parameter filters the log entries by operation or activity type.
+	- Options are: New-MailboxRule, MailItemsAccessed, etc.
+
 .. note::
 
   **Important note** regarding the StartDate and EndDate variables. 
