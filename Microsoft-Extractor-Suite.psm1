@@ -45,6 +45,23 @@ Function StartDate {
     }
 }
 
+Function StartDateUAL {
+    param([switch]$Quiet)
+    
+    if (($startDate -eq "") -Or ($null -eq $startDate)) {
+        $script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-180)
+        if (-not $Quiet) {
+            Write-LogFile -Message "[INFO] No start date provided by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
+        }
+    }
+    else {
+        $script:startDate = $startDate -as [datetime]
+        if (!$script:startDate -and -not $Quiet) { 
+            Write-LogFile -Message "[WARNING] Not A valid start date and time, make sure to use YYYY-MM-DD" -Color "Red"
+        } 
+    }
+}
+
 Function StartDateAz {
     param([switch]$Quiet)
     

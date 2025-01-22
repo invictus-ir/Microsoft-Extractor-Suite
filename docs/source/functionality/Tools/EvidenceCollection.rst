@@ -54,6 +54,7 @@ Output
 The output will be saved to the 'Output\ProjectName' directory with the following structure:
 
 Azure/Entra ID Collections:
+
 - RiskyEvents (Risky users and detections)
 - MFA (MFA configuration status)
 - Users (General user information)
@@ -64,6 +65,7 @@ Azure/Entra ID Collections:
 - Audit logs
 
 Microsoft 365 Collections:
+
 - Rules (Inbox and Transport rules)
 - MessageTrace
 - DelegatedPermissions

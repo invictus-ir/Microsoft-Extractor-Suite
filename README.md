@@ -62,7 +62,7 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 ## Available Functions
 
 ### Unified Audit Log
-- `Get-UALAll` - Collect all Unified Audit Logs
+- `Get-Get-UAL` - Collect all Unified Audit Logs
 - `Get-UALStatistics` - Displays the total number of logs within the Unified Audit Logs per Record Type
 - `Get-MailboxAuditLog` - Collect Mailbox Audit Logs
 - `Get-AdminAuditLog` - Collect Admin Audit Logs
@@ -122,7 +122,7 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 - `Get-GroupMembers` - Collect all members of each group and their relevant details
 - `Get-DynamicGroups` - Collect all dynamic groups and their membership rules
 
-### Automatically collect everything you wants
+### Automatically collect everything you want
 - `Get-AllEvidence` - Collect all (almost) available evidence types automatically
 
 ### Authentication & Session Management

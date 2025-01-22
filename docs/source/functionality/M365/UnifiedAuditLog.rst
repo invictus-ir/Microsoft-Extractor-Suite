@@ -115,7 +115,7 @@ Parameters
 
 -StartDate (optional)
     - StartDate is the parameter specifying the start date of the date range.
-    - Default: Today -90 days
+    - Default: Today -180 days
 
 -EndDate (optional)
     - EndDate is the parameter specifying the end date of the date range.

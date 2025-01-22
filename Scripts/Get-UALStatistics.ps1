@@ -60,7 +60,7 @@ function Get-UALStatistics
 	Write-LogFile -Message "=== Analyzing audit log distribution across record types ===" -Color "Cyan" -Level Minimal
 	Write-LogFile -Message "Started: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -Level Standard
 
-	StartDate -Quiet
+	StartDateUAL -Quiet
 	EndDate -Quiet	
 
 	$dateRange = "$($script:StartDate.ToString('yyyy-MM-dd HH:mm:ss')) to $($script:EndDate.ToString('yyyy-MM-dd HH:mm:ss'))"

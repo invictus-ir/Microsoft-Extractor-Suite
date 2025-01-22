@@ -264,7 +264,6 @@ function Get-MailboxRules
     Write-LogFile -Message "=== Starting Mailbox Rules Collection ===" -Color "Cyan" -Level Minimal
 	
 	if (!(test-path $OutputDir)) {
-		write-LogFile -Message "[INFO] Creating the following directory: $OutputDir"
 		New-Item -ItemType Directory -Force -Name $OutputDir > $null
 	}
 	else {

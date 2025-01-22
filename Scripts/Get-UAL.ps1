@@ -14,15 +14,11 @@ function Get-UAL {
 
 	.PARAMETER StartDate
     startDate is the parameter specifying the start date of the date range.
-	Default: Today -90 days
+	Default: Today -180 days
 
 	.PARAMETER EndDate
     endDate is the parameter specifying the end date of the date range.
 	Default: Now
-
-	.PARAMETER Interval
-    Interval is the parameter specifying the interval in which the logs are being gathered.
-	Default: 720 minutes
 
 	.PARAMETER Output
     Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
@@ -42,25 +38,10 @@ function Get-UAL {
 	.PARAMETER ObjecIDs 
     The ObjectIds parameter filters the log entries by object ID. The object ID is the target object that was acted upon, and depends on the RecordType and Operations values of the event.
 	You can enter multiple values separated by commas.
-    
-    .EXAMPLE
-    Get-UALAll
-	Gets all the unified audit log entries.
 
 	.DESCRIPTION
 	Makes it possible to extract all unified audit data out of a Microsoft 365 environment. 
 	The output will be written to: Output\UnifiedAuditLog\
-
-	.PARAMETER UserIds
-	UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
-
-	.PARAMETER StartDate
-	startDate is the parameter specifying the start date of the date range.
-	Default: Today -90 days
-
-	.PARAMETER EndDate
-	endDate is the parameter specifying the end date of the date range.
-	Default: Now
 
 	.PARAMETER Interval
 	Interval is the parameter specifying the interval in which the logs are being gathered.
@@ -76,25 +57,6 @@ function Get-UAL {
  	.PARAMETER ActivityType
     The ActivityType parameter filters the log entries by operation or activity type.
 	Options are: New-MailboxRule, MailItemsAccessed, etc. A total of 108 common ActivityTypes are supported.
-
-	.PARAMETER Output
-	Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
-	Default: CSV
-
-	.PARAMETER OutputDir
-	OutputDir is the parameter specifying the output directory.
-	Default: Output\UnifiedAuditLog
-
-	 .PARAMETER MergeOutput
-	MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
-
-	.PARAMETER Encoding
-	Encoding is the parameter specifying the encoding of the CSV/JSON output file.
-	Default: UTF8
-
-	.PARAMETER ObjecIDs 
-	The ObjectIds parameter filters the log entries by object ID. The object ID is the target object that was acted upon, and depends on the RecordType and Operations values of the event.
-	You can enter multiple values separated by commas.
 
 	.PARAMETER LogLevel
 	Specifies the level of logging:
@@ -188,7 +150,7 @@ function Get-UAL {
 		throw
 	}
 
-	StartDate -Quiet
+	StartDateUAL -Quiet
 	EndDate -Quiet
 
 	$baseSearchQuery = @{
@@ -514,7 +476,7 @@ function Get-UAL {
 													$backoffDelay = 10
 												}
 												else {
-													Write-LogFile -Message "[WARNING] Microsoft returned corrupt data for the period $($currentStart.ToString('yyyy-MM-dd HH:mm:ss')) to $($currentEnd.ToString('yyyy-MM-dd HH:mm:ss'))... Retrying the entire batch... " -Color "Yellow" -Level Standard
+													Write-LogFile -Message "[WARNING] Microsoft returned corrupt data for the period $($currentStart.ToString('yyyy-MM-dd HH:mm:ss')) to $($currentEnd.ToString('yyyy-MM-dd HH:mm:ss'))... Retrying the entire batch... " -Color "Yellow" -Level Minimal
 													$batchAttempts++
 													$allResults = @()
 													$totalProcessed = 0

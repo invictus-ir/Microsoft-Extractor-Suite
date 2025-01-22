@@ -92,13 +92,13 @@ $Global:CollectionTasks = @{
         "SignInLogs" = @{
             Name = "Sign-In Logs"
             Description = "Collects Azure Entra sign-in logs"
-            Function = { param($OutputDir, $LogLevel, $UserIds)
+            Function = { param($OutputDir, $LogLevel, $UserIds, $Output = 'CSV')
                 $OutputDirAudit = "$OutputDir\Sign-In logs"
                 New-Item -ItemType Directory -Force -Path $OutputDirAudit > $null
                 if ($UserIds) {
-                    Get-GraphEntraSignInLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $UserIds
+                    Get-GraphEntraSignInLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $UserIds -Output $Output -MergeOutput
                 } else {
-                    Get-GraphEntraSignInLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel
+                    Get-GraphEntraSignInLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel -Output $Output -MergeOutput
                 }
                 return $true
             }
@@ -107,13 +107,13 @@ $Global:CollectionTasks = @{
         "AuditLogs" = @{
             Name = "Audit Logs"
             Description = "Collects Azure Entra audit logs"
-            Function = { param($OutputDir, $LogLevel, $UserIds)
+            Function = { param($OutputDir, $LogLevel, $UserIds, $Output = 'CSV')
                 $OutputDirAudit = "$OutputDir\Audit logs"
                 New-Item -ItemType Directory -Force -Path $OutputDirAudit > $null
                 if ($UserIds) {
-                    Get-GraphEntraAuditLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $UserIds
+                    Get-GraphEntraAuditLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $UserIds -Output $Output -MergeOutput
                 } else {
-                    Get-GraphEntraAuditLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel
+                    Get-GraphEntraAuditLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel -Output $Output -MergeOutput
                 }
                 return $true
             }
@@ -160,7 +160,7 @@ $Global:CollectionTasks = @{
             Enabled = $true
         }
         "MailboxPermissions" = @{
-            Name = "Mailbox Permissions"
+            Name = "Delegated Mailbox Permissions"
             Description = "Collects mailbox delegated permissions"
             Function = { param($OutputDir, $LogLevel, $UserIds)
                 if ($UserIds) {
@@ -188,14 +188,14 @@ $Global:CollectionTasks = @{
         "UnifiedAuditLog" = @{
             Name = "Unified Audit Log"
             Description = "Collects Office 365 Unified Audit Logs"
-            Function = { param($OutputDir, $LogLevel, $UserIds)
+            Function = { param($OutputDir, $LogLevel, $UserIds, $OutputFormat = 'CSV')
                 $OutputDirAudit = "$OutputDir\UnifiedAuditLog"
                 Write-LogFile -Message "Starting Unified Audit Log collection (this may take a while)..." -Color "Yellow"
                 New-Item -ItemType Directory -Force -Path $OutputDirAudit > $null
                 if ($UserIds) {
-                    Get-UALAll -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $UserIds -MergeOutput -Interval 2880
+                    Get-UAL -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $UserIds -MergeOutput -Interval 2880 -Output $Output
                 } else {
-                    Get-UALAll -OutputDir $OutputDirAudit -LogLevel $LogLevel -MergeOutput
+                    Get-UAL -OutputDir $OutputDirAudit -LogLevel $LogLevel -MergeOutput -Output $Output
                 }
                 return $true
             }
@@ -481,6 +481,10 @@ function Start-EvidenceCollection {
     .PARAMETER UserIds
     Optional. Comma-separated list of user IDs to filter the collection scope.
 
+    .PARAMETER Output
+    Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
+	Default: CSV
+
     .PARAMETER Interactive
     Switch to enable interactive mode, showing the collection menu.
 
@@ -505,7 +509,10 @@ function Start-EvidenceCollection {
         [Parameter(Mandatory=$false)]
         [string]$UserIds,
         [Parameter(Mandatory=$false)]
-        [switch]$Interactive
+        [switch]$Interactive,
+        [Parameter(Mandatory=$false)]
+        [ValidateSet('CSV', 'JSON', 'SOF-ELK')]
+        [string]$Output = 'CSV'
     )
 
     if ($Interactive) {

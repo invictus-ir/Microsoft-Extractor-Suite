@@ -57,7 +57,7 @@ Parameters
 
 Output
 """"""""""""""""""""""""""
-The output will be saved to the 'AzureAD' directory within the 'Output' directory, with the file name 'SignInLogsGraph.json'. 
+The output will be saved to the 'EntraID' directory within the 'Output' directory, with the file name 'SignInLogsGraph.json'. 
 
 Permissions
 """"""""""""""""""""""""""
