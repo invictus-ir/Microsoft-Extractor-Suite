@@ -9,17 +9,17 @@ Install the Microsoft-Extractor-Suite toolkit:
 Install the Powershell module Microsoft.Graph for the Graph API functionalities:
 ::
 
-   Install-module -name Microsoft.Graph
+   Install-Module -name Microsoft.Graph
 
 Install the Powershell module ExchangeOnlineManagement for the Microsoft 365 functionalities:
 ::
 
-   Install-module -name ExchangeOnlineManagement
+   Install-Module -name ExchangeOnlineManagement
 
 Install the Powershell module Az for the Azure Activity log functionality:
 ::
 
-   Install-module -name Az
+   Install-Module -name Az
 
 Install the Powershell module AzureADPreview for the Entra ID functionalities:
 ::
@@ -33,7 +33,7 @@ Install the Powershell module AzureADPreview for the Entra ID functionalities:
  
 Getting Started
 -------
-To get started with the Microsoft-Extractor-Suite tool, make sure the requirements are met.
+To get started with the Microsoft Extractor Suite tool, make sure the requirements are met.
 
 The first step is to import or install the Microsoft-Extractor-Suite.
 
