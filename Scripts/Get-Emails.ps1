@@ -39,7 +39,7 @@ Function Get-Email {
     Retrieves an email from fortunahodan@bonacu.onmicrosoft.com with the internet message identifier <d6f15b97-e3e3-4871-adb2-e8d999d51f34@az.westeurope.microsoft.com> to a eml file.
     
     .EXAMPLE
-    Get-Email -userIds fortunahodan@bonacu.onmicrosoft.com -internetMessageId "<d6f15b97-e3e3-4871-adb2-e8d999d51f34@az.westeurope.microsoft.com>" -attachment True
+    Get-Email -userIds fortunahodan@bonacu.onmicrosoft.com -internetMessageId "<d6f15b97-e3e3-4871-adb2-e8d999d51f34@az.westeurope.microsoft.com>" -attachment
     Retrieves an email and the attachment from fortunahodan@bonacu.onmicrosoft.com with the internet message identifier <d6f15b97-e3e3-4871-adb2-e8d999d51f34@az.westeurope.microsoft.com> to a eml file.
         
     .EXAMPLE
@@ -327,8 +327,14 @@ Function Get-Attachment {
 
             $base64B = ($attachment.contentBytes)
             $decoded = [System.Convert]::FromBase64String($base64B)
-            Set-Content -Path $filePath -Value $decoded -Encoding Byte
-        
+
+            # Check PowerShell version and use appropriate parameter
+            if ($PSVersionTable.PSVersion.Major -ge 6) {
+                Set-Content -Path $filePath -Value $decoded -AsByteStream
+            } else {
+                Set-Content -Path $filePath -Value $decoded -Encoding Byte
+            }
+
             Write-logFile -Message "[INFO] Output written to '$subject-$filename'" -Color "Green" -Level Standard
             return $true
         }
