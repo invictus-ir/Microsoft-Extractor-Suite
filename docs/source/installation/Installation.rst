@@ -47,15 +47,12 @@ To install the Microsoft-Extractor-Suite:
 
    Install-Module -Name Microsoft-Extractor-Suite
 
-Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage before Microsoft-Extractor-Suite functions are made available. We made a graphic to help you decide which Connect function you should use depening on what you wan to acquire. 
-
-.. image:: Microsoft-Extractor-Suite-Connect.png
-   :width: 600
+Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage before Microsoft-Extractor-Suite functions are made available. 
 
 To sign in, use the following cmdlets:
 ::
 
-   Connect-M365 or connect-exchangeonline
+   Connect-M365 or Connect-ExchangeOnline
    Connect-Azure or Connect-AzureAD
    Connect-AzureAZ or Connect-AzAccount
 
