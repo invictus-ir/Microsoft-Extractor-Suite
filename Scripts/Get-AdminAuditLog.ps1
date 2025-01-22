@@ -1,5 +1,3 @@
-# This contains function for getting Admin Audit Log
-
 function Get-AdminAuditLog {
 <#
     .SYNOPSIS
@@ -7,7 +5,7 @@ function Get-AdminAuditLog {
 
     .DESCRIPTION
     Administrator audit logging records when a user or administrator makes a change in your organization (in the Exchange admin center or by using cmdlets).
-	The output will be written to a CSV file called "AdminAuditLog.csv".
+	The output will be written to: Output\AdminAuditLog\
 
 	.PARAMETER StartDate
     startDate is the parameter specifying the start date of the date range.
@@ -15,63 +13,97 @@ function Get-AdminAuditLog {
 	.PARAMETER EndDate
     endDate is the parameter specifying the end date of the date range.
 
+	.PARAMETER Interval
+    Interval is the parameter specifying the interval in which the logs are being gathered.
+
+	.PARAMETER Output
+    Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
+    Default: CSV
+
+    .PARAMETER MergeOutput
+    MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
+
 	.PARAMETER OutputDir
     OutputDir is the parameter specifying the output directory.
 	Default: Output\AdminAuditLog
+
+	.PARAMETER LogLevel
+    Specifies the level of logging:
+    None: No logging
+    Minimal: Critical errors only
+    Standard: Normal operational logging
+    Default: Standard
+
+	.PARAMETER Encoding
+    Encoding is the parameter specifying the encoding of the CSV/JSON output file.
+	Default: UTF8
+
+	.PARAMETER UserIds
+    UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
     
     .EXAMPLE
     Get-AdminAuditLog
 	Displays the total number of logs within the admin audit log.
 
 	.EXAMPLE
-	Get-AdminAuditLog -StartDate 1/4/2023 -EndDate 5/4/2023
-	Collects the admin audit log between 1/4/2023 and 5/4/2023
+	Get-AdminAuditLog -StartDate 1/4/2024 -EndDate 5/4/2024
+	Collects the admin audit log between 1/4/2024 and 5/4/2024
 #>
     [CmdletBinding()]
-	param (
-		[string]$StartDate,
-		[string]$EndDate,
-		[string]$outputDir = "Output\AdminAuditLog"
-	)
+	param(
+        [string]$UserIds = "*",
+        [string]$StartDate,
+        [string]$EndDate,
+        [decimal]$Interval,
+        [string]$OutputDir = "Output\AdminAuditLog",
+        [ValidateSet("CSV", "JSON", "SOF-ELK")]
+        [string]$Output = "CSV",
+        [switch]$MergeOutput,
+        [string]$Encoding = "UTF8",
+        [ValidateSet('None', 'Minimal', 'Standard')]
+        [string]$LogLevel = 'Standard'
+    )
 
-    write-logFile -Message "[INFO] Running Get-AdminAuditLog" -Color "Green"
+    $params = @{
+        RecordType = "ExchangeAdmin"
+        UserIds = $UserIds
+        Output = $Output
+        OutputDir = $OutputDir
+        LogLevel = $LogLevel
+        Encoding = $Encoding
+    }
 
-	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-    $outputFile = "$($date)-AdminAuditLog.csv"
+    if ($PSBoundParameters.ContainsKey('StartDate')) {
+        $params['StartDate'] = $StartDate
+    }
+    if ($PSBoundParameters.ContainsKey('EndDate')) {
+        $params['EndDate'] = $EndDate
+    }
+    if ($PSBoundParameters.ContainsKey('Interval')) {
+        $params['Interval'] = $Interval
+    }
+    if ($MergeOutput.IsPresent) {
+        $params['MergeOutput'] = $true
+    }
 
+    $date = [datetime]::Now.ToString('yyyyMMddHHmmss')
+    if ($OutputDir -eq "Output\AdminAuditLog") {
+        $OutputDir = "Output\AdminAuditLog\$date"
+    }
 
-	if (!(test-path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Name $outputDir | Out-Null
-		write-LogFile -Message "[INFO] Creating the following directory: $outputDir"
-	}
-	
-	else {
-		if (Test-Path -Path $OutputDir) {
-			write-LogFile -Message "[INFO] Custom directory set to: $OutputDir"
-		}
-	
-		else {
-			write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-			write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script"
-		}
-	}
+    if (!(Test-Path -Path $OutputDir)) {
+        try {
+            New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
+        }
+        catch {
+            Write-LogFile -Message "[Error] Failed to create directory: $OutputDir" -Level Minimal -Color "Red"
+            Write-Error "[Error] Failed to create directory: $OutputDir"
+            return
+        }
+    }
 
-	$outputDirectory = Join-Path $OutputDir $outputFile
+    Write-LogFile -Message "== Starting the Admin Audit Log Collection (utilizing Get-UAL) ==" -Level Minimal
 
-	StartDate
-	EndDate
-
-    Write-LogFile -Message "[INFO] Extracting all available Admin Audit Logs between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Green"
-
-	try {
-		$results = Search-UnifiedAuditLog -RecordType 'ExchangeAdmin' -ResultSize 5000 -StartDate $script:startDate -EndDate $script:EndDate
-		$results | Export-Csv $outputDirectory -NoTypeInformation -Append -Encoding UTF8
-	}
-	catch {
-		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow"
-		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
-		throw
-	}   
-
-    write-logFile -Message "[INFO] Output is written to: $outputDirectory" -Color "Green"
+    # Call Get-UAL with the constructed parameters
+    Get-UAL @params
 }

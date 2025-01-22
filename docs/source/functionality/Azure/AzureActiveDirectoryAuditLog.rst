@@ -1,6 +1,6 @@
-Azure Active Directory Audit Log
+Entra ID Audit Log
 =======
-Use **Get-ADAuditLogs** to collect the contents of the Azure Active Directory Audit Log.
+Use **Get-EntraAuditLogs** to collect the contents of the Entra ID Audit Log.
 
 .. note::
 
@@ -8,20 +8,20 @@ Use **Get-ADAuditLogs** to collect the contents of the Azure Active Directory Au
 
 Usage
 """"""""""""""""""""""""""
-Running the script without any parameters will gather the Azure Active Directory Audit Log for the last 7 days (Entra ID Free) or 30 days (Entra ID P1+P2):
+Running the script without any parameters will gather the Entra ID Audit Log for the last 7 days (Entra ID Free) or 30 days (Entra ID P1+P2):
 ::
 
-   Get-ADAuditLogs
+   Get-EntraAuditLogs
 
-Get the Azure Active Directory Audit Log before 2023-04-12:
+Get theEntra ID Audit Log before 2024-04-12:
 ::
 
-   Get-ADAuditLogs -endDate 2023-04-12
+   Get-EntraAuditLogs -endDate 2024-04-12
 
-Get the Azure Active Directory Audit Log after 2023-04-12:
+Get the Entra ID Audit Log after 2024-04-12:
 ::
 
-   Get-ADAuditLogs -startDate 2023-04-12
+   Get-EntraAuditLogs -startDate 2024-04-12
 
 Parameters
 """"""""""""""""""""""""""
@@ -33,7 +33,7 @@ Parameters
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: The output will be written to: "Output\AzureAD\{date_AuditLogs}\Auditlogs.json
+    - Default: The output will be written to: "Output\EntraID\{date_AuditLogs}\Auditlogs.json
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the JSON output file.
@@ -46,6 +46,10 @@ Parameters
     - Interval is the parameter specifying the interval in which the logs are being gathered.
     - Default: 720 minutes
 
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
+
 Output
 """"""""""""""""""""""""""
-The output will be saved to the 'AzureAD' directory within the 'Output' directory, with the file name 'Auditlogs.json'. 
+The output will be saved to the 'EntraID' directory within the 'Output' directory, with the file name 'Auditlogs.json'. 

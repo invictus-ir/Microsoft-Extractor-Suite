@@ -5,7 +5,7 @@ function Get-DirectoryActivityLogs {
 
     .DESCRIPTION
     The Get-DirectoryActivityLogs cmdlet collects the Azure Directory Activity logs.
-	The output will be written to: Output\AzureAD\$date\$iD-ActivityLog.json
+	The output will be written to: Output\EntraID\$date\$iD-ActivityLog.json
 
 	.PARAMETER StartDate
     startDate is the parameter specifying the start date of the date range.
@@ -26,18 +26,25 @@ function Get-DirectoryActivityLogs {
     .PARAMETER Output
     Output is the parameter specifying the CSV or JSON output type.
 	Default: CSV
+
+    .PARAMETER LogLevel
+    Specifies the level of logging:
+    None: No logging
+    Minimal: Critical errors only
+    Standard: Normal operational logging
+    Default: Standard
 	
     .EXAMPLE
     Get-DirectoryActivityLogs
 	Get all the Directory Activity logs for the last 90 days.
 
 	.EXAMPLE
-    Get-DirectoryActivityLogs -EndDate 2023-04-12
-	Get all the Directory Activity before 2023-04-12.
+    Get-DirectoryActivityLogs -EndDate 2024-04-12
+	Get all the Directory Activity before 2024-04-12.
 
 	.EXAMPLE
-    Get-DirectoryActivityLogs -StartDate 2023-04-12
-	Get all the Directory Activity after 2023-04-12.
+    Get-DirectoryActivityLogs -StartDate 2024-04-12
+	Get all the Directory Activity after 2024-04-12.
 #>
 	[CmdletBinding()]
 	param(
@@ -45,39 +52,44 @@ function Get-DirectoryActivityLogs {
 		[string]$endDate,
 		[string]$output = "CSV",
 		[string]$outputDir = "Output\DirectoryActivityLogs",
-		[string]$encoding = "UTF8"	
+		[string]$encoding = "UTF8",
+        [ValidateSet('None', 'Minimal', 'Standard')]
+        [string]$LogLevel = 'Standard'	
 	)
+
+    Write-LogFile -Message "=== Starting Directory Activity Log Analysis ===" -Color "Cyan" -Level Minimal
 	
-	StartDate
-	EndDate
+	StartDate -Quiet
+    EndDate -Quiet
+
+    Write-LogFile -Message "Start Date: $($summary.DateRange)$($script:StartDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard
+    Write-LogFile -Message "End Date: $($script:EndDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard
+    Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
+    Write-LogFile -Message "----------------------------------------`n" -Level Standard
 
 	if (!(test-path $outputDir)) {
 		New-Item -ItemType Directory -Force -Name $outputDir > $null
-		write-logFile -Message "[INFO] Creating the following directory: $outputDir"
 	}
 	else {
-		if (Test-Path -Path $outputDir) {
-			write-LogFile -Message "[INFO] Custom directory set to: $outputDir"
-		}
-	
-		else {
-			write-Error "[Error] Custom directory invalid: $outputDir exiting script" -ErrorAction Stop
-			write-LogFile -Message "[Error] Custom directory invalid: $outputDir exiting script"
-		}
-	}
-
-    try {
-        $currentContext = Get-AzContext
-        $azureRmProfile = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile
-        $profileClient = [Microsoft.Azure.Commands.ResourceManager.Common.RMProfileClient]::new($azureRmProfile)
-        $token = $profileClient.AcquireAccessToken($currentContext.Tenant.Id)
+        if (!(Test-Path -Path $OutputDir)) {
+            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal -Color "Red"
+        }
     }
-    catch {
-		write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-AzureAz command before executing this script" -Color "Yellow"
-		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+
+    $originalWarningPreference = $WarningPreference
+	$WarningPreference = 'SilentlyContinue'
+
+	try {
+		$encryptedToken  = (Get-AzAccessToken -ResourceUrl "https://management.azure.com" -AsSecureString).token
+		$accessToken = [PSCredential]::new("token", $encryptedToken)
+	}
+	catch {
+		write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-AzureAz command before executing this script" -Color "Yellow" -Level Minimal
+		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
 		throw
 	}
 
+    Write-LogFile -Message "[INFO] Retrieving Directory Activity logs..." -Level Standard
     $uriBase = "https://management.azure.com/providers/microsoft.insights/eventtypes/management/values?api-version=2015-04-01&`$filter=eventTimestamp ge '$script:StartDate' and eventTimestamp le '$script:endDate'"
     $events = @()
 
@@ -85,7 +97,7 @@ function Get-DirectoryActivityLogs {
         $listOperations = @{
             Uri     = $uriBase
             Headers = @{
-                Authorization  = "Bearer $($token.AccessToken)"
+                Authorization  = "Bearer $($accessToken.GetNetworkCredential().Password)"
                 'Content-Type' = 'application/json'
             }
             Method  = 'GET'
@@ -113,6 +125,6 @@ function Get-DirectoryActivityLogs {
         $processedEvents | Export-Csv -Path "$OutputDir/$($date)-DirectoryActivityLogs.csv" -NoTypeInformation
     }
 
-    Write-LogFile -Message "[INFO] Done all Directory Activity Logs are collected" -Color "Green"
+    Write-LogFile -Message "[INFO] Done all Directory Activity Logs are collected" -Color "Green" -Level Standard
 }
 

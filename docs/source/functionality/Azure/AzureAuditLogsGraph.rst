@@ -1,28 +1,28 @@
 Azure Audit Logs via Graph API
 =======
-Use **Get-ADAuditLogsGraph** to collect the contents of the Azure Active Directory Audit Log.
+Use **Get-GraphEntraAuditLogs** to collect the contents of the Entra ID Audit Log.
 
 Usage
 """"""""""""""""""""""""""
-Running the script without any parameters will gather the Azure Active Directory Audit Log for the last 30 days:
+Running the script without any parameters will gather the Entra ID Audit Log for the last 30 days:
 ::
 
-   Get-ADAuditLogsGraph
+   Get-GraphEntraAuditLogs
 
-Get the Azure Active Directory Audit Log before 2023-04-12:
+Get the Entra ID Audit Log before 2024-04-12:
 ::
 
-   Get-ADAuditLogsGraph -startDate 2023-04-12
+   Get-GraphEntraAuditLogs -startDate 2024-04-12
 
-Get the Azure Active Directory Audit Log after 2023-04-12:
+Get the Entra ID Audit Log after 2024-04-12:
 ::
 
-   Get-ADAuditLogsGraph -endDate 2023-04-12
+   Get-GraphEntraAuditLogs -endDate 2024-04-12
 
 Get sign-in logs for 'user@example.com', including both userPrincipalName and targetResources in the filter:
 ::
 
-   Get-ADAuditLogsGraph -UserIds 'user@example.com' -All
+   Get-GraphEntraAuditLogs -UserIds 'user@example.com' -All
 
 Parameters
 """"""""""""""""""""""""""
@@ -34,7 +34,7 @@ Parameters
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: The output will be written to: "Output\AzureAD\{date_AuditLogs}\Auditlogs.json
+    - Default: The output will be written to: "Output\EntraID\{date_AuditLogs}\Auditlogs.json
 
 -MergeOutput (optional)
     - MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
@@ -43,15 +43,29 @@ Parameters
     - Encoding is the parameter specifying the encoding of the JSON output file.
     - Default: UTF8
 
+-Output (optional)
+    - Output is the parameter specifying the JSON or SOF-ELK output type.
+    - The SOF-ELK output type can be used to export logs in a format suitable for the [platform of the same name](https://github.com/philhagen/sof-elk).
+    - Default: JSON
+
 -UserIds (optional)
     - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
 -All (optional)
     - When specified along with UserIds, this parameter filters the results to include events where the provided UserIds match any user principal name found in either the userPrincipalNames or targetResources fields.
 
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
+
+-Output (optional)
+    - Output is the parameter specifying the JSON or SOF-ELK output type.
+    - The SOF-ELK output type can be used to export logs in a format suitable for the [platform of the same name](https://github.com/philhagen/sof-elk).
+    - Default: JSON
+
 Output
 """"""""""""""""""""""""""
-The output will be saved to the 'AzureAD' directory within the 'Output' directory, with the file name 'AuditlogsGraph.json'. Each time an acquisition is performed, the output JSON file will be overwritten. Therefore, if you perform multiple acquisitions, the JSON file will only contain the results from the latest acquisition.
+The output will be saved to the 'EntraID' directory within the 'Output' directory, with the file name 'AuditlogsGraph.json'. Each time an acquisition is performed, the output JSON file will be overwritten. Therefore, if you perform multiple acquisitions, the JSON file will only contain the results from the latest acquisition.
 
 .. note::
 

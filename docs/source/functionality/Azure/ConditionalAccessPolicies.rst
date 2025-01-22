@@ -1,6 +1,6 @@
 Conditional Access Policies
 =======
-Retrieves the risky users from the Entra ID Identity Protection, which marks an account as being at risk based on the pattern of activity for the account.
+Retrieves all the conditional access policies.
 
 Usage
 """"""""""""""""""""""""""
@@ -19,9 +19,9 @@ Parameters
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
--Application (optional)
-    - Application is the parameter specifying App-only access (access without a user) for authentication and authorization.
-    - Default: Delegated access (access on behalf a user)
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
 
 Output
 """"""""""""""""""""""""""

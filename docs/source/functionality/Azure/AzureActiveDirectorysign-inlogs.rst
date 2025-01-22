@@ -1,6 +1,6 @@
-Azure Active Directory sign-in logs
+Entra ID sign-in logs
 =======
-Use **Get-ADSignInLogs** to collect the contents of the Azure Active Directory sign-in log.
+Use **Get-EntraSignInLogs** to collect the contents of the Entra ID sign-in log.
 
 .. note::
 
@@ -9,20 +9,20 @@ Use **Get-ADSignInLogs** to collect the contents of the Azure Active Directory s
 
 Usage
 """"""""""""""""""""""""""
-Running the script without any parameters will gather the Azure Active Directory sign-in log for the last 30 days:
+Running the script without any parameters will gather the Entra ID sign-in log for the last 30 days:
 ::
 
-   Get-ADSignInLogs
+   Get-EntraSignInLogs
 
-Get the Azure Active Directory Audit Log before 2023-04-12:
+Get the Entra ID Audit Log before 2024-04-12:
 ::
 
-   Get-ADSignInLogs -endDate 2023-04-12
+   Get-EntraSignInLogs -endDate 2024-04-12
 
-Get the Azure Active Directory Audit Log after 2023-04-12:
+Get the Entra ID Audit Log after 2024-04-12:
 ::
 
-   Get-ADSignInLogs -startDate 2023-04-12
+   Get-EntraSignInLogs -startDate 2024-04-12
 
 Parameters
 """"""""""""""""""""""""""
@@ -34,7 +34,7 @@ Parameters
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
-    - Default: The output will be written to: Output\AzureAD\{date_SignInLogs}\SignInLogs.json
+    - Default: The output will be written to: Output\EntraID\{date_SignInLogs}\SignInLogs.json
 
 -Encoding (optional)
     - Encoding is the parameter specifying the encoding of the JSON output file.
@@ -53,6 +53,10 @@ Parameters
     - Interval is the parameter specifying the interval in which the logs are being gathered.
     - Default: 1440 minutes
 
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
+
 Output
 """"""""""""""""""""""""""
-The output will be saved to the 'AzureAD' directory within the 'Output' directory, with the file name 'SignInLogs.json'.
+The output will be saved to the 'EntraID' directory within the 'Output' directory, with the file name 'SignInLogs.json'.

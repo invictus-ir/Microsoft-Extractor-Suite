@@ -74,6 +74,10 @@ Parameters
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
+
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'Admins' directory within the 'Output' directory.
@@ -110,6 +114,10 @@ Parameters
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
+
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'MFA' directory within the 'Output' directory.
@@ -119,6 +127,10 @@ Permissions
 - Before utilizing this function, it is essential to ensure that the appropriate permissions have been granted. This function relies on the Microsoft Graph API and requires an application or user to authenticate with specific scopes that grant the necessary access levels.
 - Make sure to connect using both of the following permissions: "UserAuthenticationMethod.Read.All",'User.Read.All".
 - Your command would look like this: Connect-MgGraph -Scopes 'User.Read.All','UserAuthenticationMethod.Read.All'
+
+Identity Protection
+=======
+This section covers functions related to Entra ID Identity Protection, including risk detection and user risk management. These functions help identify and track potential security risks in your environment.
 
 Retrieves the risky users
 ^^^^^^^^^^^
@@ -144,6 +156,10 @@ Parameters
 -UserIds (optional)
     - An array of User IDs to retrieve risky user information for.
     - Default: If not specified, retrieves all risky users.
+
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
 
 Output
 """"""""""""""""""""""""""
@@ -179,6 +195,10 @@ Parameters
 -UserIds (optional)
     - An array of User IDs to retrieve risky detections information for.
     - Default: If not specified, retrieves all risky detections.
+
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
 
 Output
 """"""""""""""""""""""""""

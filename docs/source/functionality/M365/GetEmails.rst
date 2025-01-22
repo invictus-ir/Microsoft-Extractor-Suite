@@ -50,6 +50,10 @@ Parameters
     - The attachment parameter specifies whether the attachment should be saved or not. 
     - Default: False
 
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
+
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'EmailExport' directory within the 'Output' directory.
@@ -87,6 +91,10 @@ Parameters
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
     - Default: EmailExport
+
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
 
 Output
 """"""""""""""""""""""""""
