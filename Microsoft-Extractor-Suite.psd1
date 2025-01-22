@@ -56,6 +56,7 @@ FunctionsToExport = @(
 	"Disconnect-AzureAZ"
 
 	# Get-UAL.ps1
+	"Get-UAL"
 	"Get-UALAll"
 	"Get-UALGroup"
 	"Get-UALSpecific"
