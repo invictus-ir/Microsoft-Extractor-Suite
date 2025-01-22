@@ -90,7 +90,7 @@ Each functionality requires one of the following permissions:
 |                           +-----------------------------------------+
 |                           | ViewOnlyRecipients                      |
 +---------------------------+-----------------------------------------+
-| Azure AD Logs             | Reports Reader                          |
+| Entra ID Logs             | Reports Reader                          |
 |                           +-----------------------------------------+
 |                           | Security Reader                         |
 |                           +-----------------------------------------+
