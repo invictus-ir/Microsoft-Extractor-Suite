@@ -62,7 +62,7 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 ## Available Functions
 
 ### Unified Audit Log
-- `Get-Get-UAL` - Collect all Unified Audit Logs
+- `Get-UAL` - Collect all Unified Audit Logs
 - `Get-UALStatistics` - Displays the total number of logs within the Unified Audit Logs per Record Type
 - `Get-MailboxAuditLog` - Collect Mailbox Audit Logs
 - `Get-AdminAuditLog` - Collect Admin Audit Logs
