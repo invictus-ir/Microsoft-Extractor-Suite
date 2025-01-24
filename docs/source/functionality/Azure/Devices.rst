@@ -14,10 +14,6 @@ Retrieves information about all devices and exports to a JSON file.
     
 Get-Devices -Output JSON
 
-Retrieves device information and saves the output to the C:\Windows\Temp folder with UTF-32 encoding.
-::
-
-Get-Devices -OutputDir C:\Windows\Temp -Encoding UTF32
 
 Retrieves device information and saves as a JSON file in the Reports folder with UTF-8 encoding.
 ::

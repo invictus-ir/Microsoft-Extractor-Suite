@@ -92,9 +92,15 @@ $Global:CollectionTasks = @{
         "SignInLogs" = @{
             Name = "Sign-In Logs"
             Description = "Collects Azure Entra sign-in logs"
-            Function = { param($OutputDir, $LogLevel, $UserIds, $Output = 'CSV')
+            Function = { param($OutputDir, $LogLevel, $UserIds, $Output = 'JSON')
                 $OutputDirAudit = "$OutputDir\Sign-In logs"
                 New-Item -ItemType Directory -Force -Path $OutputDirAudit > $null
+
+                if ($Output -eq 'CSV') {
+                    Write-LogFile -Message "[WARNING] CSV output not supported for Sign-In Logs. Using JSON format." -Color "Yellow" -Level Minimal
+                    $Output = 'JSON'
+                }
+
                 if ($UserIds) {
                     Get-GraphEntraSignInLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $UserIds -Output $Output -MergeOutput
                 } else {
@@ -107,9 +113,15 @@ $Global:CollectionTasks = @{
         "AuditLogs" = @{
             Name = "Audit Logs"
             Description = "Collects Azure Entra audit logs"
-            Function = { param($OutputDir, $LogLevel, $UserIds, $Output = 'CSV')
+            Function = { param($OutputDir, $LogLevel, $UserIds, $Output = 'JSON')
                 $OutputDirAudit = "$OutputDir\Audit logs"
                 New-Item -ItemType Directory -Force -Path $OutputDirAudit > $null
+
+                if ($Output -eq 'CSV') {
+                    Write-LogFile -Message "[WARNING] CSV output not supported for Sign-In Logs. Using JSON format." -Color "Yellow" -Level Minimal
+                    $Output = 'JSON'
+                }
+
                 if ($UserIds) {
                     Get-GraphEntraAuditLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $UserIds -Output $Output -MergeOutput
                 } else {
@@ -188,7 +200,7 @@ $Global:CollectionTasks = @{
         "UnifiedAuditLog" = @{
             Name = "Unified Audit Log"
             Description = "Collects Office 365 Unified Audit Logs"
-            Function = { param($OutputDir, $LogLevel, $UserIds, $OutputFormat = 'CSV')
+            Function = { param($OutputDir, $LogLevel, $UserIds, $Output = 'CSV')
                 $OutputDirAudit = "$OutputDir\UnifiedAuditLog"
                 Write-LogFile -Message "Starting Unified Audit Log collection (this may take a while)..." -Color "Yellow"
                 New-Item -ItemType Directory -Force -Path $OutputDirAudit > $null
@@ -555,38 +567,42 @@ function Start-EvidenceCollection {
 
     if ($Platform -eq "All" -or $Platform -eq "Azure") {
         Write-LogFile -Message "`n==== Starting Azure/Entra ID Data Collection ====" -Color "Yellow" -Level Minimal
-        foreach ($task in ($Global:CollectionTasks.Azure.GetEnumerator() | Sort-Object { $_.Value.Name })) {
-            try {
-                $executed = & $task.Value.Function -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
-                if ($executed) {
-                    $summary.TotalTasks++
-                    $summary.SuccessfulTasks++
-                   Write-TaskProgress -TaskName $task.Value.Name -Status 'Complete'
+        foreach ($task in $Global:CollectionTasks.Azure.GetEnumerator()) {
+            if ($task.Value.Enabled) {
+                try {
+                    $executed = & $task.Value.Function -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
+                    if ($executed) {
+                        $summary.TotalTasks++
+                        $summary.SuccessfulTasks++
+                    Write-TaskProgress -TaskName $task.Value.Name -Status 'Complete'
+                    }
                 }
-            }
-            catch {
-                $summary.TotalTasks++
-                $summary.FailedTasks++
-                Write-TaskProgress -TaskName $task.Value.Name -Status 'Failed' -ErrorMessage $_.Exception.Message
+                catch {
+                    $summary.TotalTasks++
+                    $summary.FailedTasks++
+                    Write-TaskProgress -TaskName $task.Value.Name -Status 'Failed' -ErrorMessage $_.Exception.Message
+                }
             }
         }
     }
 
     if ($Platform -eq "All" -or $Platform -eq "M365") {
         Write-LogFile -Message "`n==== Starting Microsoft 365 Data Collection ====" -Color "Yellow" -Level Minimal
-        foreach ($task in ($Global:CollectionTasks.M365.GetEnumerator() | Sort-Object { $_.Value.Name })) {
-            try {
-                $executed = & $task.Value.Function -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
-                if ($executed) {
-                    $summary.TotalTasks++
-                    $summary.SuccessfulTasks++
-                    Write-TaskProgress -TaskName $task.Value.Name -Status 'Complete'
+        foreach ($task in $Global:CollectionTasks.M365.GetEnumerator()) {
+            if ($task.Value.Enabled) {
+                try {
+                    $executed = & $task.Value.Function -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
+                    if ($executed) {
+                        $summary.TotalTasks++
+                        $summary.SuccessfulTasks++
+                        Write-TaskProgress -TaskName $task.Value.Name -Status 'Complete'
+                    }
                 }
-            }
-            catch {
-                $summary.TotalTasks++
-                $summary.FailedTasks++
-                Write-TaskProgress -TaskName $task.Value.Name -Status 'Failed' -ErrorMessage $_.Exception.Message
+                catch {
+                    $summary.TotalTasks++
+                    $summary.FailedTasks++
+                    Write-TaskProgress -TaskName $task.Value.Name -Status 'Failed' -ErrorMessage $_.Exception.Message
+                }
             }
         }
     }    
