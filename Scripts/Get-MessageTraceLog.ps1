@@ -200,7 +200,7 @@ function Retrieve-MessageTrace {
             $resultCount = $results.Count
 
             if($results){
-                $results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Append
+                $results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding $Encoding -Append
                 Write-LogFile -Message "[INFO] Found $resultCount records between $($results[-1].Received) and $($results[0].Received)"  -Level Standard
 
                 $searchParams.EndDate = $results[-1].Received.ToString("O")
