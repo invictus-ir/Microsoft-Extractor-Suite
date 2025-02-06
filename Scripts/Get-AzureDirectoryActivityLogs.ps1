@@ -122,7 +122,7 @@ function Get-DirectoryActivityLogs {
     }
 
     elseif ($output -eq "CSV") {
-        $processedEvents | Export-Csv -Path "$OutputDir/$($date)-DirectoryActivityLogs.csv" -NoTypeInformation
+        $processedEvents | Export-Csv -Path "$OutputDir/$($date)-DirectoryActivityLogs.csv" -NoTypeInformation -Encoding $Encoding
     }
 
     Write-LogFile -Message "[INFO] Done all Directory Activity Logs are collected" -Color "Green" -Level Standard
