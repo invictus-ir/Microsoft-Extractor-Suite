@@ -158,7 +158,7 @@ During our investigations we often ask for a Global Reader account with Audit Lo
 
    a. Go to the application’s **Certificates & Secrets** section.  
    b. Create a **Client Secret** and set its expiration to 1 month.  
-   c. Copy the **Client Secret**, and share it with Invictus along with the **Application ID** and **Tenant ID** (found on the application’s Overview page).
+   c. Copy the **Client Secret**, **Application ID** and **Tenant ID**,  as these will be required for authentication and connecting to the application. (found on the application’s Overview page).
 
 3. **Assign API Permissions**:
 
