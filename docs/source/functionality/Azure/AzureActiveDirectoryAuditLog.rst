@@ -1,4 +1,4 @@
-Entra ID Audit Log
+Entra ID Audit Logs
 =======
 Use **Get-EntraAuditLogs** to collect the contents of the Entra ID Audit Log.
 

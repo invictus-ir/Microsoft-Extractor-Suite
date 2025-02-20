@@ -1,4 +1,4 @@
-Azure Directory Activity Logs
+Directory Activity Logs
 =======
 Use **Get-DirectoryActivityLogs** to collect the contents of the Azure Activity Log.
 

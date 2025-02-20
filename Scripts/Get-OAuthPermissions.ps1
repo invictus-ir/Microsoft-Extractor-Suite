@@ -522,7 +522,7 @@ Default: Standard
 				}
 
 				$AccountEnabled = $sp.AccountEnabled # true if the service principal account is enabled; otherwise, false. If set to false, then no users are able to sign in to this app, even if they're assigned to it.
-                if ($Tags -eq "True") {
+                if ($AccountEnabled -eq "True") {
                     $ApplicationStatus = "Enabled"
                 }
                 else {
