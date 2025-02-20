@@ -159,6 +159,12 @@ Parameters
     - The Operation parameter filters the log entries by operation or activity type.
 	- Options are: New-MailboxRule, MailItemsAccessed, etc.
 
+-MaxItemsPerInterval (optional)
+    - Specifies the maximum number of items to process in a single interval.
+    - Must be between 5000 and 50000
+    - Default: 50000
+    - Lower this value if you're experiencing timeouts with large data sets
+
 .. note::
 
   **Important note** regarding the StartDate and EndDate variables. 

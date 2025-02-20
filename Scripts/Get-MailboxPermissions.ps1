@@ -68,7 +68,7 @@ function Get-MailboxPermissions {
     $outputFile = "$($date)-MailboxDelegatedPermissions.csv"
 
     if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Name $OutputDir > $null
+        New-Item -ItemType Directory -Force -Path $OutputDir > $null
     } else {
         if (!(Test-Path -Path $OutputDir)) {
             Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal -color "Red"

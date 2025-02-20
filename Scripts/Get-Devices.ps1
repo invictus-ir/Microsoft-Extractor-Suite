@@ -1,10 +1,10 @@
 function Get-Devices {
 <#
     .SYNOPSIS
-    Retrieves information about all devices registered in Azure AD/Entra ID.
+    Retrieves information about all devices registered in Entra ID.
 
     .DESCRIPTION
-    Retrieves detailed information about all devices registered in Azure AD/Entra ID, including device status, 
+    Retrieves detailed information about all devices registered in Entra ID, including device status, 
     operating system details, trust type, and management information.
 
     .PARAMETER OutputDir
@@ -83,7 +83,7 @@ function Get-Devices {
     Write-LogFile -Message "=== Starting Device Collection ===" -Color "Cyan" -Level Minimal
 
     if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Name $OutputDir > $null
+        New-Item -ItemType Directory -Force -Path $OutputDir > $null
     }
     else {
         if (!(Test-Path -Path $OutputDir)) {

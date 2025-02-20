@@ -64,6 +64,11 @@ function Get-UAL {
 	Minimal: Critical errors only
 	Standard: Normal operational logging
 	Default: Standard
+
+	.PARAMETER MaxItemsPerInterval
+    Specifies the maximum number of items to process in a single interval. Must be between 5000 and 50000.
+    Lower this value if you're experiencing timeouts with large data sets.
+    Default: 50000
 	
 	.EXAMPLE
 	Get-UAL
@@ -108,6 +113,10 @@ function Get-UAL {
 	.EXAMPLE
 	Get-UAL -Operation New-InboxRule
 	Gets the New-InboxRule logging from the unified audit log.
+
+	.EXAMPLE
+    Get-UAL -MaxItemsPerInterval 20000
+    Gets all the unified audit log entries with a maximum of 20000 items per interval, useful when experiencing timeouts.
 #>
 
 	[CmdletBinding()]
@@ -127,7 +136,10 @@ function Get-UAL {
 			[string]$Encoding = "UTF8",
 			[string]$ObjectIds,
 			[ValidateSet('None', 'Minimal', 'Standard')]
-			[string]$LogLevel = 'Standard'
+			[string]$LogLevel = 'Standard',
+			[Parameter()] 
+			[ValidateRange(5000, 50000)]
+			[int]$MaxItemsPerInterval = 50000
 		)
 
 	Set-LogLevel -Level ([LogLevel]::$LogLevel)
@@ -172,7 +184,7 @@ function Get-UAL {
 	if ($OutputDir -eq "") {
 		$OutputDir = "Output\UnifiedAuditLog\$date"
 		If (!(test-path $OutputDir)) {
-			New-Item -ItemType Directory -Force -Name $OutputDir > $null
+			New-Item -ItemType Directory -Force -Path $OutputDir > $null
 		}
 	} else {
 		if (!(Test-Path -Path $OutputDir)) {
@@ -304,7 +316,7 @@ function Get-UAL {
 
         if (!$PSBoundParameters.ContainsKey('Interval')) {
             $totalMinutes = ($script:EndDate - $script:StartDate).TotalMinutes
-            $estimatedIntervals = [math]::Ceiling($totalResults / 50000)
+            $estimatedIntervals = [math]::Ceiling($totalResults / $MaxItemsPerInterval)
             
             if ($estimatedIntervals -eq 0) {
                 $Interval = $totalMinutes
@@ -376,26 +388,26 @@ function Get-UAL {
 							$success = $true
 						}
 					} 
-					elseif ($amountResults -gt 50000) {
-						while ($amountResults -gt 50000) {		
+					elseif ($amountResults -gt $MaxItemsPerInterval) {
+						while ($amountResults -gt $MaxItemsPerInterval) {		
 							$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd @baseSearchQuery -ResultSize 1 | 
 							Select-Object -First 1 -ExpandProperty ResultCount
 	
 							$oldInterval = $Interval 
 	
-							if ($amountResults -gt 50000) {
+							if ($amountResults -gt $MaxItemsPerInterval) {
 								$stats.IntervalAdjustments++
 	
 								if ($amountResults -gt 1000000) {
-									$divisor = ($amountResults/50000) * 4
-								} elseif ($amountResults -gt 500000) {
-									$divisor = ($amountResults/50000) * 3
+									$divisor = ($amountResults/$MaxItemsPerInterval) * 4
+								} elseif ($amountResults -gt $MaxItemsPerInterval) {
+									$divisor = ($amountResults/$MaxItemsPerInterval) * 3
 								} elseif ($amountResults -gt 200000) {
-									$divisor = ($amountResults/50000) * 2
+									$divisor = ($amountResults/$MaxItemsPerInterval) * 2
 								} elseif ($amountResults -gt 100000) {
-									$divisor = ($amountResults/50000) * 1.5
+									$divisor = ($amountResults/$MaxItemsPerInterval) * 1.5
 								} else {
-									$divisor = ($amountResults/50000) * 1.25
+									$divisor = ($amountResults/$MaxItemsPerInterval) * 1.25
 								}
 	
 								$newInterval = [math]::Max([math]::Round(($Interval/$divisor), 2), 0.1)
@@ -413,7 +425,7 @@ function Get-UAL {
 								}
 	
 								$Interval = $newInterval
-								Write-LogFile -Message "[WARNING] $amountResults entries between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) exceeding the maximum of 50000 entries" -Color "Red" -Level Standard
+								Write-LogFile -Message "[WARNING] $amountResults entries between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) exceeding the maximum of $MaxItemsPerInterval entries" -Color "Red" -Level Standard
 								Write-LogFile -Message "[INFO] Temporary lowering time interval from $oldInterval to $newInterval minutes" -Color "Yellow" -Level Standard
 								$currentEnd = $currentStart.AddMinutes($Interval)
 							}
@@ -598,20 +610,18 @@ function Get-UAL {
 				}
 			}
 		}
-	
-		if ($Output -eq "CSV" -and ($MergeOutput.IsPresent)) {
-			Write-LogFile -Message "[INFO] Merging output files into one file" -Level standard
-			Merge-OutputFiles -OutputDir $OutputDir -OutputType "CSV" -MergedFileName "UAL-Combined.csv"
-		}
-		elseif ($Output -eq "JSON" -and ($MergeOutput.IsPresent)) {
-			Write-LogFile -Message "[INFO] Merging output files into one file" -Level standard
-			Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "UAL-Combined.json"
-		}
-		elseif ($Output -eq "SOF-ELK" -and ($MergeOutput.IsPresent)) {
-			Write-LogFile -Message "[INFO] Merging output files into one file" -Level standard
-			Merge-OutputFiles -OutputDir $OutputDir -OutputType "SOF-ELK" -MergedFileName "UAL-Combined.json"
-		}
 	}
+
+	if ($MergeOutput.IsPresent) {
+        Write-LogFile -Message "[INFO] Merging all output files into one file" -Level Standard
+        
+        switch ($Output) {
+            "CSV" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "CSV" -MergedFileName "UAL-Combined.csv" }
+            "JSON" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "UAL-Combined.json" }
+            "SOF-ELK" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "SOF-ELK" -MergedFileName "UAL-Combined.json" }
+        }
+    }
+
 	$stats.ProcessingTime = (Get-Date) - $stats.StartTime
 	Write-LogFile -Message "`n=== Collection Summary ===" -Color "Cyan" -Level Standard
 	Write-LogFile -Message "Start date: $($script:StartDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard

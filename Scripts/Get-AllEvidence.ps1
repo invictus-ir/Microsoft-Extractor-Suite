@@ -131,6 +131,18 @@ $Global:CollectionTasks = @{
             }
             Enabled = $true
         }
+        "OAuthPermissions" = @{
+            Name = "OAuth Permissions"
+            Description = "Collects delegated and application permissions using Microsoft Graph API"
+            Function = { param($OutputDir, $LogLevel, $UserIds)
+                if (-not $UserIds) {
+                    Get-OAuthPermissionGraph -OutputDir "$OutputDir\OAuthPermissions" -LogLevel $LogLevel
+                    return $true
+                }
+                return $false
+            }
+            Enabled = $true
+        }
     }
     M365 = @{
         "InboxRules" = @{
@@ -524,7 +536,9 @@ function Start-EvidenceCollection {
         [switch]$Interactive,
         [Parameter(Mandatory=$false)]
         [ValidateSet('CSV', 'JSON', 'SOF-ELK')]
-        [string]$Output = 'CSV'
+        [string]$Output = 'CSV',
+        [Parameter(Mandatory=$false)]
+        [string]$OutputDir
     )
 
     if ($Interactive) {
@@ -549,7 +563,13 @@ function Start-EvidenceCollection {
         return
     }
 
-    $OutputDir = "Output\$ProjectName"
+    if ([string]::IsNullOrEmpty($OutputDir)) {
+        $OutputDir = "Output\$ProjectName"
+    } else {
+        # Ensure the path ends with the project name
+        $OutputDir = Join-Path $OutputDir $ProjectName
+    }
+
     if (!(Test-Path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir > $null
         Write-LogFile -Message "[INFO] Creating output directory: $OutputDir" -Level Minimal

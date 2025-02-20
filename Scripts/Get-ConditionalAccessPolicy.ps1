@@ -55,7 +55,7 @@ Function Get-ConditionalAccessPolicies {
     Write-LogFile -Message "=== Starting Conditional Access Policy Collection ===" -Color "Cyan" -Level Minimal
 
     if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Name $OutputDir > $null
+        New-Item -ItemType Directory -Force -Path $OutputDir > $null
     }    
     else {
         if (!(Test-Path -Path $OutputDir)) {

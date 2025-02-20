@@ -30,3 +30,38 @@ List delegated permissions (OAuth2PermissionGrants) and application permissions 
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'OAuthPermissions' directory within the 'Output' directory, with the file name 'OAuthPermissions.csv'.
+
+Graph API Variant
+^^^^^^^^^^^
+
+Parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+-OutputDir (optional)
+    - OutputDir is the parameter specifying the output directory.
+    - Default: Output\OAuthPermissions
+
+-Encoding (optional)
+    - Encoding is the parameter specifying the encoding of the CSV output file.
+    - Default: UTF8
+
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Default: Standard
+
+Usage
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+List delegated permissions (OAuth2PermissionGrants) and application permissions (AppRoleAssignments) using Microsoft Graph API:
+::
+
+   Get-OAuthPermissionGraph
+
+Prerequisites
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ensure you have the Microsoft.Graph.Applications module installed and are connected to Microsoft Graph with appropriate permissions:
+::
+
+   Connect-MgGraph -Scopes "Directory.Read.All", "Application.Read.All"
+
+Output
+""""""""""""""""""""""""""
+Both variants will save their output to the 'OAuthPermissions' directory within the 'Output' directory, with the file name 'OAuthPermissions.csv'.

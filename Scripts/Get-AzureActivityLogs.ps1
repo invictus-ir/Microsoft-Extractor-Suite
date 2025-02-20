@@ -83,7 +83,7 @@ function Get-ActivityLogs {
     Write-LogFile -Message "----------------------------------------`n" -Level Standard
 
 	if (!(test-path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Name $OutputDir > $null
+		New-Item -ItemType Directory -Force -Path $OutputDir > $null
 	} else {
         if (!(Test-Path -Path $OutputDir)) {
             Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal -Color "Red"

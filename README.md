@@ -21,13 +21,13 @@ The following Microsoft data sources are supported:
 * Mailbox Rules
 * Transport Rules
 * Message Trace Logs
-* Azure AD Sign-In Logs
-* Azure AD Audit Logs
+* Entra ID Sign-In Logs
+* Entra ID Audit Logs
 * Azure Activity Logs
 * Azure Directory Activity Logs
 
 In addition to the log sources above the tool is also able to retrieve other relevant information:
-* Registered OAuth applications in Azure AD
+* Registered OAuth applications in Entra ID
 * The MFA status for all users
 * The creation time and date of the last password change for all users
 * The risky users
@@ -36,7 +36,7 @@ In addition to the log sources above the tool is also able to retrieve other rel
 * Administrator directory roles and their users
 * A specific or list of e-mail(s) or attachment(s)
 * Delegated permissions for all mailboxes in Microsoft 365.
-* Information about all devices registered in Azure AD/Entra ID. 
+* Information about all devices registered in Entra ID. 
 * Audit status and settings for all mailboxes in Microsoft 365.
 * Functions designed to gather information about groups.
 * Functions designed to gather information about licenses.
@@ -92,7 +92,8 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 - `Get-DirectoryActivityLogs` - Collect directory activity logs
 
 ### OAuth apps
-- `Get-OAuthPermissions` - Collect OAuth application permissions
+- `Get-OAuthPermissions` - Collect OAuth application permissions Via AZ module
+- `Get-OAuthPermissionGraph` - Collect OAuth application permissions via Graph API
 
 ### User Related
 - `Get-Users` - Collect user information
@@ -134,4 +135,4 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 - `Disconnect-AzureAZ` - Disconnect from Az module session
 
 ## Related Projects
-To enhance your analysis, consider exploring the [Microsoft-Analyzer-Suite](https://github.com/evild3ad/Microsoft-Analyzer-Suite) developed by evild3ad. This suite offers a collection of PowerShell scripts specifically designed for analyzing Microsoft 365 and Microsoft Entra ID data, which can be extracted using the Microsoft-Extractor-Suite.
+To enhance your analysis, consider exploring the [Microsoft-Analyzer-Suite](https://github.com/LETHAL-FORENSICS/Microsoft-Analyzer-Suite) developed by evild3ad. This suite offers a collection of PowerShell scripts specifically designed for analyzing Microsoft 365 and Microsoft Entra ID data, which can be extracted using the Microsoft-Extractor-Suite.

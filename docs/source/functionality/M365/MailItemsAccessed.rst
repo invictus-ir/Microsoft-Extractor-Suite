@@ -8,15 +8,15 @@ Find SessionID(s) in the Unified Audit Log. You can filter based on IP address o
 
 Usage
 """"""""""""""""""""""""""
-Collects all sessions for all users between 1/4/2024 and 5/4/2024.
+Collects all sessions for all users between 2024-04-01  and 2024-04-05.
 ::
 
-   Get-Sessions -StartDate 1/4/2024 -EndDate 5/4/2024
+   Get-Sessions -StartDate 2024-04-01 -EndDate 2024-04-05
 
 Collects all sessions for the user HR@invictus-ir.com.
 ::
 
-   Get-Sessions -StartDate 1/4/2024 -EndDate 5/4/2024 -UserIds HR@invictus-ir.com
+   Get-Sessions -StartDate 2024-04-01 -EndDate 2024-04-05 -UserIds HR@invictus-ir.com
 
 Parameters
 """"""""""""""""""""""""""
@@ -30,8 +30,8 @@ Parameters
     - EndDate is the parameter specifying the end date of the date range.
 
 -Output (optional)
-    - "Y" or "N" to specify whether the output should be saved to a file.
-    - Default: Y
+    - The Output parameter specifies whether the output should be saved to a file.
+    - Default: True
 
 -IP (optional)
     - The IP address parameter is used to filter the logs by specifying the desired IP address.
@@ -61,15 +61,15 @@ Find the InternetMessageID(s). You can filter on SessionID(s) or IP addresses. A
 
 Usage
 """"""""""""""""""""""""""
-Collects all sessions for all users between 1/4/2024 and 5/4/2024.
+Collects all sessions for all users between 2024-04-01 and 2025-04-05.
 ::
 
-   Get-MessageIDs -StartDate 1/4/2024 -EndDate 5/4/2024
+   Get-MessageIDs -StartDate 2024-04-01 -EndDate 2025-04-05
 
 Collects all sessions for the IP address 1.1.1.1.
 ::
 
-   Get-MessageIDs -StartDate 1/4/2024 -EndDate 5/4/2024 -IP 1.1.1.1
+   Get-MessageIDs -StartDate 2024-04-01 -EndDate 2025-04-05 -IP 1.1.1.1
 
 Parameters
 """"""""""""""""""""""""""
@@ -80,8 +80,8 @@ Parameters
     - EndDate is the parameter specifying the end date of the date range.
 
 -Output (optional)
-    - "Y" or "N" to specify whether the output should be saved to a file.
-    - Default: Y
+    - The Output parameter specifies whether the output should be saved to a file.
+    - Default: True
 
 -IP (optional)
     - The IP address parameter is used to filter the logs by specifying the desired IP address.

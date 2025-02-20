@@ -123,7 +123,7 @@ function Get-MessageTraceLog
     }
 
 	if (!(test-path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Name $OutputDir > $null
+		New-Item -ItemType Directory -Force -Path $outputDir > $null
 	} else {
         if (!(Test-Path -Path $OutputDir)) {
             Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop

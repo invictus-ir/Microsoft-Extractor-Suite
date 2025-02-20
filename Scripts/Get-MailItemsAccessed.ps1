@@ -54,6 +54,7 @@ Function Get-Sessions {
         [string]$UserIds,
         [string]$IP,
 		[string]$Encoding = "UTF8",
+        [ValidateSet("Yes", "No")]
         [string]$Output = "Yes",
         [ValidateSet('None', 'Minimal', 'Standard')]
         [string]$LogLevel = 'Standard'
@@ -369,7 +370,8 @@ function Get-MessageIDs {
         [string]$IP,
 		[string]$Encoding = "UTF8",
         [string]$Sessions,
-        [string]$Output = "Yes",
+        [ValidateSet("Yes", "No")]
+        [switch]$Output = "Yes",
         [switch]$Download,
         [ValidateSet('None', 'Minimal', 'Standard')]
         [string]$LogLevel = 'Standard'

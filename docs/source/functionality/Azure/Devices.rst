@@ -1,6 +1,6 @@
 Retrieve Device Information
 =======
-Retrieves information about all devices registered in Azure AD/Entra ID, including detailed information about device status, operating system details, trust type, and management information.
+Retrieves information about all devices registered in Entra ID, including detailed information about device status, operating system details, trust type, and management information.
 
 Usage
 """"""""""""""""""""""""""

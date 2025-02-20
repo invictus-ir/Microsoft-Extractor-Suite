@@ -53,8 +53,7 @@ function GetAzureADServicePrincipal ($ObjectId) {
 	}
 }
 
-function Get-OAuthPermissions
-{
+function Get-OAuthPermissions {
 <#
 .SYNOPSIS
 Lists delegated permissions (OAuth2PermissionGrants) and application permissions (AppRoleAssignments).
@@ -302,6 +301,310 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 	Write-LogFile -Message "  - Delegated Permissions: $($summary.DelegatedCount)" -Level Standard
 	Write-LogFile -Message "  - Application Permissions: $($summary.ApplicationCount)" -Level Standard
 	Write-LogFile -Message "`nOutput File: $OutputDir\$($date)-OAuthPermissions.csv" -Level Standard
+	Write-LogFile -Message "Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
+	Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+}
+
+function Get-OAuthPermissionGraph {
+<#
+.SYNOPSIS
+Lists delegated permissions (OAuth2PermissionGrants) and application permissions (AppRoleAssignments) using Microsoft Graph API.
+
+.DESCRIPTION
+Script to list all delegated permissions and application permissions in Azure AD using Microsoft Graph API
+The output will be written to a CSV file.
+
+.PARAMETER OutputDir
+outputDir is the parameter specifying the output directory.
+Default: Output\OAuthPermissions
+
+.PARAMETER Encoding
+Encoding is the parameter specifying the encoding of the CSV output file.
+Default: UTF8
+
+.PARAMETER LogLevel
+Specifies the level of logging:
+None: No logging
+Minimal: Critical errors only
+Standard: Normal operational logging
+Default: Standard
+#>
+
+    [CmdletBinding()]
+    param(
+        [switch] $DelegatedPermissions,
+        [switch] $ApplicationPermissions,
+        [string] $OutputDir = "Output\OAuthPermissions",
+        [string] $Encoding = "UTF8",
+        [ValidateSet('None', 'Minimal', 'Standard')]
+        [string]$LogLevel = 'Standard'
+    )
+
+	Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $date = Get-Date -Format "ddMMyyyyHHmmss"
+    $summary = @{
+        TotalPermissions = 0
+        DelegatedCount = 0
+        ApplicationCount = 0
+        ServicePrincipalsProcessed = 0
+        StartTime = Get-Date
+        ProcessingTime = $null
+    }
+
+	$requiredScopes = @("Directory.Read.All", "Application.Read.All")
+    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+
+	Write-LogFile -Message "=== Starting OAuth Permissions Collection ===" -Color "Cyan" -Level Minimal
+
+	if (!(Test-Path $OutputDir)) {
+        New-Item -ItemType Directory -Force -Path $OutputDir > $null
+    }
+    else {
+        if (!(Test-Path -Path $OutputDir)) {
+            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
+        }
+    }
+
+	$script:ObjectCache = @{}
+	function Get-CachedObject {
+		param($Id, $Type)
+		
+		if (-not $script:ObjectCache.ContainsKey($Id)) {
+			try {
+				$object = switch ($Type) {
+					'ServicePrincipal' { Get-MgServicePrincipal -ServicePrincipalId $Id }
+					'User' { Get-MgUser -UserId $Id }
+					'Application' { Get-MgApplication -ApplicationId $Id }
+				}
+				$script:ObjectCache[$Id] = $object
+			}
+			catch {
+				Write-Verbose "Could not retrieve object $Id : $_"
+				return $null
+			}
+		}
+		return $script:ObjectCache[$Id]
+	}
+
+	$report = @()
+	Write-LogFile -Message "[INFO] Retrieving all ServicePrincipal objects..." -Level Standard
+	$allServicePrincipals = Get-MgServicePrincipal -All
+	$servicePrincipalCount = $allServicePrincipals.Count
+	$summary.ServicePrincipalsProcessed = $servicePrincipalCount
+
+	foreach ($sp in $allServicePrincipals) {
+		$script:ObjectCache[$sp.Id] = $sp
+	}
+
+	if ($DelegatedPermissions -or (-not ($DelegatedPermissions -or $ApplicationPermissions))) {
+		Write-LogFile -Message "[INFO] Processing delegated permissions..." -Level Standard
+		$allDelegatedGrants = Get-MgOauth2PermissionGrant -All
+
+		foreach ($grant in $allDelegatedGrants) {
+			$clientSp = Get-CachedObject -Id $grant.ClientId -Type 'ServicePrincipal'
+			$resourceSp = Get-CachedObject -Id $grant.ResourceId -Type 'ServicePrincipal'
+
+			if ($grant.Scope) {
+				foreach ($scope in $grant.Scope.Split(' ')) {
+					if ($scope) {
+						$summary.DelegatedCount++
+						
+						$principalDisplayName = if ($grant.PrincipalId) {
+							$principal = Get-CachedObject -Id $grant.PrincipalId -Type 'User'
+							$principal.DisplayName
+						} else { "" }
+
+						$publisherName = if ($clientSp.PublisherName) {
+							$clientSp.PublisherName
+						} else {
+							if ($clientSp.DisplayName -like "Microsoft*") { "Microsoft" } else { "" }
+						}
+
+						$AccountEnabled = $clientSp.AccountEnabled
+                        if ($AccountEnabled -eq $true) {
+						$ApplicationStatus = "Enabled"
+						}
+						else {
+							$ApplicationStatus = "Disabled"
+						}
+
+						$Tags = $clientSp.Tags
+						if ($Tags -Contains "HideApp") {
+							$ApplicationVisibility = "Hidden"
+						}
+						else {
+							$ApplicationVisibility = "Visible"
+						}
+
+						if ($Tags -Contains "WindowsAzureActiveDirectoryOnPremApp") {
+							$IsAppProxy = "Yes"
+						}
+						else {
+							$IsAppProxy = "No"
+						}
+
+						if ($clientSp.AppRoleAssignmentRequired -eq $false) {
+							$AssignmentRequired = "No"
+						}
+						else {
+							$AssignmentRequired = "Yes"
+						}
+
+						$ServicePrincipalTypes = @()
+						if ($clientSp.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a" -or $clientSp.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47") { $ServicePrincipalTypes += "Microsoft Application" }
+						if ($clientSp.ServicePrincipalType -eq "ManagedIdentity") { $ServicePrincipalTypes += "Managed Identity" }
+						if ($clientSp.Tags -contains "WindowsAzureActiveDirectoryIntegratedApp") { $ServicePrincipalTypes += "Enterprise Application" }
+						$ApplicationType = $ServicePrincipalTypes -join " & "
+						
+						$grantDetails = [ordered]@{
+							"PermissionType"         = "Delegated"
+							"AppId"                  = $clientSp.AppId
+							"ClientObjectId"         = $grant.ClientId
+							"AppDisplayName"      	 = $clientSp.DisplayName
+							"ResourceObjectId"       = $grant.ResourceId
+							"ResourceDisplayName"    = $resourceSp.DisplayName
+							"Permission"             = $scope
+							"ConsentType"            = $grant.ConsentType
+							"PrincipalObjectId"      = $grant.PrincipalId
+							"PrincipalDisplayName"   = $principalDisplayName
+							"Homepage"               = $clientSp.Homepage
+							"PublisherName"          = $publisherName
+							"ReplyUrls"              = ($clientSp.ReplyUrls -join ', ')
+							"ExpiryTime"             = $grant.ExpiryTime
+                            #"CreatedDateTime"        = $clientSp.AdditionalProperties.CreatedDateTime
+							"CreatedDateTime" = if ($clientSp.AdditionalProperties.ContainsKey('createdDateTime')) {
+								$clientSp.AdditionalProperties['createdDateTime']
+							} else {
+								$null
+							}
+                            "AppOwnerOrganizationId" = $clientSp.AppOwnerOrganizationId
+						    "ApplicationStatus"      = $ApplicationStatus
+                            "ApplicationVisibility"  = $ApplicationVisibility 
+                            "AssignmentRequired"     = $AssignmentRequired 
+                            "IsAppProxy"             = $IsAppProxy 
+                            "PublisherDisplayName"   = $clientSp.VerifiedPublisher.DisplayName #
+                            "VerifiedPublisherId"    = $clientSp.VerifiedPublisher.VerifiedPublisherId
+                            "AddedDateTime"          = $clientSp.VerifiedPublisher.AddedDateTime 
+                            "SignInAudience"         = $clientSp.SignInAudience 
+                            "ApplicationType"        = $ApplicationType 
+                        }
+
+						$report += [PSCustomObject]$grantDetails
+					}
+				}
+			}
+		}
+	}
+
+	if ($ApplicationPermissions -or (-not ($DelegatedPermissions -or $ApplicationPermissions))) {
+		Write-LogFile -Message "[INFO] Processing application permissions..." -Level Standard
+		
+		$i = 0
+		foreach ($sp in $allServicePrincipals) {
+			if ($ShowProgress) {
+				Write-Progress -Activity "Retrieving application permissions..." `
+					-Status ("Checked {0}/{1} apps" -f $i++, $servicePrincipalCount) `
+					-PercentComplete (($i / $servicePrincipalCount) * 100)
+			}
+
+			$appRoleAssignments = Get-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $sp.Id -All
+			foreach ($assignment in $appRoleAssignments) {
+				$summary.ApplicationCount++
+				
+				$resourceSp = Get-CachedObject -Id $assignment.ResourceId -Type 'ServicePrincipal'
+				$appRole = $resourceSp.AppRoles | Where-Object { $_.Id -eq $assignment.AppRoleId }
+
+				$publisherName = if ($sp.PublisherName) {
+					$sp.PublisherName
+				} else {
+					if ($sp.DisplayName -like "Microsoft*") { "Microsoft" } else { "" }
+				}
+
+				$AccountEnabled = $sp.AccountEnabled # true if the service principal account is enabled; otherwise, false. If set to false, then no users are able to sign in to this app, even if they're assigned to it.
+                if ($Tags -eq "True") {
+                    $ApplicationStatus = "Enabled"
+                }
+                else {
+                    $ApplicationStatus = "Disabled"
+                }
+
+                $Tags = $sp.Tags
+                if ($Tags -Contains "HideApp") {
+                    $ApplicationVisibility = "Hidden"
+                }
+                else {
+                    $ApplicationVisibility = "Visible"
+                }
+
+                if ($Tags -Contains "WindowsAzureActiveDirectoryOnPremApp") {
+                    $IsAppProxy = "Yes"
+                }
+                else {
+                    $IsAppProxy = "No"
+                }
+
+                if ($sp.AppRoleAssignmentRequired -eq $false) {
+                    $AssignmentRequired = "No"
+                }
+                else {
+                    $AssignmentRequired = "Yes"
+                }
+
+                $ServicePrincipalTypes = @()
+                if ($sp.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a" -or $sp.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47") { $ServicePrincipalTypes += "Microsoft Application" }
+                if ($sp.ServicePrincipalType -eq "ManagedIdentity") { $ServicePrincipalTypes += "Managed Identity" }
+                if ($sp.Tags -contains "WindowsAzureActiveDirectoryIntegratedApp") { $ServicePrincipalTypes += "Enterprise Application" }
+                $ApplicationType = $ServicePrincipalTypes -join " & "
+
+				$grantDetails = [ordered]@{
+					"PermissionType"         = "Application"
+					"AppId"                  = $sp.AppId
+					"ClientObjectId"         = $assignment.PrincipalId
+					"AppDisplayName"      	 = $sp.DisplayName
+					"ResourceObjectId"       = $assignment.ResourceId
+					"ResourceDisplayName"    = $resourceSp.DisplayName
+					"Permission"             = $appRole.Value
+					"ConsentType"            = "AllPrincipals"
+					"PrincipalObjectId"      = $null
+					"PrincipalDisplayName"   = ""
+					"Homepage"               = $sp.Homepage
+					"PublisherName"          = $publisherName
+					"ReplyUrls"              = ($sp.ReplyUrls -join ', ')
+					"IsEnabled"              = $appRole.IsEnabled
+					"Description"            = $appRole.Description
+					"CreationTimestamp"      = $assignment.CreatedDateTime
+                    "CreatedDateTime"        = $sp.AdditionalProperties.createdDateTime
+                    "AppOwnerOrganizationId" = $sp.AppOwnerOrganizationId
+                    "ApplicationStatus"      = $ApplicationStatus
+                    "ApplicationVisibility"  = $ApplicationVisibility 
+                    "AssignmentRequired"     = $AssignmentRequired
+                    "IsAppProxy"             = $IsAppProxy
+                    "PublisherDisplayName"   = $sp.VerifiedPublisher.DisplayName
+                    "VerifiedPublisherId"    = $sp.VerifiedPublisher.VerifiedPublisherId
+                    "AddedDateTime"          = $sp.VerifiedPublisher.AddedDateTime
+                    "SignInAudience"         = $sp.SignInAudience 
+                    "ApplicationType"        = $ApplicationType
+				}
+
+				$report += [PSCustomObject]$grantDetails
+			}
+		}
+	}
+
+	# Export results
+	$summary.TotalPermissions = $summary.DelegatedCount + $summary.ApplicationCount
+	$summary.ProcessingTime = (Get-Date) - $summary.StartTime
+
+	$outputPath = Join-Path $OutputDir "$($date)-OAuthPermissions.csv"
+	$report | Export-CSV -NoTypeInformation -Path $outputPath -Encoding $Encoding
+
+	Write-LogFile -Message "`n=== OAuth Permissions Analysis Summary ===" -Color "Cyan" -Level Standard
+	Write-LogFile -Message "Service Principals Processed: $($summary.ServicePrincipalsProcessed)" -Level Standard
+	Write-LogFile -Message "Total Permissions Found: $($summary.TotalPermissions)" -Level Standard
+	Write-LogFile -Message "  - Delegated Permissions: $($summary.DelegatedCount)" -Level Standard
+	Write-LogFile -Message "  - Application Permissions: $($summary.ApplicationCount)" -Level Standard
+	Write-LogFile -Message "`nOutput File: $outputPath" -Level Standard
 	Write-LogFile -Message "Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
 	Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
 }

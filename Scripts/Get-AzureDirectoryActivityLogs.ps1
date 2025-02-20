@@ -68,7 +68,7 @@ function Get-DirectoryActivityLogs {
     Write-LogFile -Message "----------------------------------------`n" -Level Standard
 
 	if (!(test-path $outputDir)) {
-		New-Item -ItemType Directory -Force -Name $outputDir > $null
+        New-Item -ItemType Directory -Force -Path $outputDir > $null
 	}
 	else {
         if (!(Test-Path -Path $OutputDir)) {

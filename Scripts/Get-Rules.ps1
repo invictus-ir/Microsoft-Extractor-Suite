@@ -67,7 +67,7 @@ function Get-TransportRules
     Write-LogFile -Message "=== Starting Transport Rules Collection ===" -Color "Cyan" -Level Minimal
 
 	if (!(test-path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Name $OutputDir > $null
+		New-Item -ItemType Directory -Force -Path $OutputDir > $null
 	}
 	else {
         if (!(Test-Path -Path $OutputDir)) {
@@ -264,7 +264,7 @@ function Get-MailboxRules
     Write-LogFile -Message "=== Starting Mailbox Rules Collection ===" -Color "Cyan" -Level Minimal
 	
 	if (!(test-path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Name $OutputDir > $null
+		New-Item -ItemType Directory -Force -Path $OutputDir > $null
 	}
 	else {
         if (!(Test-Path -Path $OutputDir)) {

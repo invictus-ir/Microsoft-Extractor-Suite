@@ -8,7 +8,7 @@
 	CompanyName = 'Invictus-IR'
 	
 	# Version number of this module.
-	ModuleVersion = '3.0.1' 
+	ModuleVersion = '3.0.2' 
 	
 	# ID used to uniquely identify this module
 	GUID = '4376306b-0078-4b4d-b565-e22804e3be01'
@@ -86,6 +86,7 @@
 	
 		# Get-OAuthPermissions.ps1
 		"Get-OAuthPermissions"
+		"Get-OAuthPermissionGraph"
 	
 		# Get-AdminAuditLog.ps1
 		"Get-AdminAuditLog"

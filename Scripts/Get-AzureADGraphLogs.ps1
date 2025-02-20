@@ -4,7 +4,7 @@ function Get-GraphEntraSignInLogs {
     Gets of sign-ins logs.
 
     .DESCRIPTION
-    The Get-GraphEntraSignInLogs GraphAPI cmdlet collects the contents of the Azure Active Directory sign-in logs.
+    The Get-GraphEntraSignInLogs GraphAPI cmdlet collects the contents of the Azure Entra ID sign-in logs.
 
     .PARAMETER startDate
 	The startDate parameter specifies the date from which all logs need to be collected.
@@ -29,11 +29,20 @@ function Get-GraphEntraSignInLogs {
 
     .PARAMETER OutputDir
     outputDir is the parameter specifying the output directory.
-    Default: The output will be written to: Output\EntraID\{date_SignInLogs}\SignInLogs.json
+    Default: The output will be written to: Output\EntraID\{date_SignInLogs}\{timestamp}-{eventType}-SignInLogs.json
 
     .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the JSON output file.
     Default: UTF8
+
+	.PARAMETER EventTypes
+    Specifies which types of sign-in events to collect. Can be one or more of:
+    - All: Collects all event types (default)
+    - interactiveUser: User sign-ins requiring user interaction
+    - nonInteractiveUser: Automated user sign-ins
+    - servicePrincipal: Application sign-ins
+    - managedIdentity: Azure managed identity sign-ins
+    Default: 'All'
 
     .PARAMETER UserIds
     UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
@@ -54,21 +63,33 @@ function Get-GraphEntraSignInLogs {
     Get-GraphEntraSignInLogs -startDate 2024-04-12
     Get audit logs after 2024-04-12.
 
+	EXAMPLE
+    Get-GraphEntraSignInLogs -EventTypes interactiveUser
+    Get only interactive user sign-in logs.
+
+    .EXAMPLE
+    Get-GraphEntraSignInLogs -EventTypes interactiveUser,servicePrincipal
+    Get both interactive user and service principal sign-in logs.
+
 	.EXAMPLE
     Get-GraphEntraSignInLogs -Output SOF-ELK -MergeOutput
-    Get the Azure Active Directory SignIn Log in a format compatible with the SOF-ELK platform and merge all data into a single file.
+    Get the Entra ID SignIn Log in a format compatible with the SOF-ELK platform and merge all data into a single file.
 #>
     [CmdletBinding()]
     param(
         [string]$startDate,
 		[string]$endDate,
+		[ValidateSet("JSON", "SOF-ELK")] 
 		[string]$Output = "JSON",
         [string]$OutputDir,
         [string]$UserIds,
 		[switch]$MergeOutput,
         [string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard')]
-        [string]$LogLevel = 'Standard'
+        [string]$LogLevel = 'Standard',
+		[Parameter()]
+		[ValidateSet('All', 'interactiveUser', 'nonInteractiveUser', 'servicePrincipal', 'managedIdentity')]
+		[string[]]$EventTypes = @('All')
 	)
 
 	Set-LogLevel -Level ([LogLevel]::$LogLevel)
@@ -112,90 +133,138 @@ function Get-GraphEntraSignInLogs {
     }
     Write-LogFile -Message "----------------------------------------`n" -Level Standard
 
-	$filterQuery = "createdDateTime ge $StartDate and createdDateTime le $EndDate"
-	if ($UserIds) {
-		$filterQuery += " and startsWith(userPrincipalName, '$UserIds')"
-	}
+	 $eventTypeMapping = @{
+        'userSignIns' = @{
+            displayName = 'interactiveUser & nonInteractiveUser'
+			filename = 'interactiveUser-nonInteractiveUser'
+            filterQuery = "(signInEventTypes/any(t: t eq 'interactiveUser' or t eq 'nonInteractiveUser'))"
+        }
+        'servicePrincipal' = @{
+            displayName = 'servicePrincipal'
+			filename = 'servicePrincipal'
+            filterQuery = "(signInEventTypes/any(t: t eq 'servicePrincipal'))"
+        }
+        'managedIdentity' = @{
+            displayName = 'managedIdentity'
+			filename = 'managedIdentity'
+            filterQuery = "(signInEventTypes/any(t: t eq 'managedIdentity'))"
+        }
+    }
 
-    $encodedFilterQuery = [System.Web.HttpUtility]::UrlEncode($filterQuery)
-    $apiUrl = "https://graph.microsoft.com/beta/auditLogs/signIns?`$filter=$encodedFilterQuery"
+	$eventTypesToProcess = @()
+    if ($EventTypes -contains 'All') {
+        $eventTypesToProcess = $eventTypeMapping.Keys
+    } else {
+        $eventTypesToProcess = $EventTypes
+    }
 
-	try {
-        Do {
-			$retryCount = 0
-            $maxRetries = 3
-            $success = $false
+	foreach ($eventType in $eventTypesToProcess) {
+		$currentEventType = $eventTypeMapping[$eventType]
+		Write-LogFile -Message "[INFO] Acquiring the $($currentEventType.displayName) sign-in logs" -Level Standard -Color "Cyan"
 
-			while (-not $success -and $retryCount -lt $maxRetries) {
-                try {
-					$response = Invoke-MgGraphRequest -Uri $apiUrl -Method Get -ContentType "application/json; odata.metadata=minimal; odata.streaming=true;" -OutputType Json
-					$responseJson = $response | ConvertFrom-Json 
-					$success = $true
-				}
-				catch {
-                    $retryCount++
-                    if ($retryCount -lt $maxRetries) {
-                        Write-LogFile -Message "[WARNING] Failed to acquire logs. Retrying... Attempt $retryCount of $maxRetries" -Level Standard -Color "Yellow"
-                        Start-Sleep -Seconds 15
-                    }
-                    else {
-                        Write-LogFile -Message "[ERROR] Failed to acquire logs after $maxRetries attempts. Error: $($_.Exception.Message)" -Level Minimal -Color "Red"
-                        throw
-                    }
-                }
-			}
-           
-			if ($responseJson.value) {
-				$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-				$filePath = Join-Path -Path $OutputDir -ChildPath "$($date)-SignInLogs.json"
+		$eventTypeDir = Join-Path -Path $OutputDir -ChildPath $currentEventType.displayName
+		if (!(Test-Path $eventTypeDir)) {
+			New-Item -ItemType Directory -Force -Path $eventTypeDir > $null
+		}
+        
+        $filterQuery = "createdDateTime ge $StartDate and createdDateTime le $EndDate"
+        if ($UserIds) {
+            $filterQuery += " and startsWith(userPrincipalName, '$UserIds')"
+        }
+        
+		$filterQuery += " and $($currentEventType.filterQuery)"
+        $encodedFilterQuery = [System.Web.HttpUtility]::UrlEncode($filterQuery)
+        $apiUrl = "https://graph.microsoft.com/beta/auditLogs/signIns?`$filter=$encodedFilterQuery"
+        
+        $eventTypeSummary = @{
+            EventType = $currentEventType.displayName
+            RecordCount = 0
+            Files = 0
+        }
 
-				if ($Output -eq "JSON" ) {
-					$responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding	
-				} 
-				elseif ($Output -eq "SOF-ELK"){
-					# UTF8 is fixed, as it is required by SOF-ELK
-					foreach ($item in $responseJson.value) {
-						$item | ConvertTo-Json -Depth 100 -Compress | Out-File -FilePath $filePath -Append -Encoding UTF8	
+		try {
+			Do {
+				$retryCount = 0
+				$maxRetries = 3
+				$success = $false
+
+				while (-not $success -and $retryCount -lt $maxRetries) {
+					try {
+						$response = Invoke-MgGraphRequest -Uri $apiUrl -Method Get -ContentType "application/json; odata.metadata=minimal; odata.streaming=true;" -OutputType Json
+						$responseJson = $response | ConvertFrom-Json 
+						$success = $true
+					}
+					catch {
+						$retryCount++
+						if ($retryCount -lt $maxRetries) {
+							Write-LogFile -Message "[WARNING] Failed to acquire logs. Retrying... Attempt $retryCount of $maxRetries" -Level Standard -Color "Yellow"
+							Start-Sleep -Seconds 15
+						}
+						else {
+							Write-LogFile -Message "[ERROR] Failed to acquire logs after $maxRetries attempts. Error: $($_.Exception.Message)" -Level Minimal -Color "Red"
+							throw
+						}
 					}
 				}
+			
+				if ($responseJson.value) {
+					$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
+					$filePath = Join-Path -Path $eventTypeDir -ChildPath "$($date)-$($currentEventType.filename)-SignInLogs.json"
 
-				$currentBatchCount = ($responseJson.value | Measure-Object).Count
-				$summary.TotalRecords += $currentBatchCount
-				$summary.TotalFiles++
+					if ($Output -eq "JSON" ) {
+						$responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding	
+					} 
+					elseif ($Output -eq "SOF-ELK"){
+						# UTF8 is fixed, as it is required by SOF-ELK
+						foreach ($item in $responseJson.value) {
+							$item | ConvertTo-Json -Depth 100 -Compress | Out-File -FilePath $filePath -Append -Encoding UTF8	
+						}
+					}
 
-				$dates = $responseJson.value | ForEach-Object {
-					[DateTime]::Parse($_.CreatedDateTime, [System.Globalization.CultureInfo]::InvariantCulture)
-				} | Sort-Object
-				
-				$from =  $dates | Select-Object -First 1
-				$to = ($dates | Select-Object -Last 1)
-				Write-LogFile -Message "[INFO] Retrieved $currentBatchCount records between $from and $to" -Level Standard -Color "Green"
+					$currentBatchCount = ($responseJson.value | Measure-Object).Count
+					$summary.TotalRecords += $currentBatchCount
+					$summary.TotalFiles++
+					$eventTypeSummary.RecordCount += $currentBatchCount
+                    $eventTypeSummary.Files++
+
+					$dates = $responseJson.value | ForEach-Object {
+						[DateTime]::Parse($_.CreatedDateTime, [System.Globalization.CultureInfo]::InvariantCulture)
+					} | Sort-Object
+					
+					$from =  $dates | Select-Object -First 1
+					$to = ($dates | Select-Object -Last 1)
+					Write-LogFile -Message "[INFO] Retrieved $currentBatchCount records between $from and $to" -Level Standard -Color "Green"
+				}
+				$apiUrl = $responseJson.'@odata.nextLink'
+			} While ($apiUrl)
+
+			if ($MergeOutput.IsPresent) {
+				Write-LogFile -Message "[INFO] Merging output files for $eventType" -Level Standard
+				if ($Output -eq "JSON") {
+					Merge-OutputFiles -OutputDir $eventTypeDir -OutputType "JSON" -MergedFileName "SignInLogs-$($currentEventType.filename)-Combined.json"
+				}
+				elseif ($Output -eq "SOF-ELK") {
+					Merge-OutputFiles -OutputDir $eventTypeDir -OutputType "SOF-ELK" -MergedFileName "SignInLogs-$eventType-Combined.json"
+				}
 			}
-			$apiUrl = $responseJson.'@odata.nextLink'
-		} While ($apiUrl)
+
+			Write-LogFile -Message "`nSummary for $($currentEventType.displayName):" -Color "Cyan" -Level Standard
+            Write-LogFile -Message "  Records: $($eventTypeSummary.RecordCount)" -Level Standard
+            Write-LogFile -Message "  Files: $($eventTypeSummary.Files)`n" -Level Standard
+		}
 		
-		if ($Output -eq "JSON" -and ($MergeOutput.IsPresent)) {
-			Write-LogFile -Message "[INFO] Merging output files into one file"
-			Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "SignInLogs-Combined.json"
+		catch {
+			Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Level Minimal -Color "Red"
+			throw
 		}
-
-		elseif ($Output -eq "SOF-ELK" -and ($MergeOutput.IsPresent)) {
-			Write-LogFile -Message "[INFO] Merging output files into one file"
-			Merge-OutputFiles -OutputDir $OutputDir -OutputType "SOF-ELK" -MergedFileName "SignInLogs-Combined.json"
-		}
-
-		$summary.ProcessingTime = (Get-Date) - $summary.StartTime
-		Write-LogFile -Message "`nCollection Summary:" -Color "Cyan" -Level Standard
-		Write-LogFile -Message "  Total Records: $($summary.TotalRecords)" -Level Standard
-		Write-LogFile -Message "  Files Created: $($summary.TotalFiles)" -Level Standard
-		Write-LogFile -Message "  Output Directory: $OutputDir" -Level Standard
-		Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Level Standard -Color "Green"
 	}
-	
-	catch {
-		Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Level Minimal -Color "Red"
-		throw
-	}
+
+	$summary.ProcessingTime = (Get-Date) - $summary.StartTime
+    Write-LogFile -Message "`nOverall Collection Summary:" -Color "Cyan" -Level Standard
+    Write-LogFile -Message "  Total Records: $($summary.TotalRecords)" -Level Standard
+    Write-LogFile -Message "  Files Created: $($summary.TotalFiles)" -Level Standard
+    Write-LogFile -Message "  Output Directory: $OutputDir" -Level Standard
+    Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Level Standard -Color "Green"
 }
 
 function Get-GraphEntraAuditLogs {
@@ -204,7 +273,7 @@ function Get-GraphEntraAuditLogs {
 	Get directory audit logs.
 
 	.DESCRIPTION
-	The Get-GraphEntraAuditLogs GraphAPI cmdlet to collect the contents of the Azure Active Directory Audit logs.
+	The Get-GraphEntraAuditLogs GraphAPI cmdlet to collect the contents of the Entra ID Audit logs.
 
 	.PARAMETER startDate
 	The startDate parameter specifies the date from which all logs need to be collected.
@@ -266,6 +335,7 @@ function Get-GraphEntraAuditLogs {
 		[string]$startDate,
 		[string]$endDate,
 		[string]$OutputDir,
+		[ValidateSet("JSON", "SOF-ELK")] 
 		[string]$Output = "JSON",
 		[string]$Encoding = "UTF8",
 		[switch]$MergeOutput,
@@ -291,7 +361,7 @@ function Get-GraphEntraAuditLogs {
 	if ($OutputDir -eq "" ){
 		$OutputDir = "Output\EntraID\$($date)-Auditlogs"
 		if (!(test-path $OutputDir)) {
-			New-Item -ItemType Directory -Force -Name $OutputDir > $null
+			New-Item -ItemType Directory -Force -Path $OutputDir > $null
 			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
 		}
 	}

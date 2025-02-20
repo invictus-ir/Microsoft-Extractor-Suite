@@ -84,7 +84,7 @@ function Get-EntraSignInLogs {
 		if ($OutputDir -eq "" ){
 			$OutputDir = "Output\EntraID\$($date)-SignInLogs"
 			if (!(test-path $OutputDir)) {
-				New-Item -ItemType Directory -Force -Name $OutputDir > $null
+				New-Item -ItemType Directory -Force -Path $OutputDir > $null
 			}
 		} else {
 			if (!(Test-Path -Path $OutputDir)) {
@@ -265,7 +265,7 @@ function Get-EntraSignInLogs {
 		if ($OutputDir -eq "" ){
 			$OutputDir = "Output\EntraID\$($date)-AuditLogs"
 			if (!(test-path $OutputDir)) {
-				New-Item -ItemType Directory -Force -Name $OutputDir > $null
+				New-Item -ItemType Directory -Force -Path $OutputDir > $null
 			}
 		} else {
 			if (!(Test-Path -Path $OutputDir)) {

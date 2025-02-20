@@ -57,7 +57,7 @@ function Get-RiskyUsers {
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
     if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Name $OutputDir > $null
+        New-Item -ItemType Directory -Force -Path $OutputDir > $null
     }
     else {
         if (!(Test-Path -Path $OutputDir)) {
@@ -244,7 +244,7 @@ function Get-RiskyDetections {
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
     if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Name $OutputDir > $null
+        New-Item -ItemType Directory -Force -Path $OutputDir > $null
     }
     else {
         if (!(Test-Path -Path $OutputDir)) {

@@ -43,7 +43,7 @@ Retrieve other relevant information
   Admin Users/Roles                     Retrieves Administrator directory roles, including the identification of users associated with each specific role.                      
   E-mails                               Get a specific email.                                                                                                          
   Attachments                           Get a specific attachment.                                                                                                                                                                                                                                          
-  Devices                               Retrieves information about all devices registered in Azure AD/Entra ID. 
+  Devices                               Retrieves information about all devices registered in Entra ID. 
   Delegated Permissions                 Retrieves delegated permissions for all mailboxes in Microsoft 365.
   Audit Log Settings                    Retrieves audit status and settings for all mailboxes in Microsoft 365.
   Group Information                     Variety of functions designed to gather information about groups.

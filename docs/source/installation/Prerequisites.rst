@@ -141,8 +141,9 @@ During our investigations we often ask for a Global Reader account with Audit Lo
 
 1. Create a new user account in the Microsoft 365 admin center (admin.microsoft.com)
 2. Assign the new user ‘Global Reader’ role
-3. Go to Roles and select ‘Exchange’ and create a new role group
-4. Next, select the ‘Unified Audit’ role and go to ‘Permissions’ and select the ‘View-Only Audit Logs’ permission
+3. Navigate to the Exchange admin center (https://admin.cloud.microsoft/exchange#/adminRoles)
+3. Go to Roles and select ‘Admin roles’ and create a new role group
+4. Next, select the ‘View-Only Audit Logs’ permission under the Permissions section 
 5. Add the new user to this role group
 
 **Application with the required Graph API Permissions**
@@ -158,7 +159,6 @@ During our investigations we often ask for a Global Reader account with Audit Lo
 
    a. Go to the application’s **Certificates & Secrets** section.  
    b. Create a **Client Secret** and set its expiration to 1 month.  
-   c. Copy the **Client Secret**, **Application ID** and **Tenant ID**,  as these will be required for authentication and connecting to the application. (found on the application’s Overview page).
 
 3. **Assign API Permissions**:
 

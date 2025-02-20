@@ -1,6 +1,7 @@
 Azure Sign-in Logs via Graph API
 =======
-Use **Get-EntraSignInLogsGraph** to collect the contents of the Entra ID sign-in log.
+Use **Get-EntraSignInLogsGraph** to collect the contents of the Entra ID sign-in log. The cmdlet supports collecting different types of sign-in events (interactive, non-interactive, service principal, and managed identity) either all at once or individually.
+
 
 Usage
 """"""""""""""""""""""""""
@@ -19,10 +20,15 @@ Get the Entra ID Audit Log after 2024-04-12:
 
    Get-EntraSignInLogsGraph -startDate 2024-04-12
 
-Get the Azure Active Directory SignIn Log in a sof-elk format and merge all data into a single file:
+Get the Azure Entra ID SignIn Log in a sof-elk format and merge all data into a single file:
 ::
 
    Get-GraphEntraSignInLogs -Output SOF-ELK -MergeOutput
+
+Get specific types of sign-in events:
+::
+
+    Get-EntraSignInLogsGraph -EventTypes interactiveUser,servicePrincipal
 
 Parameters
 """"""""""""""""""""""""""
@@ -54,6 +60,11 @@ Parameters
 -LogLevel (optional)
     - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
     - Default: Standard
+-EventTypes (optional)
+    - Specifies which types of sign-in events to collect
+    - Valid options: 'All', 'interactiveUser', 'nonInteractiveUser', 'servicePrincipal', 'managedIdentity'
+    - Can specify multiple types: -EventTypes interactiveUser,servicePrincipal
+    - Default: 'All'
 
 Output
 """"""""""""""""""""""""""
