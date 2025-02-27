@@ -30,8 +30,8 @@ Parameters
     - EndDate is the parameter specifying the end date of the date range.
 
 -Output (optional)
-    - The Output parameter specifies whether the output should be saved to a file.
-    - Default: True
+    - "Yes" or "No" to specify whether the output should be saved to a file.
+	- Default: Yes
 
 -IP (optional)
     - The IP address parameter is used to filter the logs by specifying the desired IP address.
@@ -80,8 +80,8 @@ Parameters
     - EndDate is the parameter specifying the end date of the date range.
 
 -Output (optional)
-    - The Output parameter specifies whether the output should be saved to a file.
-    - Default: True
+    - "Yes" or "No" to specify whether the output should be saved to a file.
+	- Default: Yes
 
 -IP (optional)
     - The IP address parameter is used to filter the logs by specifying the desired IP address.

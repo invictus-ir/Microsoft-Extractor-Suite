@@ -35,8 +35,8 @@ Function Get-Sessions {
 	Default: UTF8
 
     .PARAMETER Output
-    "Y" or "N" to specify whether the output should be saved to a file.
-	Default: Y
+    "Yes" or "No" to specify whether the output should be saved to a file.
+	Default: Yes
 
 	.EXAMPLE
     Get-Sessions -StartDate 1/4/2024 -EndDate 5/4/2024
@@ -371,7 +371,7 @@ function Get-MessageIDs {
 		[string]$Encoding = "UTF8",
         [string]$Sessions,
         [ValidateSet("Yes", "No")]
-        [switch]$Output = "Yes",
+        [string]$Output = "Yes",
         [switch]$Download,
         [ValidateSet('None', 'Minimal', 'Standard')]
         [string]$LogLevel = 'Standard'

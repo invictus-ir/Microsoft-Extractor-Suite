@@ -133,30 +133,44 @@ function Get-GraphEntraSignInLogs {
     }
     Write-LogFile -Message "----------------------------------------`n" -Level Standard
 
-	 $eventTypeMapping = @{
-        'userSignIns' = @{
-            displayName = 'interactiveUser & nonInteractiveUser'
+	$eventTypeMapping = @{
+		'interactiveUser' = @{
+			displayName = 'interactiveUser'
+			filename = 'interactiveUser'
+			filterQuery = "(signInEventTypes/any(t: t eq 'interactiveUser'))"
+		}
+		'nonInteractiveUser' = @{
+			displayName = 'nonInteractiveUser'
+			filename = 'nonInteractiveUser'
+			filterQuery = "(signInEventTypes/any(t: t eq 'nonInteractiveUser'))"
+		}
+		'combinedUser' = @{
+			displayName = 'interactiveUser & nonInteractiveUser'
 			filename = 'interactiveUser-nonInteractiveUser'
-            filterQuery = "(signInEventTypes/any(t: t eq 'interactiveUser' or t eq 'nonInteractiveUser'))"
-        }
-        'servicePrincipal' = @{
-            displayName = 'servicePrincipal'
+			filterQuery = "(signInEventTypes/any(t: t eq 'interactiveUser' or t eq 'nonInteractiveUser'))"
+		}
+		'servicePrincipal' = @{
+			displayName = 'servicePrincipal'
 			filename = 'servicePrincipal'
-            filterQuery = "(signInEventTypes/any(t: t eq 'servicePrincipal'))"
-        }
-        'managedIdentity' = @{
-            displayName = 'managedIdentity'
+			filterQuery = "(signInEventTypes/any(t: t eq 'servicePrincipal'))"
+		}
+		'managedIdentity' = @{
+			displayName = 'managedIdentity'
 			filename = 'managedIdentity'
-            filterQuery = "(signInEventTypes/any(t: t eq 'managedIdentity'))"
-        }
-    }
+			filterQuery = "(signInEventTypes/any(t: t eq 'managedIdentity'))"
+		}
+	}
 
 	$eventTypesToProcess = @()
     if ($EventTypes -contains 'All') {
-        $eventTypesToProcess = $eventTypeMapping.Keys
-    } else {
-        $eventTypesToProcess = $EventTypes
-    }
+		$eventTypesToProcess = @('combinedUser', 'servicePrincipal', 'managedIdentity')
+    } elseif ($EventTypes -contains 'interactiveUser' -and $EventTypes -contains 'nonInteractiveUser') {
+		$remainingTypes = $EventTypes | Where-Object { $_ -ne 'interactiveUser' -and $_ -ne 'nonInteractiveUser' }
+		$eventTypesToProcess = @('combinedUser') + $remainingTypes
+	}
+	else {
+		$eventTypesToProcess = $EventTypes
+	}
 
 	foreach ($eventType in $eventTypesToProcess) {
 		$currentEventType = $eventTypeMapping[$eventType]
