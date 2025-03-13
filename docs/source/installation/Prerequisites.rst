@@ -190,6 +190,8 @@ During our investigations we often ask for a Global Reader account with Audit Lo
    +---------------------------+-----------------------------------------------------+
    | User.Read.All             | Read all users full profiles                        |
    +---------------------------+-----------------------------------------------------+
+   | Group.Read.All            | Read all group profiles                             |
+   +---------------------------+-----------------------------------------------------+
    | Device.Read.All           | Read all device information                         |
    +---------------------------+-----------------------------------------------------+
    | Mail.ReadWrite (optional) | Read the content of emails in all mailboxes.        |
