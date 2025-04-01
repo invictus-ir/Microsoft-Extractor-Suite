@@ -22,6 +22,10 @@ Function Get-UALGraph {
     OutputDir is the parameter specifying the output directory.
     Default: Output\UnifiedAuditLog
 
+    .PARAMETER Output
+    Output is the parameter specifying the CSV or JSON
+    Default: JSON
+
     .PARAMETER LogLevel
     Specifies the level of logging:
     None: No logging
@@ -81,6 +85,8 @@ Function Get-UALGraph {
     param(
         [Parameter(Mandatory=$true)]$searchName,
         [string]$OutputDir = "Output\UnifiedAuditLog\",
+	[ValidateSet("CSV", "JSON")]
+	[string]$Output = "JSON",
         [string]$Encoding = "UTF8",
         [string]$startDate,
         [string]$endDate,
@@ -116,6 +122,7 @@ Function Get-UALGraph {
     $dateRange = "$($script:StartDate.ToString('yyyy-MM-dd HH:mm:ss')) to $($script:EndDate.ToString('yyyy-MM-dd HH:mm:ss'))"
     Write-LogFile -Message "Analysis Period: $dateRange" -Level Standard
     Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
+    Write-LogFile -Message "Output format: $Output" -Level Standard
     Write-LogFile -Message "----------------------------------------`n" -Level Standard
 
     if (!(Test-Path $OutputDir)) {
@@ -185,7 +192,12 @@ Function Get-UALGraph {
     try {
         write-logFile -Message "[INFO] Collecting scan results from api (this may take a while)" -Level Standard
         $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-        $outputFilePath = "$($date)-$searchName-UnifiedAuditLog.json"
+	if ($Output -eq "JSON") {
+            $outputFilePath = "$($date)-$searchName-UnifiedAuditLog.json"
+        }
+	elseif ($Output -eq "CSV") {
+  	    $outputFilePath = "$($date)-$searchName-UnifiedAuditLog.csv"
+	}
         $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
         $apiUrl = "https://graph.microsoft.com/beta/security/auditLog/queries/$scanId/records"
         
@@ -195,7 +207,12 @@ Function Get-UALGraph {
 
             if ($responseJson.value) {
                 $summary.TotalRecords += $responseJson.value.Count
-                $responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
+		if ($Output -eq "JSON") {
+                    $responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
+                }
+		elseif ($Output -eq "CSV") {
+  		    $responseJson.value | ConvertTo-Json -Depth 100 | Export-Csv -Path $filePath -Append -Encoding $Encoding -NoTypeInformation
+                }
             } else {
                 Write-logFile -Message "[INFO] No results matched your search." -color Yellow -Level Minimal
             }
