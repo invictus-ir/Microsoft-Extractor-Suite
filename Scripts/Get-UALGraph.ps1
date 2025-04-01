@@ -211,7 +211,7 @@ Function Get-UALGraph {
                     $responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
                 }
 		elseif ($Output -eq "CSV") {
-  		    $responseJson.value | ConvertTo-Json -Depth 100 | Export-Csv -Path $filePath -Append -Encoding $Encoding -NoTypeInformation
+  		    $responseJson.value | Export-Csv -Path $filePath -Append -Encoding $Encoding -NoTypeInformation
                 }
             } else {
                 Write-logFile -Message "[INFO] No results matched your search." -color Yellow -Level Minimal
