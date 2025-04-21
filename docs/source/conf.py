@@ -6,8 +6,8 @@ project = 'Microsoft-Extractor-Suite'
 copyright = 'Copyright 2025 Invictus Incident Response'
 author = 'Joey Rentenaar & Korstiaan Stam'
 
-release = '3.0.3'
-version = '3.0.3'
+release = '3.0.4'
+version = '3.0.4'
 
 # -- General configuration
 

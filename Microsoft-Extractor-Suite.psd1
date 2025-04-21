@@ -8,7 +8,7 @@
 	CompanyName = 'Invictus-IR'
 	
 	# Version number of this module.
-	ModuleVersion = '3.0.3' 
+	ModuleVersion = '3.0.4' 
 	
 	# ID used to uniquely identify this module
 	GUID = '4376306b-0078-4b4d-b565-e22804e3be01'
