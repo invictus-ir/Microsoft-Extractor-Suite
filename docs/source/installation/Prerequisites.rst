@@ -140,7 +140,7 @@ Microsoft Extractor Suite supports two different authentication methods: Delegat
 
 +--------------------------------+------------------------------------------+
 | Delegated Authentication       | Application Authentication               |
-+==============================--+==========================================+
++================================+==========================================+
 | Uses a user's credentials      | Uses an app's credentials                |
 +--------------------------------+------------------------------------------+
 | Actions performed on behalf    | Actions performed as the application     |
