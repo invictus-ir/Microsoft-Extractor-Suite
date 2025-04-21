@@ -135,27 +135,25 @@ Each functionality requires one of the following permissions:
 
 
 Authentication Methods
-"""""""""""""""""""""
+""""""""""""""""""""""""""
 Microsoft Extractor Suite supports two different authentication methods: Delegated Authentication (user-based) and Application Authentication. 
 
-**Delegated vs. Application Authentication**
-
-+-------------------------------+----------------------------------------+
-| Delegated Authentication      | Application Authentication             |
-+===============================+========================================+
-| Uses a user's credentials     | Uses an app's credentials              |
-+-------------------------------+----------------------------------------+
-| Actions performed on behalf   | Actions performed as the application   |
-| of the signed-in user         | itself                                 |
-+-------------------------------+----------------------------------------+
-| Limited to user's permissions | Has its own set of permissions         |
-+-------------------------------+----------------------------------------+
-| Suitable for interactive      | Required for background processes and  |
-| scenarios with a user present | accessing multiple users' data         |
-+-------------------------------+----------------------------------------+
-| Cannot use certain permission | Required for permissions marked as     |
-| types (like Mail.ReadBasic.All)| "Application only" in permissions table|
-+-------------------------------+----------------------------------------+
++--------------------------------+------------------------------------------+
+| Delegated Authentication       | Application Authentication               |
++==============================--+==========================================+
+| Uses a user's credentials      | Uses an app's credentials                |
++--------------------------------+------------------------------------------+
+| Actions performed on behalf    | Actions performed as the application     |
+| of the signed-in user          | itself                                   |
++--------------------------------+------------------------------------------+
+| Limited to user's permissions  | Has its own set of permissions           |
++--------------------------------+------------------------------------------+
+| Suitable for interactive       | Required for background processes and    |
+| scenarios with a user present  | accessing multiple users' data           |
++--------------------------------+------------------------------------------+
+| Cannot use certain permission  | Required for permissions marked as       |
+| types (like Mail.ReadBasic.All)| "Application only" in permissions table  |
++--------------------------------+------------------------------------------+
 
 .. note::
 Some Microsoft Graph API permissions (like Mail.ReadBasic.All) are only available as application permissions, not as delegated permissions. This means you cannot access those resources through a regular user login, even with a Global Admin account.

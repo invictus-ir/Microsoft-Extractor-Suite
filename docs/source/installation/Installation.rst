@@ -99,7 +99,7 @@ Application Authentication
 
 For scenarios requiring application permissions (e.g., accessing multiple users' mailboxes or certain APIs):
 
-1. Register an application in Azure AD (see "Authentication Methods" section for details)
+1. Register an application in Entra
 2. Grant necessary permissions and admin consent
 3. Connect using application credentials:
 
