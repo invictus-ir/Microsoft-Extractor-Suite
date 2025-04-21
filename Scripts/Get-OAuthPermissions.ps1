@@ -305,7 +305,7 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 	Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
 }
 
-function Get-OAuthPermissionGraph {
+function Get-OAuthPermissionsGraph {
 <#
 .SYNOPSIS
 Lists delegated permissions (OAuth2PermissionGrants) and application permissions (AppRoleAssignments) using Microsoft Graph API.

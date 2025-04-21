@@ -133,6 +133,33 @@ Each functionality requires one of the following permissions:
 |                           | Directory.Read.All                      |
 +---------------------------+-----------------------------------------+
 
+
+Authentication Methods
+"""""""""""""""""""""
+Microsoft Extractor Suite supports two different authentication methods: Delegated Authentication (user-based) and Application Authentication. 
+
+**Delegated vs. Application Authentication**
+
++-------------------------------+----------------------------------------+
+| Delegated Authentication      | Application Authentication             |
++===============================+========================================+
+| Uses a user's credentials     | Uses an app's credentials              |
++-------------------------------+----------------------------------------+
+| Actions performed on behalf   | Actions performed as the application   |
+| of the signed-in user         | itself                                 |
++-------------------------------+----------------------------------------+
+| Limited to user's permissions | Has its own set of permissions         |
++-------------------------------+----------------------------------------+
+| Suitable for interactive      | Required for background processes and  |
+| scenarios with a user present | accessing multiple users' data         |
++-------------------------------+----------------------------------------+
+| Cannot use certain permission | Required for permissions marked as     |
+| types (like Mail.ReadBasic.All)| "Application only" in permissions table|
++-------------------------------+----------------------------------------+
+
+.. note::
+Some Microsoft Graph API permissions (like Mail.ReadBasic.All) are only available as application permissions, not as delegated permissions. This means you cannot access those resources through a regular user login, even with a Global Admin account.
+
 Our preference
 """"""""""""""""""""""""""
 **An account with the required permissions**
@@ -142,9 +169,9 @@ During our investigations we often ask for a Global Reader account with Audit Lo
 1. Create a new user account in the Microsoft 365 admin center (admin.microsoft.com)
 2. Assign the new user ‘Global Reader’ role
 3. Navigate to the Exchange admin center (https://admin.cloud.microsoft/exchange#/adminRoles)
-3. Go to Roles and select ‘Admin roles’ and create a new role group
-4. Next, select the ‘View-Only Audit Logs’ permission under the Permissions section 
-5. Add the new user to this role group
+4. Go to Roles and select ‘Admin roles’ and create a new role group
+5. Next, select the ‘View-Only Audit Logs’ permission under the Permissions section 
+6. Add the new user to this role group
 
 **Application with the required Graph API Permissions**
 
@@ -190,7 +217,7 @@ During our investigations we often ask for a Global Reader account with Audit Lo
    +---------------------------+-----------------------------------------------------+
    | User.Read.All             | Read all users full profiles                        |
    +---------------------------+-----------------------------------------------------+
-   | Group.Read.All            | Read all group profiles                             |
+   | Group.Read.All            | Allows the app to list groups                       |
    +---------------------------+-----------------------------------------------------+
    | Device.Read.All           | Read all device information                         |
    +---------------------------+-----------------------------------------------------+

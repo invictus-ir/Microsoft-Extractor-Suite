@@ -93,7 +93,7 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 
 ### OAuth apps
 - `Get-OAuthPermissions` - Collect OAuth application permissions Via AZ module
-- `Get-OAuthPermissionGraph` - Collect OAuth application permissions via Graph API
+- `Get-OAuthPermissionsGraph` - Collect OAuth application permissions via Graph API
 
 ### User Related
 - `Get-Users` - Collect user information

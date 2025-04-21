@@ -796,9 +796,23 @@ function DownloadMails($iMessageID,$UserIds){
             Write-logFile -Message "[WARNING] Unable to download message with unknown ID '$iMessageID'." -Color "Yellow" -Level minimal
         }
 
-        $getMessage = Get-MgUserMessage -Filter "internetMessageId eq '$onlyMessageID'" -UserId $userId -ErrorAction stop
-        $messageId = $getMessage.Id
-        $attachment = $getMessage.Attachments
+        try {
+            $getMessage = Get-MgUserMessage -Filter "internetMessageId eq '$onlyMessageID'" -UserId $userId -ErrorAction Stop
+            if ($null -eq $getMessage) {
+                Write-LogFile -Message "[WARNING] No message found with ID '$onlyMessageID'" -Color "Yellow" -Level Minimal
+                return
+            }
+
+            if ($messageId -match " ") {
+                $messageId = $messageId.Split(" ")[0]
+            }
+            
+            $messageId = $getMessage.Id
+            $attachment = $getMessage.Attachments
+        } catch {
+            Write-LogFile -Message "[WARNING] Error retrieving message with ID '$onlyMessageID': $($_.Exception.Message)" -Color "Yellow" -Level Minimal
+            return
+        }
 
         if ($getMessage.ReceivedDateTime -is [DateTime]) {
             $ReceivedDateTime = $getMessage.ReceivedDateTime.ToString("yyyyMMdd_HHmmss")
@@ -816,18 +830,18 @@ function DownloadMails($iMessageID,$UserIds){
 
         try {
             Get-MgUserMessageContent -MessageId $messageId -UserId $userId -OutFile $filePath
-            Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green" 
+            Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green" -Level Standard
         } catch {
             if ($_.Exception.Message -like "*Cannot bind argument to parameter 'MessageId' because it is an empty string*") {
                 Write-logFile -Message "[WARNING] Unable to download message with ID '$iMessageID' was likely deleted." -Color "Red" -Level minimal
             } else {
-                throw 
+                Write-logFile -Message "[WARNING] Unable to download message with ID '$iMessageID." -Color "Red" -Level minimal
             }
         }
 
         if ($attachment -eq "True"){
             Write-logFile -Message "[INFO] Found Attachment file!" -Level Standard
-            $attachment = Get-MgUserMessageAttachment -UserId $userIds -MessageId $iMessageID
+            $attachment = Get-MgUserMessageAttachment -UserId $userIds -MessageId $messageId
             $filename = $attachment.Name
 
             Write-logFile -Message "[INFO] Downloading attachment" -Level Standard
@@ -850,8 +864,7 @@ function DownloadMails($iMessageID,$UserIds){
     }
     catch {
         Write-logFile -Message "[WARNING] The 'Mail.ReadWrite' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Red" -Level minimal
-        Write-Host "[WARNING] Error Message: $($_.Exception.Message)"  -Level minimal
-        throw
+        Write-logFile "[WARNING] Error Message: $($_.Exception.Message)"  -Level minimal
     }
 }
 

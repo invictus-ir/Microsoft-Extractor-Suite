@@ -160,6 +160,9 @@ function Show-MailboxRules
 					write-LogFile -Message "RedirectTo $($rule.RedirectTo)" -Color "Yellow"
 					write-LogFile -Message "ForwardTo: $($rule.ForwardTo)" -Color "Yellow"
 					write-LogFile -Message "TextDescription: $($rule.Description)" -Color "Yellow"
+					write-LogFile -Message "ForwardAsAttachmentTo: $($rule.ForwardAsAttachmentTo)" -Color "Yellow"
+                    write-LogFile -Message "SoftDeleteMessage: $($rule.SoftDeleteMessage)" -Color "Yellow"
+                    write-LogFile -Message "TextDescription: $($rule.Description)" -Color "Yellow"
 				}
 			}
 		}
@@ -184,6 +187,9 @@ function Show-MailboxRules
 						write-LogFile -Message "RedirectTo $($rule.RedirectTo)" -Color "Yellow"
 						write-LogFile -Message "ForwardTo: $($rule.ForwardTo)" -Color "Yellow"
 						write-LogFile -Message "TextDescription: $($rule.Description)" -Color "Yellow"
+						write-LogFile -Message "ForwardAsAttachmentTo: $($rule.ForwardAsAttachmentTo)" -Color "Yellow"
+						write-LogFile -Message "SoftDeleteMessage: $($rule.SoftDeleteMessage)" -Color "Yellow"
+						write-LogFile -Message "TextDescription: $($rule.Description)" -Color "Yellow"
 					}
 				}
 			}
@@ -204,6 +210,9 @@ function Show-MailboxRules
 					write-LogFile -Message "RedirectTo $($rule.RedirectTo)" -Color "Yellow"
 					write-LogFile -Message "ForwardTo: $($rule.ForwardTo)" -Color "Yellow"
 					write-LogFile -Message "TextDescription: $($rule.Description)" -Color "Yellow"
+					write-LogFile -Message "ForwardAsAttachmentTo: $($rule.ForwardAsAttachmentTo)" -Color "Yellow"
+                    write-LogFile -Message "SoftDeleteMessage: $($rule.SoftDeleteMessage)" -Color "Yellow"
+                    write-LogFile -Message "TextDescription: $($rule.Description)" -Color "Yellow"
 				}
 			}
 		}
@@ -278,11 +287,17 @@ function Get-MailboxRules
 
 	$summary = @{
 		TotalUsers = 0
-		UsersWithRules = 0
-		TotalRules = 0
-		EnabledRules = 0
-		ForwardingRules = 0
-		RedirectRules = 0
+        UsersWithRules = 0
+        TotalRules = 0
+        EnabledRules = 0
+        ForwardingRules = 0
+        ForwardAsAttachmentRules = 0
+        RedirectRules = 0
+        SoftDeleteRules = 0
+		DeleteRules = 0
+        HasAttachmentRules = 0
+        StopProcessingRules = 0
+        HighImportanceRules = 0
 	}
 	
 	if ($UserIds -eq "") {		
@@ -298,18 +313,40 @@ function Get-MailboxRules
 				foreach ($rule in $rules) {
 					$summary.TotalRules++
 					if ($rule.Enabled) { $summary.EnabledRules++ }
-					if ($rule.ForwardTo) { $summary.ForwardingRules++ }
-					if ($rule.RedirectTo) { $summary.RedirectRules++ }
+                    if ($rule.ForwardTo) { $summary.ForwardingRules++ }
+                    if ($rule.ForwardAsAttachmentTo) { $summary.ForwardAsAttachmentRules++ }
+                    if ($rule.RedirectTo) { $summary.RedirectRules++ }
+                    if ($rule.SoftDeleteMessage) { $summary.SoftDeleteRules++ }
+                    if ($rule.DeleteMessage) { $summary.DeleteRules++ }
+                    if ($rule.HasAttachment) { $summary.HasAttachmentRules++ }
+                    if ($rule.StopProcessingRules) { $summary.StopProcessingRules++ }
+                    if ($rule.MarkImportance -eq "High") { $summary.HighImportanceRules++ }
 
 					[PSCustomObject]@{
 						UserName = $mailbox.UserPrincipalName
-						RuleName = $rule.Name
-						Enabled = $rule.Enabled
-						CopyToFolder = $rule.CopyToFolder
-						MoveToFolder = $rule.MoveToFolder
-						RedirectTo = $rule.RedirectTo
-						ForwardTo = $rule.ForwardTo
-						Description = $rule.Description
+                        RuleName = $rule.Name
+                        Enabled = $rule.Enabled
+                        Priority = $rule.Priority
+                        RuleIdentity = $rule.RuleIdentity
+                        StopProcessingRules = $rule.StopProcessingRules
+                        CopyToFolder = $rule.CopyToFolder
+                        MoveToFolder = $rule.MoveToFolder
+                        RedirectTo = $rule.RedirectTo
+                        ForwardTo = $rule.ForwardTo
+                        ForwardAsAttachmentTo = $rule.ForwardAsAttachmentTo
+                        ApplyCategory = ($rule.ApplyCategory -join ", ")
+                        MarkImportance = $rule.MarkImportance
+                        MarkAsRead = $rule.MarkAsRead
+                        DeleteMessage = $rule.DeleteMessage
+                        SoftDeleteMessage = $rule.SoftDeleteMessage
+                        From = $rule.From
+                        SubjectContainsWords = ($rule.SubjectContainsWords -join ", ")
+                        SubjectOrBodyContainsWords = ($rule.SubjectOrBodyContainsWords -join ", ")
+                        BodyContainsWords = ($rule.BodyContainsWords -join ", ")
+                        HasAttachment = $rule.HasAttachment
+                        Description = $rule.Description
+                        InError = $rule.InError
+                        ErrorType = $rule.ErrorType
 					} | Export-Csv -Path $outputPath -Append -NoTypeInformation -Encoding $Encoding
 				}
 			}
@@ -328,18 +365,36 @@ function Get-MailboxRules
 				foreach ($rule in $rules) {
 					$summary.TotalRules++
 					if ($rule.Enabled) { $summary.EnabledRules++ }
-					if ($rule.ForwardTo) { $summary.ForwardingRules++ }
-					if ($rule.RedirectTo) { $summary.RedirectRules++ }
+                    if ($rule.ForwardTo) { $summary.ForwardingRules++ }
+                    if ($rule.ForwardAsAttachmentTo) { $summary.ForwardAsAttachmentRules++ }
+                    if ($rule.RedirectTo) { $summary.RedirectRules++ }
+                    if ($rule.SoftDeleteMessage) { $summary.SoftDeleteRules++}
 
 					[PSCustomObject]@{
 						UserName = $user
-						RuleName = $rule.Name
-						Enabled = $rule.Enabled
-						CopyToFolder = $rule.CopyToFolder
-						MoveToFolder = $rule.MoveToFolder
-						RedirectTo = $rule.RedirectTo
-						ForwardTo = $rule.ForwardTo
-						Description = $rule.Description
+                        RuleName = $rule.Name
+                        Enabled = $rule.Enabled
+                        Priority = $rule.Priority
+                        RuleIdentity = $rule.RuleIdentity
+                        StopProcessingRules = $rule.StopProcessingRules
+                        CopyToFolder = $rule.CopyToFolder
+                        MoveToFolder = $rule.MoveToFolder
+                        RedirectTo = $rule.RedirectTo
+                        ForwardTo = $rule.ForwardTo
+                        ForwardAsAttachmentTo = $rule.ForwardAsAttachmentTo
+                        ApplyCategory = ($rule.ApplyCategory -join ", ")
+                        MarkImportance = $rule.MarkImportance
+                        MarkAsRead = $rule.MarkAsRead
+                        DeleteMessage = $rule.DeleteMessage
+                        SoftDeleteMessage = $rule.SoftDeleteMessage
+                        From = $rule.From
+                        SubjectContainsWords = ($rule.SubjectContainsWords -join ", ")
+                        SubjectOrBodyContainsWords = ($rule.SubjectOrBodyContainsWords -join ", ")
+                        BodyContainsWords = ($rule.BodyContainsWords -join ", ")
+                        HasAttachment = $rule.HasAttachment
+                        Description = $rule.Description
+                        InError = $rule.InError
+                        ErrorType = $rule.ErrorType
 					} | Export-Csv -Path $outputPath -Append -NoTypeInformation -Encoding $Encoding
 				}
 			}
@@ -354,9 +409,31 @@ function Get-MailboxRules
 	if ($summary.ForwardingRules -ne 0) {
         Write-LogFile -Message "  - Forwarding Rules: $($summary.ForwardingRules)" -Level Standard
     }
+    
+    if ($summary.ForwardAsAttachmentRules -ne 0) {
+        Write-LogFile -Message "  - Forward As Attachment Rules: $($summary.ForwardAsAttachmentRules)" -Level Standard
+    }
 
     if ($summary.RedirectRules -ne 0) {
         Write-LogFile -Message "  - Redirect Rules: $($summary.RedirectRules)" -Level Standard
+    }
+    
+    if ($summary.SoftDeleteRules -ne 0) {
+        Write-LogFile -Message "  - Soft Delete Rules: $($summary.SoftDeleteRules)" -Level Standard
+    }
+    
+    if ($summary.DeleteRules -ne 0) {
+        Write-LogFile -Message "  - Delete Rules: $($summary.DeleteRules)" -Level Standard
+    }
+    
+    if ($summary.HasAttachmentRules -ne 0) {
+        Write-LogFile -Message "  - Has Attachment Rules: $($summary.HasAttachmentRules)" -Level Standard
+    }
+    
+    Write-LogFile -Message "  - Stop Processing Rules: $($summary.StopProcessingRules)" -Level Standard
+    
+    if ($summary.HighImportanceRules -ne 0) {
+        Write-LogFile -Message "  - High Importance Rules: $($summary.HighImportanceRules)" -Level Standard
     }
     Write-LogFile -Message "`nExported File:" -Level Standard
     Write-LogFile -Message "  - $outputPath" -Level Standard

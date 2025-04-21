@@ -201,6 +201,8 @@ function Get-GraphEntraSignInLogs {
 				$retryCount = 0
 				$maxRetries = 3
 				$success = $false
+				$tokenRetryCount = 0
+    			$maxTokenRetries = 5  
 
 				while (-not $success -and $retryCount -lt $maxRetries) {
 					try {
@@ -209,6 +211,20 @@ function Get-GraphEntraSignInLogs {
 						$success = $true
 					}
 					catch {
+						if (($_.Exception.Message -like "*Skip token is null*" -or 
+							$_.Exception.Message -like "*token*expired*" -or
+							$_.Exception.Message -like "*Bad Request*") -and 
+							$tokenRetryCount -lt $maxTokenRetries) {
+							
+							$tokenRetryCount++
+							Write-LogFile -Message "[WARNING] Token expired or invalid. Reconnecting and retrying... Attempt $tokenRetryCount of $maxTokenRetries" -Level Standard -Color "Yellow"
+							
+							# Re-authenticate to refresh the token
+							$graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes -Force
+							Start-Sleep -Seconds 20
+							continue
+						}
+						
 						$retryCount++
 						if ($retryCount -lt $maxRetries) {
 							Write-LogFile -Message "[WARNING] Failed to acquire logs. Retrying... Attempt $retryCount of $maxRetries" -Level Standard -Color "Yellow"

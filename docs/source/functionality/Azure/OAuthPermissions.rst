@@ -53,7 +53,7 @@ Usage
 List delegated permissions (OAuth2PermissionGrants) and application permissions (AppRoleAssignments) using Microsoft Graph API:
 ::
 
-   Get-OAuthPermissionGraph
+   Get-OAuthPermissionsGraph
 
 Prerequisites
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

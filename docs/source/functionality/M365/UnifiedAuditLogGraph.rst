@@ -89,6 +89,17 @@ Parameters
     - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
     - Default: Standard
 
+-Output (optional)
+    - Output is the parameter specifying the CSV or JSON output type.
+    - Default: JSON
+
+-MaxEventsPerFile (optional)
+    - Specifies the maximum number of events per output file. When this number is reached, a new file will be created.
+    - Default: 250000
+
+-SplitFiles (optional)
+    - When specified, splits output into multiple files based on MaxEventsPerFile.
+    - Default: If not specified, outputs to a single file.
 
 Permissions
 """"""""""""""""""""""""""
@@ -98,7 +109,7 @@ Permissions
 
 Output
 """"""""""""""""""""""""""
-The output will be saved to the 'UnifiedAuditLog' directory within the 'Output' directory, with the file name '$date-UnifiedAuditLog.json'.
+The output will be saved to the 'UnifiedAuditLog' directory within the 'Output' directory, with the file name '$date-$searchName-UnifiedAuditLog.json'.
 
 Permissions
 """"""""""""""""""""""""""

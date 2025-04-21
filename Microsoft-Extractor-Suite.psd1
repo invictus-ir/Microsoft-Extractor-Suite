@@ -76,6 +76,7 @@
 		
 		# Get-MailboxAuditLog.ps1
 		"Get-MailboxAuditLog"
+		"Get-MailboxAuditLogLegacy"
 		
 		# Get-MessageTraceLog.ps1
 		"Get-MessageTraceLog"
@@ -86,7 +87,7 @@
 	
 		# Get-OAuthPermissions.ps1
 		"Get-OAuthPermissions"
-		"Get-OAuthPermissionGraph"
+		"Get-OAuthPermissionsGraph"
 	
 		# Get-AdminAuditLog.ps1
 		"Get-AdminAuditLog"

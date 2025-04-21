@@ -21,6 +21,10 @@ function Get-Users {
     Minimal: Critical errors only
     Standard: Normal operational logging
     Default: Standard
+
+    .PARAMETER UserIds
+    UserId is the parameter specifying a single user ID or UPN to filter the results.
+    Default: All users will be included if not specified.
     
     .EXAMPLE
     Get-Users
@@ -38,6 +42,7 @@ function Get-Users {
     param(
         [string]$OutputDir = "Output\Users",
         [string]$Encoding = "UTF8",
+        [string]$UserIds,
         [ValidateSet('None', 'Minimal', 'Standard')]
         [string]$LogLevel = 'Standard'
     )
@@ -61,7 +66,25 @@ function Get-Users {
 
     try {
         $selectobjects = "UserPrincipalName","DisplayName","Id","CompanyName","Department","JobTitle","City","Country","Identities","UserType","LastPasswordChangeDateTime","AccountEnabled","CreatedDateTime","CreationType","ExternalUserState","ExternalUserStateChangeDateTime","SignInActivity","OnPremisesSyncEnabled"
-        $mgUsers = Get-MgUser -All -Select $selectobjects 
+        $mgUsers = @()
+
+        if ($UserIds) {
+            Write-LogFile -Message "[INFO] Filtering results for user: $UserIds" -Level Standard
+            
+            try {
+                $mgUsers = Get-Mguser -Filter "userPrincipalName eq '$UserIds'" -select $selectobjects
+                                
+                if (-not $mgUsers) {
+                    Write-LogFile -Message "[WARNING] User not found: $UserIds" -Color "Yellow" -Level Standard
+                    $mgUsers = @()
+                }
+            } catch {
+                Write-LogFile -Message "[WARNING] Error retrieving user $UserIds`: $($_.Exception.Message)" -Color "Yellow" -Level Standard
+                $mgUsers = @()
+            }
+        } else {
+            $mgUsers = Get-MgUser -All -Select $selectobjects
+        }
 
         $formattedUsers = $mgUsers | ForEach-Object {
             [PSCustomObject]@{

@@ -14,6 +14,10 @@ function Get-MFA {
     .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
     Default: UTF8
+
+    .PARAMETER UserIds
+    UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
+
     .PARAMETER LogLevel
     Specifies the level of logging:
     None: No logging

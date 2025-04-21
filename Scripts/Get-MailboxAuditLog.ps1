@@ -114,3 +114,133 @@ function Get-MailboxAuditLog
     # Call Get-UAL with the constructed parameters
     Get-UAL @params
 }
+
+function Get-MailboxAuditLogLegacy
+{
+<#
+    .SYNOPSIS
+    Get mailbox audit log entries using the legacy Search-MailboxAuditlog method.
+
+    .DESCRIPTION
+    Get mailbox audit log entries for specific a user account. 
+	The output will be written to: Output\MailboxAuditLog\
+
+	.PARAMETER UserIds
+    UserIds is the Identity parameter specifying a single mailbox to retrieve mailbox audit log entries from.
+
+	.PARAMETER StartDate
+    startDate is the parameter specifying the start date of the date range.
+
+	.PARAMETER EndDate
+    endDate is the parameter specifying the end date of the date range.
+
+	.PARAMETER OutputDir
+    outputDir is the parameter specifying the output directory.
+	Default: Output\MailboxAuditLog
+
+	.PARAMETER Encoding
+    Encoding is the parameter specifying the encoding of the CSV output file.
+	Default: UTF8
+
+    .PARAMETER LogLevel
+    Specifies the level of logging:
+    None: No logging
+    Minimal: Critical errors only
+    Standard: Normal operational logging
+    Default: Standard
+    
+	.EXAMPLE
+    Get-MailboxAuditLogLegacy
+	Get all available mailbox audit log entries for all user accounts
+
+    .EXAMPLE
+    Get-MailboxAuditLogLegacy -UserIds Test@invictus-ir.com
+	Get mailbox audit log entries for the user Test@invictus-ir.com
+
+	.EXAMPLE
+    Get-MailboxAuditLogLegacy -UserIds "Test@invictus-ir.com,HR@invictus-ir.com"
+	Get mailbox audit log entries for the users Test@invictus-ir.com and HR@invictus-ir.com.
+
+	.EXAMPLE
+	Get-MailboxAuditLogLegacy -UserIds Test@invictus-ir.com -StartDate 1/4/2023 -EndDate 5/4/2023
+	Get mailbox audit log entries for the user Test@invictus-ir.com between 1/4/2023 and 5/4/2023.
+#>
+	[CmdletBinding()]
+	param(
+		[string]$UserIds,
+		[string]$StartDate,
+		[string]$EndDate,
+		[string]$OutputDir = "Output\MailboxAuditLog",
+		[string]$Encoding = "UTF8",
+        [ValidateSet('None', 'Minimal', 'Standard')]
+        [string]$LogLevel = 'Standard'
+	)
+
+	try {
+        $areYouConnected = Search-MailboxAuditlog -ErrorAction stop
+    }
+    catch {
+        Write-LogFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Level Minimal -Color "Yellow"
+        Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Level Minimal -Color "Red"
+        throw
+    }
+
+    Write-LogFile -Message "[INFO] Running Get-MailboxAuditLogLegacy" -Level Minimal -Color "Green"
+
+	If (!(Test-Path $OutputDir)){
+        New-Item -ItemType Directory -Force -Path $OutputDir > $null
+        Write-LogFile -Message "[INFO] Creating the following directory: $OutputDir" -Level Standard
+    }
+    else {
+        if (Test-Path -Path $OutputDir) {
+            Write-LogFile -Message "[INFO] Custom directory set to: $OutputDir" -Level Standard
+        }
+        else {
+            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
+            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
+        }
+    }
+	
+	StartDate
+	EndDate
+
+	if (($null -eq $UserIds) -Or ($UserIds -eq ""))  {
+        Write-LogFile -Message "[INFO] No users provided.. Getting the MailboxAuditLog for all users" -Level Standard -Color "Yellow"
+		Get-mailbox -resultsize unlimited |
+		ForEach-Object {
+			$date = Get-Date -Format "yyyyMMddHHmm"
+			$outputFile = "$OutputDir\$($date)-mailboxAuditLog-$($_.UserPrincipalName).csv"
+
+            Write-LogFile -Message "[INFO] Collecting the MailboxAuditLog for $($_.UserPrincipalName)" -Level Standard
+			$result = Search-MailboxAuditlog -Identity $_.UserPrincipalName -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 
+			$result | export-csv -NoTypeInformation -Path $outputFile -Encoding $Encoding
+			
+            Write-LogFile -Message "[INFO] Output is written to: $outputFile" -Level Standard -Color "Green"
+		}
+	}
+
+	elseif ($UserIds -match ",") {
+		$UserIds.Split(",") | Foreach {
+			$user = $_
+			$date = Get-Date -Format "yyyyMMddHHmm"
+			$outputFile = "$OutputDir\$($date)-mailboxAuditLog-$($user).csv"
+
+            Write-LogFile -Message "[INFO] Collecting the MailboxAuditLog for $user" -Level Standard
+			$result = Search-MailboxAuditlog -Identity $user -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 
+			$result | export-csv -NoTypeInformation -Path $outputFile -Encoding $Encoding
+			
+            Write-LogFile -Message "[INFO] Output is written to: $outputFile" -Level Standard -Color "Green"
+		}
+	}
+
+	else {		
+		$date = Get-Date -Format "yyyyMMddHHmm"
+		$outputFile = "$OutputDir\$($date)-mailboxAuditLog-$($UserIds).csv"
+
+        Write-LogFile -Message "[INFO] Collecting the MailboxAuditLog for $UserIds" -Level Standard
+		$result = Search-MailboxAuditlog -Identity $UserIds -LogonTypes Delegate,Admin,Owner -StartDate $script:StartDate -EndDate $script:EndDate -ShowDetails -ResultSize 250000 
+		$result | export-csv -NoTypeInformation -Path $outputFile -Encoding $Encoding
+		
+        Write-LogFile -Message "[INFO] Output is written to: $outputFile" -Level Standard -Color "Green"
+	} 
+}

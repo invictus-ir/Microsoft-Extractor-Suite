@@ -33,6 +33,9 @@ Parameters
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
+-UserIds (optional)
+    - UserId is the parameter specifying a single user ID or UPN to filter the results.
+
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'Users' directory within the 'Output' directory.
@@ -117,6 +120,9 @@ Parameters
 -LogLevel (optional)
     - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
     - Default: Standard
+
+-UserIds (optional)
+    - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
 Output
 """"""""""""""""""""""""""

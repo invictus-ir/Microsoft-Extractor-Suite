@@ -136,7 +136,7 @@ $Global:CollectionTasks = @{
             Description = "Collects delegated and application permissions using Microsoft Graph API"
             Function = { param($OutputDir, $LogLevel, $UserIds)
                 if (-not $UserIds) {
-                    Get-OAuthPermissionGraph -OutputDir "$OutputDir\OAuthPermissions" -LogLevel $LogLevel
+                    Get-OAuthPermissionsGraph -OutputDir "$OutputDir\OAuthPermissions" -LogLevel $LogLevel
                     return $true
                 }
                 return $false

@@ -88,14 +88,40 @@ function Get-UALStatistics
 	Set-Content $outputDirectory -Value "RecordType,Amount,Percentage"
 
 	try {
-		$totalCount = Search-UnifiedAuditLog -Userids $UserIds -StartDate $script:StartDate -EndDate $script:EndDate -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
-		if ($null -eq $totalCount) {
-            Write-LogFile -Message "[WARNING] No Unified Audit Log found for the specified period" -Color "Yellow" -Level Standard
-            return
-        }
-
+		$maxRetries = 3
+		$retryCount = 0
+		$totalCount = 0
+		
+		while ($retryCount -lt $maxRetries -and $totalCount -eq 0) {
+			if ($retryCount -gt 0) {
+				Write-LogFile -Message "[INFO] No events found... retrying, attempt $($retryCount+1)/$maxRetries after 15 second delay..." -Level Standard
+				Start-Sleep -Seconds 15
+			}
+			
+			try {
+				$totalCount = Search-UnifiedAuditLog -Userids $UserIds -StartDate $script:StartDate -EndDate $script:EndDate -ResultSize 1 | 
+							  Select-Object -First 1 -ExpandProperty ResultCount
+				
+				if ($null -eq $totalCount) {
+					$totalCount = 0
+				}
+			}
+			catch {
+				Write-LogFile -Message "[WARNING] Error during attempt to get the total count $($retryCount+1): $($_.Exception.Message)" -Color "Yellow" -Level Standard
+				$totalCount = 0
+			}
+			
+			$retryCount++
+		}
+		
+		if ($totalCount -eq 0) {
+			Write-LogFile -Message "[WARNING] No Unified Audit Log entries found after $maxRetries attempts" -Color "Yellow" -Level Standard
+			Write-LogFile -Message "[INFO] Aborting script since there are no audit logs to analyze" -Level Standard
+			return
+		}
+		
 		$summary.TotalCount = $totalCount
-        Write-LogFile -Message "[INFO] Found a total of $totalCount Unified Audit Log entries" -Level Standard
+		Write-LogFile -Message "[INFO] Found a total of $totalCount Unified Audit Log entries" -Level Standard
 	}
 	catch {
 		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow" -Level Minimal
@@ -117,7 +143,7 @@ function Get-UALStatistics
 		$specificResult = Search-UnifiedAuditLog -Userids $UserIds -StartDate $script:StartDate -EndDate $script:EndDate -RecordType $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 		if ($specificResult) {
 			$summary.RecordsWithData++
-			$percentage = [math]::Round(($specificResult / $totalCount) * 100, 2)
+			$percentage = if ($totalCount -eq 0 -or $null -eq $totalCount) { 0 } else { [math]::Round(($specificResult / $totalCount) * 100, 2) }
 
 			$results += [PSCustomObject]@{
 				RecordType = $record

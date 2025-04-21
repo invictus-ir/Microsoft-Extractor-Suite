@@ -168,7 +168,7 @@ function Get-ActivityLogs {
 		} while ($null -ne $uriBase)
 
 		if ($events.Count -eq 0) {
-			Write-LogFile -Message "[WARNING] No Activity logs in subscription: $($subId), or an error occurred." -ForegroundColor Yellow -Level Minimum
+			Write-LogFile -Message "[WARNING] No Activity logs in subscription: $($subId), or an error occurred." -Color Yellow -Level Minimal
 			$summary.EmptySubscriptions++
 		}
 		else{

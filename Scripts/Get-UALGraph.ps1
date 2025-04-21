@@ -22,6 +22,10 @@ Function Get-UALGraph {
     OutputDir is the parameter specifying the output directory.
     Default: Output\UnifiedAuditLog
 
+    .PARAMETER MaxEventsPerFile
+    Specifies the maximum number of events per output file. When this number is reached, a new file will be created.
+    Default: 250000
+
     .PARAMETER Output
     Output is the parameter specifying the CSV or JSON
     Default: JSON
@@ -58,6 +62,11 @@ Function Get-UALGraph {
     .PARAMETER SearchName
     Specifies the name of the search query. This parameter is required.
 
+    .PARAMETER SplitFiles
+    When specified, splits output into multiple files based on MaxEventsPerFile.
+    When set to True, splits output into multiple files based on MaxEventsPerFile.
+    Default: If not specified, outputs to a single file.
+
     .PARAMETER ObjecIDs 
     Exact data returned depends on the service in the current `@odatatype.microsoft.graph.security.auditLogQuery` record.
     For Exchange admin audit logging, the name of the object modified by the cmdlet.
@@ -80,13 +89,15 @@ Function Get-UALGraph {
     Get-UALGraph -searchName Test -startDate "2024-03-01" -endDate "2024-03-10" -IPAddress 182.74.242.26
     Retrieve audit log data for the specified time range March 1, 2024 to March 10, 2024 and filter the results to include only entries associated with the IP address 182.74.242.26.
 
+    .EXAMPLE
+    Get-UALGraph -searchName Test -MaxEventsPerFile 500000 -SplitFiles
+    Gets all the unified audit log entries with 500,000 events per output file.
+
 #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]$searchName,
         [string]$OutputDir = "Output\UnifiedAuditLog\",
-	[ValidateSet("CSV", "JSON")]
-	[string]$Output = "JSON",
         [string]$Encoding = "UTF8",
         [string]$startDate,
         [string]$endDate,
@@ -98,7 +109,11 @@ Function Get-UALGraph {
         [string[]]$IPAddress = @(),
         [string[]]$ObjecIDs = @(),
         [ValidateSet('None', 'Minimal', 'Standard')]
-        [string]$LogLevel = 'Standard'
+        [string]$LogLevel = 'Standard',
+        [double]$MaxEventsPerFile = 250000,
+        [ValidateSet("CSV", "JSON")]
+        [string]$Output = "JSON",
+        [switch]$SplitFiles
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
@@ -192,33 +207,155 @@ Function Get-UALGraph {
     try {
         write-logFile -Message "[INFO] Collecting scan results from api (this may take a while)" -Level Standard
         $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-	if ($Output -eq "JSON") {
-            $outputFilePath = "$($date)-$searchName-UnifiedAuditLog.json"
+
+        $fileCounter = 1
+        $currentFileEvents = 0
+        $totalEvents = 0
+        $outputFileBase = "$($date)-$searchName-UnifiedAuditLog"
+
+        if ($SplitFiles) {
+            if ($Output -eq "JSON") {
+                $outputFilePath = "$outputFileBase-part$fileCounter.json"
+                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                "[" | Out-File -FilePath $filePath -Encoding $Encoding
+                $firstRecordInFile = $true
+            } 
+            elseif ($Output -eq "CSV") {
+                $outputFilePath = "$outputFileBase-part$fileCounter.csv"
+                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                $csvCollection = @()
+            }
+        } 
+        else {
+            if ($Output -eq "JSON") {
+                $outputFilePath = "$outputFileBase.json"
+                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                "[" | Out-File -FilePath $filePath -Encoding $Encoding
+                $firstRecordInFile = $true
+            }
+            elseif ($Output -eq "CSV") {
+                $outputFilePath = "$outputFileBase.csv"
+                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                $csvCollection = @()
+            }
         }
-	elseif ($Output -eq "CSV") {
-  	    $outputFilePath = "$($date)-$searchName-UnifiedAuditLog.csv"
-	}
-        $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+
         $apiUrl = "https://graph.microsoft.com/beta/security/auditLog/queries/$scanId/records"
-        
+        Write-LogFile -Message "[INFO] Starting to collect records..." -Level Standard
+
         Do {
-            $response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl  -ContentType "application/json; odata.metadata=minimal; odata.streaming=true;" -OutputType Json
+            $maxRetries = 3
+            $retryCount = 0
+            $success = $false
+            $response = $null
+
+            while (-not $success -and $retryCount -lt $maxRetries) {
+                try {
+                    $response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl -ContentType "application/json; odata.metadata=minimal; odata.streaming=true;" -OutputType Json
+                    $success = $true
+                }
+                catch {
+                    $retryCount++
+                    $errorMessage = $_.Exception.Message
+                    
+                    if ($retryCount -lt $maxRetries) {
+                        $waitTime = 30 * $retryCount
+                        Write-LogFile -Message "[WARNING] Error: $errorMessage. Retry $retryCount of $maxRetries. Waiting $waitTime seconds before retrying..." -Color "Yellow" -Level Standard
+                        Start-Sleep -Seconds $waitTime
+                        
+                        try {
+                            $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+                            Write-LogFile -Message "[INFO] Successfully refreshed Graph API connection." -Level Standard
+                        }
+                        catch {
+                            Write-LogFile -Message "[WARNING] Failed to refresh credentials: $($_.Exception.Message)" -Level Standard
+                        }
+                    }
+                    else {
+                        Write-LogFile -Message "[ERROR] Failed after $maxRetries attempts: $errorMessage" -Color "Red" -Level Minimal
+                        throw $_  
+                    }
+                }
+            }
+
             $responseJson = $response | ConvertFrom-Json 
 
-            if ($responseJson.value) {
-                $summary.TotalRecords += $responseJson.value.Count
-		if ($Output -eq "JSON") {
-                    $responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
+            if ($responseJson.value -and $responseJson.value.Count -gt 0) {
+                $batchCount = $responseJson.value.Count
+                $totalEvents += $batchCount
+
+                if ($Output -eq "JSON") {
+                    foreach ($record in $responseJson.value) {
+                        if ($SplitFiles -and $currentFileEvents -ge $MaxEventsPerFile) {
+                            "]" | Out-File -FilePath $filePath -Append -Encoding $Encoding
+                            Write-LogFile -Message "[INFO] File complete: $outputFilePath ($currentFileEvents events)" -Level Standard
+                            
+                            $fileCounter++
+                            $summary.ExportedFiles++
+                            $currentFileEvents = 0
+                            
+                            $outputFilePath = "$outputFileBase-part$fileCounter.json"
+                            $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                            "[" | Out-File -FilePath $filePath -Encoding $Encoding
+                            $firstRecordInFile = $true
+                        }
+
+                        if (-not $firstRecordInFile) {
+                            "," | Out-File -FilePath $filePath -Append -Encoding $Encoding -NoNewline
+                        } else {
+                            $firstRecordInFile = $false
+                        }
+                        "`r`n" | Out-File -FilePath $filePath -Append -Encoding $Encoding -NoNewline
+
+                        $record | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding -NoNewline
+
+                        $currentFileEvents++
+                        $summary.ProcessedRecords++
+                    }
                 }
-		elseif ($Output -eq "CSV") {
-                    $responseJson.value | Select-Object id, createdDateTime, auditLogRecordType, operation, organizationId, userType, userId, service, objectId, userPrincipalName, clientIp, administrativeUnits, @{Name = "auditData"; Expression = { $_.auditData | ConvertTo-Json -Depth 100 } } | Export-Csv -Path $filePath -Append -Encoding $Encoding -NoTypeInformation
+                elseif ($Output -eq "CSV") {
+                    $csvCollection += $responseJson.value
+                    $currentFileEvents += $batchCount
+                    $summary.ProcessedRecords += $batchCount
+
+                    if ($SplitFiles -and $currentFileEvents -ge $MaxEventsPerFile) {
+                        $csvCollection | Select-Object id, createdDateTime, auditLogRecordType, operation, organizationId, userType, userId, service, objectId, userPrincipalName, clientIp, administrativeUnits, @{Name = "auditData"; Expression = { $_.auditData | ConvertTo-Json -Depth 100 } } | Export-Csv -Path $filePath -Append -Encoding $Encoding -NoTypeInformation
+                        Write-LogFile -Message "[INFO] File complete: $outputFilePath ($currentFileEvents events)" -Level Standard
+                        
+                        $fileCounter++
+                        $summary.ExportedFiles++
+                        $currentFileEvents = 0
+                        
+                        $csvCollection = @()
+                        $outputFilePath = "$outputFileBase-part$fileCounter.csv"
+                        $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                    }
+                }
+
+                if ($totalEvents % 10000 -eq 0 -or $batchCount -lt 100) {
+                    Write-LogFile -Message "[INFO] Progress: $totalEvents total events processed" -Level Standard
                 }
             } else {
-                Write-logFile -Message "[INFO] No results matched your search." -color Yellow -Level Minimal
+                if ($totalEvents -eq 0) {
+                    Write-LogFile -Message "[INFO] No results matched your search." -Color Yellow -Level Minimal
+                }
             }
             $apiUrl = $responseJson.'@odata.nextLink'
         } While ($apiUrl)
 
+        if ($currentFileEvents -gt 0) {
+            if ($Output -eq "JSON") {
+                "]" | Out-File -FilePath $filePath -Append -Encoding $Encoding
+            }
+            elseif ($Output -eq "CSV" -and $csvCollection.Count -gt 0) {
+                $csvCollection | Select-Object id, createdDateTime, auditLogRecordType, operation, organizationId, userType, userId, service, objectId, userPrincipalName, clientIp, administrativeUnits, @{Name = "auditData"; Expression = { $_.auditData | ConvertTo-Json -Depth 100 } } | Export-Csv -Path $filePath -Append -Encoding $Encoding -NoTypeInformation
+
+                
+            }
+            $summary.ExportedFiles++
+        }
+
+        $summary.TotalRecords = $totalEvents
         $summary.ProcessingTime = (Get-Date) - $summary.StartTime
 
         Write-LogFile -Message "`n=== Audit Log Retrieval Summary ===" -Color "Cyan" -Level Standard
@@ -229,8 +366,9 @@ Function Get-UALGraph {
         if ($summary.TotalRecords -eq 0) {
             Write-LogFile -Message "No results matched your search criteria." -Color "Yellow" -Level Standard
         }
+        Write-LogFile -Message "Files Created: $($summary.ExportedFiles)" -Level Minimal
         Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
-        Write-LogFile -Message "Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
+        Write-LogFile -Message "Processing Time: $($summary.ProcessingTime.ToString('hh\:mm\:ss'))"  -Color "Green" -Level Standard
         Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard      
     }
     catch {
@@ -238,7 +376,7 @@ Function Get-UALGraph {
         throw
     }
 }
-    
-    
-    
-    
+        
+        
+        
+        

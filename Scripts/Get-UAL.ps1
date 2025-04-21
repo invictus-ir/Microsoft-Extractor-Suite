@@ -256,7 +256,7 @@ function Get-UAL {
     }
 
 	$maxRetries = 3
-    $baseDelay = 10
+    $baseDelay = 3
 	$retryCount = 0 
 
 	foreach ($record in $recordTypes) {
@@ -272,7 +272,8 @@ function Get-UAL {
 		while (!$success -and $retryAttempt -lt $maxRetries) {
 			try {
 				$totalResults = Search-UnifiedAuditLog -StartDate $script:StartDate -EndDate $script:EndDate @baseSearchQuery -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
-				if ($null -ne $totalResults) {
+
+				if ($null -ne $totalResults -and $totalResults -gt 0) {
 					$message = if ($record -eq "*") {
 						"[INFO] Total number of events during the acquisition period: $totalResults"
 					} else {
@@ -280,8 +281,39 @@ function Get-UAL {
 					}
 					
 					Write-LogFile -Message $message -Level Standard -color "Green"
+					$success = $true
 				}
-				$success = $true
+				else {
+					# If we got null or zero, check if it's due to timeout
+					$retryAttempt++
+            
+					# On last attempt, check the recent period
+					if ($retryAttempt -eq $maxRetries) {
+						Write-LogFile -Message "[INFO] Full period search returned zero results. This may occur in large environments due to API timeouts." -Level Standard -Color "Yellow"
+
+						$last24HoursStart = $script:EndDate.AddHours(-24)
+						$recentResults = Search-UnifiedAuditLog -StartDate $last24HoursStart -EndDate $script:EndDate @baseSearchQuery -ResultSize 1 | 
+										 Select-Object -First 1 -ExpandProperty ResultCount
+						
+						if ($null -ne $recentResults -and $recentResults -gt 0) {
+							Write-LogFile -Message "[INFO] Found $recentResults recent events in the last 24 hours." -Level Standard -Color "Green"
+							Write-LogFile -Message "[INFO] The initial count likely timed out due to the large data volume... Proceeding with retrieval using smaller time chunks..." -Level Standard -Color "Green"
+							
+							$totalDays = ($script:EndDate - $script:StartDate).TotalDays
+    						$estimatedTotalRecords = [math]::Ceiling($recentResults * $totalDays)
+							
+							$totalResults = 1  # Set to non-zero to force the script to continue
+							$success = $true
+							break
+						} else {
+							Write-LogFile -Message "[INFO] No recent events found in the last 24 hours either." -Level Standard -Color "Yellow"
+							$success = $true
+						}
+					} else {
+						Write-LogFile -Message "[WARNING] Zero results returned, retrying attempt $retryAttempt of $maxRetries..." -Color "Yellow" -Level Minimal
+						Start-Sleep -Seconds (2 * $retryAttempt)
+					}
+				}
 			}
 			catch {
 				if ($_.Exception.Message -like "*server side error*" -or 
@@ -310,20 +342,45 @@ function Get-UAL {
 			} else {
 				"[INFO] No records found for RecordType: $record"
 			}
-            Write-LogFile -Message "[INFO] No records found for RecordType: $record" -Level Standard -Color "Yellow"
+            Write-LogFile -Message $message -Level Standard -Color "Yellow"
             continue
         }
 
         if (!$PSBoundParameters.ContainsKey('Interval')) {
             $totalMinutes = ($script:EndDate - $script:StartDate).TotalMinutes
-            $estimatedIntervals = [math]::Ceiling($totalResults / $MaxItemsPerInterval)
-            
-            if ($estimatedIntervals -eq 0) {
-                $Interval = $totalMinutes
-            } else {
-                $Interval = [math]::Max(1, [math]::Floor($totalMinutes / $estimatedIntervals))
-            }
+
+			if ($null -ne $totalResults -And $totalResults -gt 1) {  
+				$estimatedIntervals = [math]::Ceiling($totalResults / $MaxItemsPerInterval)
+				
+				if ($estimatedIntervals -eq 0) {
+					$Interval = $totalMinutes
+				} else {
+					$Interval = [math]::Max(1, [math]::Floor($totalMinutes / $estimatedIntervals))
+				}
+			} 
+			else { 
+				$Interval = 60
+			}
         }
+
+		if (!$PSBoundParameters.ContainsKey('Interval')) {
+			$totalMinutes = ($script:EndDate - $script:StartDate).TotalMinutes
+		
+			if ($null -ne $totalResults -And $totalResults -gt 1) {
+				$estimatedIntervals = [math]::Ceiling($totalResults / $MaxItemsPerInterval)
+				
+				if ($estimatedIntervals -eq 0) {
+					$Interval = $totalMinutes
+				} else {
+					$Interval = [math]::Max(1, [math]::Floor(($totalMinutes / $estimatedIntervals) / 1.2))
+					
+					Write-LogFile -Message "[INFO] Using interval of $Interval minutes based on estimated $totalResults records" -Level Standard -Color "Green"
+				}
+			} 
+			else { 
+				$Interval = 60
+			}
+		}
 
 		$resetInterval = $Interval
 		[DateTime]$currentStart = $script:StartDate
@@ -490,19 +547,40 @@ function Get-UAL {
 													Write-LogFile -Message "[INFO] Retrieved $($results.Count) records (Total: $totalProcessed / $amountResults)" -Level Standard
 													$backoffDelay = 10
 												}
+											}
+
+											if ($totalProcessed -ne $amountResults) {
+												Write-LogFile -Message "[WARNING] Retrieved record count ($totalProcessed) does not match the expected count ($amountResults). Verifying the count..." -Color "Yellow" -Level Standard
+
+												$verifiedCount = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd @baseSearchQuery `
+													-ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+						
+												if ($null -eq $verifiedCount) {
+													$verifiedCount = 0
+												}
+						
+												if ($verifiedCount -ne $amountResults) {
+													Write-LogFile -Message "[INFO] Adjusted expected count from $amountResults to $verifiedCount after revalidating the API response." -Color "Green" -Level Standard
+													$amountResults = $verifiedCount
+												}
+						
+												# Check if the verified count matches what we collected
+												if ($totalProcessed -eq $amountResults) {
+													$batchSuccess = $true
+												}
 												else {
-													Write-LogFile -Message "[WARNING] Microsoft returned corrupt data for the period $($currentStart.ToString('yyyy-MM-dd HH:mm:ss')) to $($currentEnd.ToString('yyyy-MM-dd HH:mm:ss'))... Retrying the entire batch... " -Color "Yellow" -Level Minimal
+													Write-LogFile -Message "[WARNING] Retrieved record count ($totalProcessed) still does not match the verified count ($amountResults). Retrying batch..." -Color "Yellow" -Level Standard
+
 													$batchAttempts++
 													$allResults = @()
 													$totalProcessed = 0
 													$sessionId = [Guid]::NewGuid().ToString()
 													Start-Sleep -Seconds $backoffDelay
 													$backoffDelay = [Math]::Min(30, $backoffDelay * 2)
-													break
+													continue
 												}
 											}
-	
-											if ($totalProcessed -eq $amountResults) {
+											else {
 												$batchSuccess = $true
 											}
 										}
