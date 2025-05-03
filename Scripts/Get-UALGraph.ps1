@@ -27,7 +27,7 @@ Function Get-UALGraph {
     Default: 250000
 
     .PARAMETER Output
-    Output is the parameter specifying the CSV or JSON
+    Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
     Default: JSON
 
     .PARAMETER LogLevel
@@ -111,7 +111,7 @@ Function Get-UALGraph {
         [ValidateSet('None', 'Minimal', 'Standard')]
         [string]$LogLevel = 'Standard',
         [double]$MaxEventsPerFile = 250000,
-        [ValidateSet("CSV", "JSON")]
+        [ValidateSet("CSV", "JSON", "SOF-ELK")]
         [string]$Output = "JSON",
         [switch]$SplitFiles
     )
@@ -225,6 +225,10 @@ Function Get-UALGraph {
                 $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
                 $csvCollection = @()
             }
+            elseif ($Output -eq "SOF-ELK") {
+                $outputFilePath = "$outputFileBase-part$fileCounter.json"
+                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+            }
         } 
         else {
             if ($Output -eq "JSON") {
@@ -237,6 +241,10 @@ Function Get-UALGraph {
                 $outputFilePath = "$outputFileBase.csv"
                 $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
                 $csvCollection = @()
+            }
+            elseif ($Output -eq "SOF-ELK") {
+                $outputFilePath = "$outputFileBase.json"
+                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
             }
         }
 
@@ -329,6 +337,26 @@ Function Get-UALGraph {
                         $csvCollection = @()
                         $outputFilePath = "$outputFileBase-part$fileCounter.csv"
                         $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                    }
+                }
+                elseif ($Output -eq "SOF-ELK") {
+                    foreach ($record in $responseJson.value) {
+                        if ($SplitFiles -and $currentFileEvents -ge $MaxEventsPerFile) {
+                            Write-LogFile -Message "[INFO] File complete: $outputFilePath ($currentFileEvents events)" -Level Standard
+                            
+                            $fileCounter++
+                            $summary.ExportedFiles++
+                            $currentFileEvents = 0
+
+                            $outputFilePath = "$outputFileBase-part$fileCounter.json"
+                            $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                        }
+                        if ($record.auditData) {
+                            $record.auditData | ConvertTo-Json -Compress -Depth 100 | 
+                                Out-File -Append $filePath -Encoding UTF8
+                        }
+                        $currentFileEvents++
+                        $summary.ProcessedRecords++
                     }
                 }
 
