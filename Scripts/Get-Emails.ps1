@@ -55,7 +55,7 @@ Function Get-Email {
         [string]$outputDir = "Output\EmailExport",
         [switch]$attachment,
         [string]$inputFile,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     ) 
 
@@ -285,7 +285,7 @@ Function Get-Attachment {
         [Parameter(Mandatory=$true)]$userIds,
         [Parameter(Mandatory=$true)]$internetMessageId,
         [string]$outputDir = "Output\EmailExport",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
@@ -369,7 +369,7 @@ Function Show-Email {
     param(
         [Parameter(Mandatory=$true)]$userIds,
         [Parameter(Mandatory=$true)]$internetMessageId,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 

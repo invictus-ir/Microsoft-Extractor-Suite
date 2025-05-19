@@ -24,7 +24,7 @@ Function Get-Licenses {
     [CmdletBinding()]
     param(
         [string]$OutputDir = "Output\Licenses",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
@@ -117,7 +117,7 @@ Function Get-LicenseCompatibility {
 #>
     [CmdletBinding()]
     param(
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
@@ -218,7 +218,7 @@ Function Get-EntraSecurityDefaults {
     [CmdletBinding()]
     param(
         [string]$OutputDir = "Output\Licenses",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
@@ -341,7 +341,7 @@ Function Get-LicensesByUser {
     [CmdletBinding()]
     param(
         [string]$OutputDir = "Output\Licenses",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 

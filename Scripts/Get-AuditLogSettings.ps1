@@ -37,7 +37,7 @@ function Get-MailboxAuditStatus {
     param (
         [string]$OutputDir = "Output\Audit Status",
         [string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
         [string]$UserIds
     )

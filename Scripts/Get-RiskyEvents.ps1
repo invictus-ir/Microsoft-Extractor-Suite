@@ -46,7 +46,7 @@ function Get-RiskyUsers {
         [string]$OutputDir = "Output\RiskyEvents",
         [string]$Encoding = "UTF8",
         [string[]]$UserIds,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
@@ -233,7 +233,7 @@ function Get-RiskyDetections {
         [string]$OutputDir= "Output\RiskyEvents",
         [string]$Encoding = "UTF8",
         [string[]]$UserIds,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 

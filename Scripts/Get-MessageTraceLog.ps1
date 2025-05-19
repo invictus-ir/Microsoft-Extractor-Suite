@@ -97,7 +97,7 @@ function Get-MessageTraceLog
 		[string]$EndDate,
 		[string]$OutputDir = "Output\MessageTrace",
 		[string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 

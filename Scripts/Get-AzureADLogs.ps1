@@ -63,7 +63,7 @@ function Get-EntraSignInLogs {
 			[switch]$MergeOutput,
 			[string]$Encoding = "UTF8",
 			[string]$Interval = 1440,
-			[ValidateSet('None', 'Minimal', 'Standard')]
+			[ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
 			[string]$LogLevel = 'Standard'
 		)
 	
@@ -244,7 +244,7 @@ function Get-EntraSignInLogs {
 			[switch]$MergeOutput,
 			[string]$Encoding = "UTF8",
 			[string]$Interval = 720,
-			[ValidateSet('None', 'Minimal', 'Standard')]
+			[ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
 			[string]$LogLevel = 'Standard'
 		)
 	

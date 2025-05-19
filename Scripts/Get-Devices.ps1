@@ -55,7 +55,7 @@ function Get-Devices {
         [string]$Encoding = "UTF8",
         [ValidateSet("CSV", "JSON")]
         [string]$Output = "CSV",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
         [string]$UserIds
     )

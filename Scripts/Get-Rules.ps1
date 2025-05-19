@@ -59,7 +59,7 @@ function Get-TransportRules
 	param (
 		[string]$OutputDir = "Output\Rules"	,
 		[string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 
@@ -265,7 +265,7 @@ function Get-MailboxRules
 		[string]$UserIds,
 		[string]$OutputDir = "Output\Rules",
 		[string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 

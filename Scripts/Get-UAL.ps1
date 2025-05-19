@@ -135,7 +135,7 @@ function Get-UAL {
 			[string]$OutputDir,
 			[string]$Encoding = "UTF8",
 			[string]$ObjectIds,
-			[ValidateSet('None', 'Minimal', 'Standard')]
+			[ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
 			[string]$LogLevel = 'Standard',
 			[Parameter()] 
 			[ValidateRange(5000, 50000)]
@@ -249,6 +249,7 @@ function Get-UAL {
 			Write-LogFile -Message "- $activity" -Level Standard
 		}
 	}
+	Write-LogFile -Message "Debug logging is enabled" -Level Debug
     Write-LogFile -Message "----------------------------------------`n" -Level Standard
 
 	if ($recordTypes.Count -eq 0) {
@@ -525,31 +526,43 @@ function Get-UAL {
 						while (!$success -and $retryAttempt -lt $maxRetries) {
 							try {
 								do {
-									$sessionID = $currentStart.ToString("yyyyMMddHHmmss")					
 									$batchSuccess = $false
 									$batchAttempts = 0
 									$maxBatchRetries = 3
-									[Array]$allResults = @()
-									$totalProcessed = 0
 									$backoffDelay = 10
-	
+
 									while (!$batchSuccess -and $batchAttempts -lt $maxBatchRetries) {
 										try {
-											$allResults = @()
+											[Array]$allResults = @()
 											$totalProcessed = 0
-	
+											$sessionId = [Guid]::NewGuid().ToString()
+
+
 											while ($totalProcessed -lt $amountResults) {
-												if ($amountResults -gt 5000) {
-													[Array]$results = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $currentEnd -SessionCommand ReturnLargeSet -SessionId $sessionId -ResultSize $resultSize @baseSearchQuery
-												} else {
-													[Array]$results = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $currentEnd -ResultSize $resultSize @baseSearchQuery
+												Write-LogFile -Message "[DEBUG] Fetching Unified Audit Log" -Level Debug
+												$performance = Measure-Command {
+													if ($amountResults -gt 5000) {
+                                                        [Array]$results = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $currentEnd -SessionCommand ReturnLargeSet -SessionId $sessionId -ResultSize $resultSize @baseSearchQuery
+                                                    } else {
+                                                        [Array]$results = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $currentEnd -ResultSize $resultSize @baseSearchQuery
+                                                    }
 												}
+												Write-LogFile -Message "[DEBUG] Fetching UAL took $([math]::round($performance.TotalSeconds)) seconds" -Level Debug
 
 												if ($null -ne $results -and $results.Count -gt 0) {
+													$expectedSize = [math]::min($resultSize, ($amountResults - $totalProcessed))
 													$allResults += $results
 													$totalProcessed += $results.Count
 													Write-LogFile -Message "[INFO] Retrieved $($results.Count) records (Total: $totalProcessed / $amountResults)" -Level Standard
 													$backoffDelay = 10
+
+													# Check returned dataset size, to do an early restart if this is incorrect
+													if($results.Count -ne $expectedSize) {
+														Write-LogFile -Message "[DEBUG] Retrieved batch of $($results.Count) records, expected $expectedSize" -Level Debug
+														break
+													}
+												} else {
+													Write-LogFile -Message "[DEBUG] Retrieved empty dataset, retrying" -Level Debug
 												}
 											}
 
@@ -576,9 +589,6 @@ function Get-UAL {
 													Write-LogFile -Message "[WARNING] Retrieved record count ($totalProcessed) still does not match the verified count ($amountResults). Retrying batch..." -Color "Yellow" -Level Standard
 
 													$batchAttempts++
-													$allResults = @()
-													$totalProcessed = 0
-													$sessionId = [Guid]::NewGuid().ToString()
 													Start-Sleep -Seconds $backoffDelay
 													$backoffDelay = [Math]::Min(30, $backoffDelay * 2)
 													continue
@@ -593,9 +603,6 @@ function Get-UAL {
 												$_.Exception.Message -like "*operation could not be completed*" -or 
 												$_.Exception.Message -like "*timed out*") {	
 													Write-LogFile -Message "[WARNING] Server error encountered. Restarting entire batch." -Color "Yellow" -Level Standard
-												$allResults = @()
-												$totalProcessed = 0
-												$sessionId = [Guid]::NewGuid().ToString()										
 												Start-Sleep -Seconds $backoffDelay
 												$backoffDelay = [Math]::Min(30, $backoffDelay * 2)
 												continue
@@ -608,14 +615,11 @@ function Get-UAL {
 	
 								if ($totalProcessed -ne $amountResults) {
 									Write-LogFile -Message "[WARNING] Retrieved record count ($totalProcessed) differs from expected ($amountResults). Retrying entire batch." -Level Standard -Color "Yellow"
-									$allResults = @()
-									$totalProcessed = 0
-									$sessionId = [Guid]::NewGuid().ToString()
 									continue
 								}
 								else {
 									$success = $true
-	
+
 									if ($totalProcessed -gt 0) {
 										$sessionID = $currentStart.ToString("yyyyMMddHHmmss") + "-" + $currentEnd.ToString("yyyyMMddHHmmss")
 										$outputPath = Join-Path $OutputDir ("UAL-" + $sessionID)
@@ -664,6 +668,8 @@ function Get-UAL {
 									continue
 								}
 								else {
+									Write-LogFile -Message "[ERROR] Unknown error type has occured" -Color "Red" -Level Minimal
+									Write-Host $_.Exception.Message
 									throw
 								}
 							}			
@@ -687,6 +693,7 @@ function Get-UAL {
 						continue
 					}
 					else {
+						Write-LogFile -Message "[ERROR] Unknown error type has occured" -Color "Red" -Level Minimal
 						throw
 					}
 				}

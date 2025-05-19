@@ -108,7 +108,7 @@ Function Get-UALGraph {
         [string[]]$UserIds = @(),
         [string[]]$IPAddress = @(),
         [string[]]$ObjecIDs = @(),
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
         [double]$MaxEventsPerFile = 250000,
         [ValidateSet("CSV", "JSON", "SOF-ELK")]
