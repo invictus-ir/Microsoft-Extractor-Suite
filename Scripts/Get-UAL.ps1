@@ -539,8 +539,12 @@ function Get-UAL {
 											$totalProcessed = 0
 	
 											while ($totalProcessed -lt $amountResults) {
-												[Array]$results = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $currentEnd -SessionCommand ReturnLargeSet -SessionId $sessionId -ResultSize $resultSize @baseSearchQuery
-												
+												if ($amountResults -gt 5000) {
+													[Array]$results = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $currentEnd -SessionCommand ReturnLargeSet -SessionId $sessionId -ResultSize $resultSize @baseSearchQuery
+												} else {
+													[Array]$results = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $currentEnd -ResultSize $resultSize @baseSearchQuery
+												}
+
 												if ($null -ne $results -and $results.Count -gt 0) {
 													$allResults += $results
 													$totalProcessed += $results.Count
