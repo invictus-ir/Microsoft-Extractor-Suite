@@ -58,7 +58,7 @@ Parameters
     - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
 -LogLevel (optional)
-    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
     - Default: Standard
 -EventTypes (optional)
     - Specifies which types of sign-in events to collect

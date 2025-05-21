@@ -64,6 +64,7 @@ function Get-UAL {
 	Minimal: Critical errors only
 	Standard: Normal operational logging
 	Default: Standard
+	Debug: Verbose logging for debugging purposes
 
 	.PARAMETER MaxItemsPerInterval
     Specifies the maximum number of items to process in a single interval. Must be between 5000 and 50000.
@@ -143,6 +144,8 @@ function Get-UAL {
 		)
 
 	Set-LogLevel -Level ([LogLevel]::$LogLevel)
+	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
 	$stats = @{
 		StartTime = Get-Date
 		ProcessingTime = $null
@@ -152,6 +155,46 @@ function Get-UAL {
 	}
 
 	Write-LogFile -Message "=== Starting Unified Audit Log Collection ===" -Color "Cyan" -Level Minimal
+
+	# Debug: Environment information
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] OS Version: $([System.Environment]::OSVersion.VersionString)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Current memory usage: $([Math]::Round((Get-Process -Id $PID).WorkingSet / 1MB, 2)) MB" -Level Debug
+        
+        # Check Exchange Online Management module
+        $exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
+        if ($exchangeModule) {
+            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
+        }
+
+		# Get organizational info
+		$orgUnit = Get-OrganizationalUnit | Where-Object { $_.Name -like "*onmicrosoft.com" } | Select-Object -First 1
+        
+		if ($orgUnit) {
+			Write-LogFile -Message "[DEBUG] Tenant Name: $($orgUnit.Name)" -Level Debug
+			Write-LogFile -Message "[DEBUG] Canonical Name: $($orgUnit.CanonicalName)" -Level Debug
+			Write-LogFile -Message "[DEBUG] Distinguished Name: $($orgUnit.DistinguishedName)" -Level Debug
+			Write-LogFile -Message "[DEBUG] Organization ID: $($orgUnit.OrganizationId)" -Level Debug
+			Write-LogFile -Message "[DEBUG] Exchange Object ID: $($orgUnit.ExchangeObjectId)" -Level Debug
+		}
+
+		# Connection information
+		$connectionInfo = Get-ConnectionInformation -ErrorAction Stop
+        Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Connection Type: $($connectionInfo.TokenStatus)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug	
+        
+        Write-LogFile -Message "[DEBUG] Script parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   StartDate: $StartDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   EndDate: $EndDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Group: $Group" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Output: $Output" -Level Debug
+        Write-LogFile -Message "[DEBUG]   MaxItemsPerInterval: $MaxItemsPerInterval" -Level Debug
+    }
 
 	try {
 		$areYouConnected = Search-UnifiedAuditLog -StartDate (Get-Date).AddDays(-1) -EndDate (Get-Date) -ResultSize 1 -ErrorAction Stop
@@ -164,6 +207,14 @@ function Get-UAL {
 
 	StartDateUAL -Quiet
 	EndDate -Quiet
+
+	if ($isDebugEnabled) {
+        $totalDays = ($script:EndDate - $script:StartDate).TotalDays
+        Write-LogFile -Message "[DEBUG] Date range:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Start: $($script:StartDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Debug
+        Write-LogFile -Message "[DEBUG]   End: $($script:EndDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Span: $([Math]::Round($totalDays, 2)) days" -Level Debug
+    }
 
 	$baseSearchQuery = @{
 		UserIds = $UserIds
@@ -217,6 +268,11 @@ function Get-UAL {
             return
         }
         $recordTypes.AddRange($GroupRecordTypes[$Group])
+
+		if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Added record types from group '$Group'" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Total record types from group: $($recordTypes.Count)" -Level Debug
+        }
     }
 
 	if ($RecordType) {
@@ -231,6 +287,11 @@ function Get-UAL {
 				[void]$recordTypes.Add($item)
 			}
 		}
+
+		if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Added explicit record types: $RecordType" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Total record types after addition: $($recordTypes.Count)" -Level Debug
+        }
 	}
 
 	Write-LogFile -Message "Start date: $($script:StartDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard
@@ -249,11 +310,13 @@ function Get-UAL {
 			Write-LogFile -Message "- $activity" -Level Standard
 		}
 	}
-	Write-LogFile -Message "Debug logging is enabled" -Level Debug
     Write-LogFile -Message "----------------------------------------`n" -Level Standard
 
 	if ($recordTypes.Count -eq 0) {
         [void]$recordTypes.Add("*")
+		if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] No record types specified, using wildcard (*)" -Level Debug
+        }
     }
 
 	$maxRetries = 3
@@ -345,23 +408,6 @@ function Get-UAL {
 			}
             Write-LogFile -Message $message -Level Standard -Color "Yellow"
             continue
-        }
-
-        if (!$PSBoundParameters.ContainsKey('Interval')) {
-            $totalMinutes = ($script:EndDate - $script:StartDate).TotalMinutes
-
-			if ($null -ne $totalResults -And $totalResults -gt 1) {  
-				$estimatedIntervals = [math]::Ceiling($totalResults / $MaxItemsPerInterval)
-				
-				if ($estimatedIntervals -eq 0) {
-					$Interval = $totalMinutes
-				} else {
-					$Interval = [math]::Max(1, [math]::Floor($totalMinutes / $estimatedIntervals))
-				}
-			} 
-			else { 
-				$Interval = 60
-			}
         }
 
 		if (!$PSBoundParameters.ContainsKey('Interval')) {
@@ -486,6 +532,17 @@ function Get-UAL {
 								Write-LogFile -Message "[WARNING] $amountResults entries between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) exceeding the maximum of $MaxItemsPerInterval entries" -Color "Red" -Level Standard
 								Write-LogFile -Message "[INFO] Temporary lowering time interval from $oldInterval to $newInterval minutes" -Color "Yellow" -Level Standard
 								$currentEnd = $currentStart.AddMinutes($Interval)
+
+								if ($isDebugEnabled) {
+									Write-LogFile -Message "[DEBUG] Interval adjustment details:" -Level Debug
+									Write-LogFile -Message "[DEBUG]   Record count: $amountResults" -Level Debug
+									Write-LogFile -Message "[DEBUG]   Max items per interval: $MaxItemsPerInterval" -Level Debug
+									Write-LogFile -Message "[DEBUG]   Records/Max ratio: $([Math]::Round($amountResults/$MaxItemsPerInterval, 2))" -Level Debug
+									Write-LogFile -Message "[DEBUG]   Applied divisor: $divisor" -Level Debug
+									Write-LogFile -Message "[DEBUG]   Old interval: $oldInterval minutes" -Level Debug
+									Write-LogFile -Message "[DEBUG]   New interval: $newInterval minutes" -Level Debug
+									Write-LogFile -Message "[DEBUG]   Time span reduction: $([Math]::Round(100 - (($newInterval/$oldInterval) * 100), 2))%" -Level Debug
+								}		
 							}
 							elseif ($amountResults -eq 0) {
 								# Double check with a smaller result size
@@ -537,9 +594,17 @@ function Get-UAL {
 											$totalProcessed = 0
 											$sessionId = [Guid]::NewGuid().ToString()
 
+											if ($isDebugEnabled) {
+                                                Write-LogFile -Message "[DEBUG]   Starting batch retrieval with session ID: $sessionId" -Level Debug
+                                                Write-LogFile -Message "[DEBUG]   Using result size: $resultSize" -Level Debug
+                                            }
 
 											while ($totalProcessed -lt $amountResults) {
-												Write-LogFile -Message "[DEBUG] Fetching Unified Audit Log" -Level Debug
+                                                
+                                                if ($isDebugEnabled) {
+													Write-LogFile -Message "[DEBUG]   Fetching Unified Audit Log" -Level Debug
+                                                    Write-LogFile -Message "[DEBUG]   Fetching results batch ($totalProcessed/$amountResults processed so far)" -Level Debug
+                                                }
 												$performance = Measure-Command {
 													if ($amountResults -gt 5000) {
                                                         [Array]$results = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $currentEnd -SessionCommand ReturnLargeSet -SessionId $sessionId -ResultSize $resultSize @baseSearchQuery
@@ -547,7 +612,10 @@ function Get-UAL {
                                                         [Array]$results = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $currentEnd -ResultSize $resultSize @baseSearchQuery
                                                     }
 												}
-												Write-LogFile -Message "[DEBUG] Fetching UAL took $([math]::round($performance.TotalSeconds)) seconds" -Level Debug
+
+												if ($isDebugEnabled) {
+                                                    Write-LogFile -Message "[DEBUG]   Fetch UAL took $([math]::round($performance.TotalSeconds, 2)) seconds" -Level Debug
+                                                }
 
 												if ($null -ne $results -and $results.Count -gt 0) {
 													$expectedSize = [math]::min($resultSize, ($amountResults - $totalProcessed))
@@ -558,11 +626,15 @@ function Get-UAL {
 
 													# Check returned dataset size, to do an early restart if this is incorrect
 													if($results.Count -ne $expectedSize) {
-														Write-LogFile -Message "[DEBUG] Retrieved batch of $($results.Count) records, expected $expectedSize" -Level Debug
+														if ($isDebugEnabled) {
+                                                            Write-LogFile -Message "[DEBUG]   WARNING: Batch size mismatch - expected $expectedSize but got $($results.Count)" -Level Debug
+                                                        }
 														break
 													}
 												} else {
-													Write-LogFile -Message "[DEBUG] Retrieved empty dataset, retrying" -Level Debug
+													if ($isDebugEnabled) {
+                                                        Write-LogFile -Message "[DEBUG]   WARNING: Empty dataset returned" -Level Debug
+                                                    }
 												}
 											}
 

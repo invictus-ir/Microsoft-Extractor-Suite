@@ -48,7 +48,7 @@ Parameters
     - Default: UTF8
 
 -LogLevel (optional)
-    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
     - Default: Standard
 
 Output
@@ -102,7 +102,7 @@ Parameters
     - Default: UTF8
 
 -LogLevel (optional)
-    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging.
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
     - Default: Standard
 
 Output
