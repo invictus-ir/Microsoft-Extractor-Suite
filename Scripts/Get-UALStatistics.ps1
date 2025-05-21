@@ -42,7 +42,7 @@ function Get-UALStatistics
 		[string]$StartDate,
 		[string]$EndDate,
 		[string]$OutputDir = "Output\",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 

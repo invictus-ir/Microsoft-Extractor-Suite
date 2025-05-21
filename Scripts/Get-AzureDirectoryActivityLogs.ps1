@@ -53,7 +53,7 @@ function Get-DirectoryActivityLogs {
 		[string]$output = "CSV",
 		[string]$outputDir = "Output\DirectoryActivityLogs",
 		[string]$encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'	
 	)
 

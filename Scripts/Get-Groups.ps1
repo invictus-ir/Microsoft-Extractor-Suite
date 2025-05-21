@@ -38,7 +38,7 @@ Function Get-Groups {
     param(
         [string]$OutputDir = "Output\Groups",
         [string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
@@ -146,7 +146,7 @@ Function Get-GroupMembers {
     param(
         [string]$OutputDir = "Output\Groups",
         [string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
@@ -236,7 +236,7 @@ Function Get-DynamicGroups {
     param(
         [string]$OutputDir = "Output\Groups",
         [string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 

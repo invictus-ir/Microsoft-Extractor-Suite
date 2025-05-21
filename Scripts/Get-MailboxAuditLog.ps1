@@ -66,7 +66,7 @@ function Get-MailboxAuditLog
         [string]$Output = "CSV",
         [switch]$MergeOutput,
         [string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
@@ -172,7 +172,7 @@ function Get-MailboxAuditLogLegacy
 		[string]$EndDate,
 		[string]$OutputDir = "Output\MailboxAuditLog",
 		[string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 

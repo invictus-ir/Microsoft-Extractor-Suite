@@ -57,7 +57,7 @@ function Get-ActivityLogs {
 		[string]$SubscriptionID,
 		[string]$OutputDir = "Output\ActivityLogs",
 		[string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'		
 	)
 

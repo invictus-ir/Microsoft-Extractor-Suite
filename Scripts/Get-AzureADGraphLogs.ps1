@@ -85,7 +85,7 @@ function Get-GraphEntraSignInLogs {
         [string]$UserIds,
 		[switch]$MergeOutput,
         [string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
 		[Parameter()]
 		[ValidateSet('All', 'interactiveUser', 'nonInteractiveUser', 'servicePrincipal', 'managedIdentity')]
@@ -371,7 +371,7 @@ function Get-GraphEntraAuditLogs {
 		[switch]$MergeOutput,
 		[string]$UserIds,
         [switch]$All,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 

@@ -42,7 +42,7 @@ Function Get-ConditionalAccessPolicies {
     param(
         [string]$OutputDir = "Output\ConditionalAccessPolicies",
         [string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 

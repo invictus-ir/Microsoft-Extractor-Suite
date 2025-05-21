@@ -46,7 +46,7 @@ function Get-MFA {
         [string]$OutputDir = "Output\MFA",
         [string]$Encoding = "UTF8",
         [string[]]$UserIds,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 

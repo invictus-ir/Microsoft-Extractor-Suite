@@ -98,7 +98,7 @@ Lists delegated permissions (OAuth2PermissionGrants) and application permissions
 		[int] $PrecacheSize = 999,
 		[string] $OutputDir = "Output\OAuthPermissions",
 		[string] $Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 
@@ -336,7 +336,7 @@ Default: Standard
         [switch] $ApplicationPermissions,
         [string] $OutputDir = "Output\OAuthPermissions",
         [string] $Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 

@@ -41,7 +41,7 @@ function Get-MailboxPermissions {
     param (
         [string]$outputDir = "Output\Delegated Permissions",
         [string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
         [string]$UserIds
     )

@@ -43,7 +43,7 @@ function Get-Users {
         [string]$OutputDir = "Output\Users",
         [string]$Encoding = "UTF8",
         [string]$UserIds,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
@@ -214,7 +214,7 @@ Function Get-AdminUsers {
     param(
         [string]$outputDir = "Output\Admins",
         [string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
