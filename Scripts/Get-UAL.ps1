@@ -156,13 +156,9 @@ function Get-UAL {
 
 	Write-LogFile -Message "=== Starting Unified Audit Log Collection ===" -Color "Cyan" -Level Minimal
 
-	# Debug: Environment information
     if ($isDebugEnabled) {
         Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] OS Version: $([System.Environment]::OSVersion.VersionString)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Current memory usage: $([Math]::Round((Get-Process -Id $PID).WorkingSet / 1MB, 2)) MB" -Level Debug
         
-        # Check Exchange Online Management module
         $exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
         if ($exchangeModule) {
             Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
@@ -170,9 +166,7 @@ function Get-UAL {
             Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
         }
 
-		# Get organizational info
-		$orgUnit = Get-OrganizationalUnit | Where-Object { $_.Name -like "*onmicrosoft.com" } | Select-Object -First 1
-        
+		$orgUnit = Get-OrganizationalUnit | Where-Object { $_.Name -like "*onmicrosoft.com" } | Select-Object -First 1        
 		if ($orgUnit) {
 			Write-LogFile -Message "[DEBUG] Tenant Name: $($orgUnit.Name)" -Level Debug
 			Write-LogFile -Message "[DEBUG] Canonical Name: $($orgUnit.CanonicalName)" -Level Debug
@@ -181,7 +175,6 @@ function Get-UAL {
 			Write-LogFile -Message "[DEBUG] Exchange Object ID: $($orgUnit.ExchangeObjectId)" -Level Debug
 		}
 
-		# Connection information
 		$connectionInfo = Get-ConnectionInformation -ErrorAction Stop
         Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
         Write-LogFile -Message "[DEBUG] Connection Type: $($connectionInfo.TokenStatus)" -Level Debug

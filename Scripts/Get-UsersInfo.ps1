@@ -20,6 +20,7 @@ function Get-Users {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
 
     .PARAMETER UserIds
@@ -48,9 +49,41 @@ function Get-Users {
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds: '$UserIds'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
+        
+        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModules) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModules) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+
     $requiredScopes = @("User.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
+        if ($graphAuth.MissingScopes.Count -gt 0) {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
+        }
+    }
 
     if (!(Test-Path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir > $null
@@ -106,6 +139,13 @@ function Get-Users {
                 Country = $_.Country
                 UsageLocation = $_.UsageLocation
             }
+        }
+
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] User formatting completed:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Original users: $($mgUsers.Count)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Formatted users: $($formattedUsers.Count)" -Level Debug
+            Write-LogFile -Message "[DEBUG] Starting user analysis by creation date..." -Level Debug
         }
 
         $date = (Get-Date).AddDays(-7)
@@ -170,8 +210,14 @@ function Get-Users {
     }
     catch {
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Error message: $($_.Exception.Message)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
         throw
-    }    
+    }   
 }
 
 Function Get-AdminUsers {
@@ -195,6 +241,7 @@ Function Get-AdminUsers {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
     
     .EXAMPLE
@@ -219,12 +266,43 @@ Function Get-AdminUsers {
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $date = Get-Date -Format "yyyyMMddHHmm"
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
 
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: '$outputDir'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
+        
+        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModules) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModules) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+
+    $date = Get-Date -Format "yyyyMMddHHmm"
     Write-LogFile -Message "=== Starting Admin Users Collection ===" -Color "Cyan" -Level Minimal
 
     $requiredScopes = @("User.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
+        if ($graphAuth.MissingScopes.Count -gt 0) {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
+        }
+    }
         
     if (!(Test-Path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir > $null
@@ -244,13 +322,35 @@ Function Get-AdminUsers {
     $totalAdminCount = 0
 
     try {
-        $getRoles = Get-MgDirectoryRole -all
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Retrieving all directory roles..." -Level Debug
+            $performance = Measure-Command {
+                $getRoles = Get-MgDirectoryRole -all
+            }
+            Write-LogFile -Message "[DEBUG] Directory roles retrieval took $([math]::round($performance.TotalSeconds, 2)) seconds" -Level Debug
+            Write-LogFile -Message "[DEBUG] Found $($getRoles.Count) total directory roles" -Level Debug
+        } else {
+            $getRoles = Get-MgDirectoryRole -all
+        }
+        
         foreach ($role in $getRoles) {
             $roleId = $role.Id
             $roleName = $role.DisplayName
-
+        
             if ($roleName -like "*Admin*") {
-                $areThereUsers = Get-MgDirectoryRoleMember -DirectoryRoleId $roleId
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] Processing admin role: $roleName" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Role ID: $roleId" -Level Debug
+                }
+                
+                if ($isDebugEnabled) {
+                    $memberPerformance = Measure-Command {
+                        $areThereUsers = Get-MgDirectoryRoleMember -DirectoryRoleId $roleId
+                    }
+                    Write-LogFile -Message "[DEBUG]   Role member query took $([math]::round($memberPerformance.TotalSeconds, 2)) seconds" -Level Debug
+                } else {
+                    $areThereUsers = Get-MgDirectoryRoleMember -DirectoryRoleId $roleId
+                }
 
                 if ($null -eq $areThereUsers) {
                     $rolesWithoutUsers += $roleName
@@ -262,10 +362,16 @@ Function Get-AdminUsers {
                 foreach ($user in $areThereUsers) {
                     $userid = $user.Id
                     if ($userid -eq ".") {
+                        if ($isDebugEnabled) {
+                            Write-LogFile -Message "[DEBUG]     Skipping invalid user ID: $userid" -Level Debug
+                        }
                         continue
                     }
 
                     $count++
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG]     Processing user $count/$($areThereUsers.Count): $userid" -Level Debug
+                    }
                     try {
                         try {
                             $getUserName = Get-MgUser -Filter ("Id eq '$userid'") -ErrorAction Stop
@@ -279,6 +385,9 @@ Function Get-AdminUsers {
                         }
                     
                         $userName = $getUserName.UserPrincipalName
+                        if ($isDebugEnabled) {
+                            Write-LogFile -Message "[DEBUG]       Successfully retrieved: $userName" -Level Debug
+                        }
                         $results += [PSCustomObject]@{
                             UserName = $userName
                             UserId = $userid
@@ -340,6 +449,12 @@ Function Get-AdminUsers {
     }
     catch {
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Error message: $($_.Exception.Message)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
         throw
     }
 }

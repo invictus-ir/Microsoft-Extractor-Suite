@@ -32,6 +32,7 @@ function Get-ActivityLogs {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+	Debug: Verbose logging for debugging purposes
     Default: Standard
 	
     .EXAMPLE
@@ -62,6 +63,34 @@ function Get-ActivityLogs {
 	)
 
 	Set-LogLevel -Level ([LogLevel]::$LogLevel)
+	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Called at: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss.fff')" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   StartDate: $StartDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   EndDate: $EndDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   SubscriptionID: $SubscriptionID" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        
+        $azAccountsModule = Get-Module -Name Az.Accounts -ErrorAction SilentlyContinue
+        if ($azAccountsModule) {
+            Write-LogFile -Message "[DEBUG] Az.Accounts Module Version: $($azAccountsModule.Version)" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG] Az.Accounts Module not loaded" -Level Debug
+        }
+
+        $azProfileModule = Get-Module -Name Az.Profile -ErrorAction SilentlyContinue
+        if ($azProfileModule) {
+            Write-LogFile -Message "[DEBUG] Az.Profile Module Version: $($azProfileModule.Version)" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG] Az.Profile Module not loaded" -Level Debug
+        }
+    }
+
     $summary = @{
         TotalRecords = 0
         TotalFiles = 0
@@ -94,13 +123,43 @@ function Get-ActivityLogs {
 	$originalWarningPreference = $WarningPreference
 	$WarningPreference = 'SilentlyContinue'
 
+	if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Warning preference changed from '$originalWarningPreference' to 'SilentlyContinue'" -Level Debug
+    }
+
 	try {
 		$encryptedToken  = (Get-AzAccessToken -ResourceUrl "https://management.azure.com" -AsSecureString).token
 		$accessToken = [PSCredential]::new("token", $encryptedToken)
+
+		if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Access token retrieved successfully:" -Level Debug
+            try {
+                $azContext = Get-AzContext
+                if ($azContext) {
+                    Write-LogFile -Message "[DEBUG] Azure context information:" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Account: $($azContext.Account.Id)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Environment: $($azContext.Environment.Name)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Tenant: $($azContext.Tenant.Id)" -Level Debug
+                    if ($azContext.Subscription) {
+                        Write-LogFile -Message "[DEBUG]   Current subscription: $($azContext.Subscription.Id) ($($azContext.Subscription.Name))" -Level Debug
+                    }
+                }
+            }
+            catch {
+                Write-LogFile -Message "[DEBUG] Could not retrieve Azure context details" -Level Debug
+            }
+        }
 	}
 	catch {
 		write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-AzureAz command before executing this script" -Color "Yellow" -Level Minimal
 		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+
+		if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Azure token retrieval failed:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception message: $($_.Exception.Message)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
 		throw
 	}
 
@@ -114,18 +173,44 @@ function Get-ActivityLogs {
 				'Content-Type' = 'application/json'
 			}
 
+			if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Subscription API call:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   URI: $subscriptionsUri" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Headers: Authorization (Bearer token), Content-Type (application/json)" -Level Debug
+            }
+
 			$subscriptionsResponse = Invoke-RestMethod -Uri $subscriptionsUri -Headers $headers -Method Get
 			$subScription = $subscriptionsResponse.value
 		}
 		catch {
 			write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-AzureAz command before executing this script" -Color "Yellow" -Level Minimal
 			Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+
+			if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Subscription retrieval failed:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Exception: $($_.Exception.Message)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   URI attempted: $subscriptionsUri" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+            }
 			throw
 		}
 
 		Write-LogFile -Message "[INFO] Found $($subscription.Count) subscriptions" -Level Standard
+		if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Detailed subscription list:" -Level Debug
+        }
+
         foreach ($sub in $subscription) {
             Write-LogFile -Message "  - $($sub.subscriptionId) ($($sub.displayName))" -Level Standard
+			if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG]   Subscription details:" -Level Debug
+                Write-LogFile -Message "[DEBUG]     ID: $($sub.subscriptionId)" -Level Debug
+                Write-LogFile -Message "[DEBUG]     Name: $($sub.displayName)" -Level Debug
+                Write-LogFile -Message "[DEBUG]     State: $($sub.state)" -Level Debug
+                if ($sub.tenantId) {
+                    Write-LogFile -Message "[DEBUG]     Tenant: $($sub.tenantId)" -Level Debug
+                }
+            }
         }
 		Write-LogFile -Message " " -Level Standard
 	}
@@ -133,10 +218,26 @@ function Get-ActivityLogs {
 		try {
 			Write-LogFile -Message "[INFO] Processing single subscription: $SubscriptionID" -Level Standard
 			$subScription = Get-AzSubscription -SubscriptionId $SubscriptionID
+
+			if ($isDebugEnabled) {
+                $singleSubRetrievalTime = (Get-Date) - $singleSubRetrievalStart
+                Write-LogFile -Message "[DEBUG] Single subscription retrieval completed:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Retrieval time: $($singleSubRetrievalTime.TotalSeconds) seconds" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Subscription name: $($subScription.Name)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Subscription state: $($subScription.State)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Tenant ID: $($subScription.TenantId)" -Level Debug
+            }
 		}
 		catch {
 			write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-AzureAz command before executing this script" -Color "Yellow" -Level Minimal
 			Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+
+			if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Single subscription retrieval failed:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Requested subscription ID: $SubscriptionID" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Exception: $($_.Exception.Message)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+            }
 			throw
 		}
 	}
@@ -146,11 +247,25 @@ function Get-ActivityLogs {
 		$subId = $sub.subscriptionId
 		write-logFile -Message "[INFO] Retrieving all Activity Logs for $subId" -Color "Green" -Level Standard
 
+		if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] === Processing subscription $($summary.SubscriptionsProcessed) of $($subScription.Count) ===" -Level Debug
+            Write-LogFile -Message "[DEBUG] Subscription ID: $subId" -Level Debug
+            Write-LogFile -Message "[DEBUG] Subscription name: $($sub.displayName)" -Level Debug
+            $subscriptionProcessingStart = Get-Date
+        }
+
 		$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 		$filePath = "$OutputDir\$($date)-$subId-ActivityLog.json"
 
 		$uriBase = "https://management.azure.com/subscriptions/$subId/providers/Microsoft.Insights/eventtypes/management/values?api-version=2015-04-01&`$filter=eventTimestamp ge '$script:StartDate' and eventTimestamp le '$script:endDate'"
 		$events = @()
+
+		if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Activity Log API configuration:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Base URI: $uriBase" -Level Debug
+            Write-LogFile -Message "[DEBUG]   API version: 2015-04-01" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Filter: eventTimestamp ge '$script:StartDate' and eventTimestamp le '$script:endDate'" -Level Debug
+        }
 
 		do {
 			$listOperations = @{
@@ -165,11 +280,42 @@ function Get-ActivityLogs {
 			$response = Invoke-RestMethod @listOperations
 			$events += $response.value
 			$uriBase = $response.nextLink
+
+			if ($isDebugEnabled) {
+                $apiCallTime = (Get-Date) - $apiCallStart
+                $totalApiTime += $apiCallTime.TotalSeconds
+                Write-LogFile -Message "[DEBUG] API call #$apiCallCount completed:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Call duration: $($apiCallTime.TotalSeconds) seconds" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Events in this batch: $($response.value.Count)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Total events so far: $($events.Count)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Has next link: $(if ($response.nextLink) { 'Yes' } else { 'No' })" -Level Debug
+                if ($response.nextLink) {
+                    Write-LogFile -Message "[DEBUG]   Next link: $($response.nextLink)" -Level Debug
+                }
+            }
 		} while ($null -ne $uriBase)
+
+		if ($isDebugEnabled) {
+            $subscriptionProcessingTime = (Get-Date) - $subscriptionProcessingStart
+            Write-LogFile -Message "[DEBUG] Subscription processing completed:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Total API calls: $apiCallCount" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Total API time: $([Math]::Round($totalApiTime, 2)) seconds" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Average API call time: $([Math]::Round($totalApiTime / $apiCallCount, 2)) seconds" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Total processing time: $($subscriptionProcessingTime.TotalSeconds) seconds" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Events retrieved: $($events.Count)" -Level Debug
+        }
 
 		if ($events.Count -eq 0) {
 			Write-LogFile -Message "[WARNING] No Activity logs in subscription: $($subId), or an error occurred." -Color Yellow -Level Minimal
 			$summary.EmptySubscriptions++
+
+			if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Empty subscription analysis:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Subscription ID: $subId" -Level Debug
+                Write-LogFile -Message "[DEBUG]   API calls made: $apiCallCount" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Total API time: $([Math]::Round($totalApiTime, 2)) seconds" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Possible reasons: No activity in date range, insufficient permissions, subscription inactive" -Level Debug
+            }
 		}
 		else{
 			$summary.TotalRecords += $events.Count
@@ -178,6 +324,13 @@ function Get-ActivityLogs {
 
 			Write-LogFile -Message "[INFO] Found $($events.Count) activity logs in subscription: $subId" -Level Standard
 			$events | ConvertTo-Json -Depth 100 | Set-Content -Path $filePath  -encoding $Encoding
+
+			if ($isDebugEnabled) {
+                $fileInfo = Get-Item $filePath
+                Write-LogFile -Message "[DEBUG] File write completed:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   File size: $([Math]::Round($fileInfo.Length / 1KB, 2)) KB" -Level Debug
+                Write-LogFile -Message "[DEBUG]   File created: $($fileInfo.CreationTime)" -Level Debug
+            }
 		}
 	}
 	$summary.ProcessingTime = (Get-Date) - $summary.StartTime

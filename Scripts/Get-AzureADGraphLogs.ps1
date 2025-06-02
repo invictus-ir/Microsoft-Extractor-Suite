@@ -25,7 +25,9 @@ function Get-GraphEntraSignInLogs {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+	Debug: Verbose logging for debugging purposes
     Default: Standard
+	
 
     .PARAMETER OutputDir
     outputDir is the parameter specifying the output directory.
@@ -93,6 +95,7 @@ function Get-GraphEntraSignInLogs {
 	)
 
 	Set-LogLevel -Level ([LogLevel]::$LogLevel)
+	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
     $summary = @{
         TotalRecords = 0
         StartTime = Get-Date
@@ -100,9 +103,47 @@ function Get-GraphEntraSignInLogs {
         TotalFiles = 0
     }
 
+	if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   StartDate: $startDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   EndDate: $endDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Output: $Output" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
+        Write-LogFile -Message "[DEBUG]   MergeOutput: $($MergeOutput.IsPresent)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        Write-LogFile -Message "[DEBUG]   EventTypes: $($EventTypes -join ', ')" -Level Debug
+        
+        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModule) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModule) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+
 	Write-LogFile -Message "=== Starting Sign-in Log Collection ===" -Color "Cyan" -Level Minimal
 	$requiredScopes = @("AuditLog.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+
+	if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
+        if ($graphAuth.MissingScopes.Count -gt 0) {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
+        }
+    }
+
+
 
 	$date = [datetime]::Now.ToString('yyyyMMdd') 
 	if ($OutputDir -eq "" ){
@@ -176,6 +217,13 @@ function Get-GraphEntraSignInLogs {
 		$currentEventType = $eventTypeMapping[$eventType]
 		Write-LogFile -Message "[INFO] Acquiring the $($currentEventType.displayName) sign-in logs" -Level Standard -Color "Cyan"
 
+		if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Event type configuration:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Display name: $($currentEventType.displayName)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Filename pattern: $($currentEventType.filename)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Filter query: $($currentEventType.filterQuery)" -Level Debug
+        }
+
 		$eventTypeDir = Join-Path -Path $OutputDir -ChildPath $currentEventType.displayName
 		if (!(Test-Path $eventTypeDir)) {
 			New-Item -ItemType Directory -Force -Path $eventTypeDir > $null
@@ -190,6 +238,13 @@ function Get-GraphEntraSignInLogs {
         $encodedFilterQuery = [System.Web.HttpUtility]::UrlEncode($filterQuery)
         $apiUrl = "https://graph.microsoft.com/beta/auditLogs/signIns?`$filter=$encodedFilterQuery"
         
+		if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] API configuration:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Base URL: https://graph.microsoft.com/beta/auditLogs/signIns" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Filter query (decoded): $filterQuery" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Full API URL: $apiUrl" -Level Debug
+        }
+
         $eventTypeSummary = @{
             EventType = $currentEventType.displayName
             RecordCount = 0
@@ -218,6 +273,12 @@ function Get-GraphEntraSignInLogs {
 							
 							$tokenRetryCount++
 							Write-LogFile -Message "[WARNING] Token expired or invalid. Reconnecting and retrying... Attempt $tokenRetryCount of $maxTokenRetries" -Level Standard -Color "Yellow"
+
+							if ($isDebugEnabled) {
+                                Write-LogFile -Message "[DEBUG] Token error details:" -Level Debug
+                                Write-LogFile -Message "[DEBUG]   Error message: $($_.Exception.Message)" -Level Debug
+                                Write-LogFile -Message "[DEBUG]   Token retry count: $tokenRetryCount" -Level Debug
+                            }
 							
 							# Re-authenticate to refresh the token
 							$graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes -Force
@@ -229,6 +290,12 @@ function Get-GraphEntraSignInLogs {
 						if ($retryCount -lt $maxRetries) {
 							Write-LogFile -Message "[WARNING] Failed to acquire logs. Retrying... Attempt $retryCount of $maxRetries" -Level Standard -Color "Yellow"
 							Start-Sleep -Seconds 15
+							if ($isDebugEnabled) {
+                                Write-LogFile -Message "[DEBUG] API call error details:" -Level Debug
+                                Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+                                Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+                                Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+                            }
 						}
 						else {
 							Write-LogFile -Message "[ERROR] Failed to acquire logs after $maxRetries attempts. Error: $($_.Exception.Message)" -Level Minimal -Color "Red"
@@ -240,6 +307,12 @@ function Get-GraphEntraSignInLogs {
 				if ($responseJson.value) {
 					$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 					$filePath = Join-Path -Path $eventTypeDir -ChildPath "$($date)-$($currentEventType.filename)-SignInLogs.json"
+
+					if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG] Processing response data:" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Records in batch: $($responseJson.value.Count)" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Output file: $filePath" -Level Debug
+                    }
 
 					if ($Output -eq "JSON" ) {
 						$responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding	
@@ -285,6 +358,12 @@ function Get-GraphEntraSignInLogs {
 		
 		catch {
 			Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Level Minimal -Color "Red"
+			if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Event type processing error:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+            }
 			throw
 		}
 	}
@@ -376,6 +455,7 @@ function Get-GraphEntraAuditLogs {
 	)
 
 	Set-LogLevel -Level ([LogLevel]::$LogLevel)
+	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
     $summary = @{
         TotalRecords = 0
         StartTime = Get-Date
@@ -383,9 +463,45 @@ function Get-GraphEntraAuditLogs {
         TotalFiles = 0
     }
 
+	if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   StartDate: $startDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   EndDate: $endDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Output: $Output" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
+        Write-LogFile -Message "[DEBUG]   All: $($All.IsPresent)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   MergeOutput: $($MergeOutput.IsPresent)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        
+        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModule) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModule) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+
     Write-LogFile -Message "=== Starting Sign-in Log Collection ===" -Color "Cyan" -Level Minimal
     $requiredScopes = @("AuditLog.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+
+	if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
+        if ($graphAuth.MissingScopes.Count -gt 0) {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
+        }
+    }
 	
 	$date = [datetime]::Now.ToString('yyyyMMdd') 
 	if ($OutputDir -eq "" ){
@@ -434,6 +550,13 @@ function Get-GraphEntraAuditLogs {
 	$encodedFilterQuery = [System.Web.HttpUtility]::UrlEncode($filterQuery)
 	$apiUrl = "https://graph.microsoft.com/v1.0/auditLogs/directoryAudits?`$filter=$encodedFilterQuery"
 
+	if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] API configuration:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Base URL: https://graph.microsoft.com/v1.0/auditLogs/directoryAudits" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Filter query (decoded): $filterQuery" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Full API URL: $apiUrl" -Level Debug
+    }
+
 	try {
 		Do {
 			$retryCount = 0
@@ -450,6 +573,12 @@ function Get-GraphEntraAuditLogs {
 					$retryCount++
 					if ($retryCount -lt $maxRetries) {
 						Write-LogFile -Message "[WARNING] Failed to acquire logs. Retrying... Attempt $retryCount of $maxRetries" -Level Standard -Color "Yellow"
+						if ($isDebugEnabled) {
+                            Write-LogFile -Message "[DEBUG] API call error details:" -Level Debug
+                            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+                            Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+                            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+                        }
 						Start-Sleep -Seconds 15
 					}
 					else {
@@ -462,6 +591,12 @@ function Get-GraphEntraAuditLogs {
 			if ($responseJson.value) {
 				$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
 				$filePath = Join-Path -Path $OutputDir -ChildPath "$($date)-AuditLogs.json"
+
+				if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] Processing response data:" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Records in batch: $($responseJson.value.Count)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Output file: $filePath" -Level Debug
+                }
 
 				if ($Output -eq "JSON") {
                     $responseJson.value | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding
@@ -505,6 +640,13 @@ function Get-GraphEntraAuditLogs {
     }
 	catch {
 		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+		if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Fatal error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Records collected before error: $($summary.TotalRecords)" -Level Debug
+        }
 		throw
     }
 }

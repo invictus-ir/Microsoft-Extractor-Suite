@@ -68,6 +68,7 @@ function Get-MessageTraceLog
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+	Debug: Verbose logging for debugging purposes
     Default: Standard
 
 	.EXAMPLE
@@ -116,11 +117,38 @@ function Get-MessageTraceLog
 	EndDateMTL -Quiet
 	
 	Set-LogLevel -Level ([LogLevel]::$LogLevel)
+	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
     $date = Get-Date -Format "yyyyMMddHHmm"
     $summary = @{
         StartTime = Get-Date
         ProcessingTime = $null
     }
+
+	if ($isDebugEnabled) {
+		Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+		Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+		Write-LogFile -Message "[DEBUG]   UserIds: '$UserIds'" -Level Debug
+		Write-LogFile -Message "[DEBUG]   StartDate input: '$StartDate'" -Level Debug
+		Write-LogFile -Message "[DEBUG]   EndDate input: '$EndDate'" -Level Debug
+		Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
+		Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
+		Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
+		
+		$exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
+		if ($exchangeModule) {
+			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
+		} else {
+			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
+		}
+	}
+
+	if ($isDebugEnabled) {
+		Write-LogFile -Message "[DEBUG] Date processing complete:" -Level Debug
+		Write-LogFile -Message "[DEBUG]   Processed StartDate: $($script:StartDate)" -Level Debug
+		Write-LogFile -Message "[DEBUG]   Processed EndDate: $($script:EndDate)" -Level Debug
+		Write-LogFile -Message "[DEBUG]   Date range span: $(($script:EndDate - $script:StartDate).TotalDays) days" -Level Debug
+	}	
 
 	if (!(test-path $OutputDir)) {
 		New-Item -ItemType Directory -Force -Path $outputDir > $null
@@ -142,6 +170,11 @@ function Get-MessageTraceLog
 
         $users | foreach {
             $user = $_
+
+			if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Processing user: '$user'" -Level Debug
+                Write-LogFile -Message "[DEBUG] Output file path: '$outputFile'" -Level Debug
+            }
 
             write-logFile -Message "[INFO] Collecting the Message Trace Log for $user between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Level Standard
             $outputFile = "$OutputDir\$($user.Replace('*@',''))-MTL.csv"
@@ -176,6 +209,14 @@ function Retrieve-MessageTrace {
 		[string]$OutputFile
 	)
 
+	if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Retrieve-MessageTrace function called" -Level Debug
+        Write-LogFile -Message "[DEBUG]   StartDate: $startDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   EndDate: $endDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputFile: '$OutputFile'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   SearchParams: $($searchParams | ConvertTo-Json -Compress)" -Level Debug
+    }
+
 	$localSummary = @{
         MessageCount = 0
         SentCount = 0
@@ -188,6 +229,13 @@ function Retrieve-MessageTrace {
         $currentStart = $currentEnd.addDays(-10)
         if($currentStart -lt $StartDate) {
             $currentStart = $StartDate
+        }
+
+		if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Processing date chunk:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Current start: $currentStart" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Current end: $currentEnd" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Chunk span: $(($currentEnd - $currentStart).TotalDays) days" -Level Debug
         }
 
         $searchParams.ResultSize = 5000

@@ -15,6 +15,7 @@ Function Get-Licenses {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
 
     .EXAMPLE
@@ -29,6 +30,24 @@ Function Get-Licenses {
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
+        
+        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModules) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModules) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
 
     if (!(Test-Path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
@@ -39,6 +58,13 @@ Function Get-Licenses {
     try {
         $licenses = Get-MgSubscribedSku | Select-Object SkuPartNumber, CapabilityStatus, AppliesTo, ConsumedUnits, ServicePlans
 
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Retrieved licenses:" -Level Debug
+            foreach ($license in $licenses) {
+                Write-LogFile -Message "[DEBUG]   - $($license.SkuPartNumber): $($license.ConsumedUnits) units, Status: $($license.CapabilityStatus)" -Level Debug
+            }
+        }
+
         if (-not $licenses) {
             Write-LogFile -Message "[ERROR] No licenses found in the tenant." -Color "Red" -Level Minimal
             return
@@ -47,6 +73,12 @@ Function Get-Licenses {
         $results = $licenses | ForEach-Object {
              $servicePlanNames = $_.ServicePlans.ServicePlanName -join '; '
              $servicePlansForChecks = $_.ServicePlans.ServicePlanName
+
+             if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG]   Service Plans Count: $($_.ServicePlans.Count)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Service Plans: $($servicePlansForChecks -join ', ')" -Level Debug
+            }
+
 
             [PSCustomObject]@{
                 Sku              = $_.SkuPartNumber
@@ -92,6 +124,11 @@ Function Get-Licenses {
 
     } catch {
         Write-LogFile -Message "[ERROR] Failed to retrieve licenses: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
         throw
     }
 }
@@ -109,6 +146,7 @@ Function Get-LicenseCompatibility {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
 
     .EXAMPLE
@@ -122,17 +160,54 @@ Function Get-LicenseCompatibility {
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
+        
+        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModules) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModules) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+
     Write-LogFile -Message "=== Starting License Compatibility Check ===" -Color "Cyan" -Level Minimal
 
     try {
         $licenses = Get-MgSubscribedSku
         $allServicePlans = $licenses | ForEach-Object { $_.ServicePlans.ServicePlanName }
 
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Found $($licenses.Count) total SKUs in tenant" -Level Debug
+            Write-LogFile -Message "[DEBUG] Total service plans found: $($allServicePlans.Count)" -Level Debug
+        }
+
         $global:e5Present = $licenses | Where-Object { $_.SkuPartNumber -match "E5" }
         $global:e3Present = $licenses | Where-Object { $_.SkuPartNumber -match "E3" }
         $global:p1Present = $allServicePlans -contains "AAD_PREMIUM"
         $global:p2Present = $allServicePlans -contains "AAD_PREMIUM_P2"
 
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] License analysis results:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   E5 licenses found: $($global:e5Present.Count)" -Level Debug
+            if ($global:e5Present) {
+                $global:e5Present | ForEach-Object { Write-LogFile -Message "[DEBUG]     - $($_.SkuPartNumber): $($_.ConsumedUnits) units" -Level Debug }
+            }
+            Write-LogFile -Message "[DEBUG]   E3 licenses found: $($global:e3Present.Count)" -Level Debug
+            if ($global:e3Present) {
+                $global:e3Present | ForEach-Object { Write-LogFile -Message "[DEBUG]     - $($_.SkuPartNumber): $($_.ConsumedUnits) units" -Level Debug }
+            }
+            Write-LogFile -Message "[DEBUG]   P1 capability present: $global:p1Present" -Level Debug
+            Write-LogFile -Message "[DEBUG]   P2 capability present: $global:p2Present" -Level Debug
+        }
 
         Write-LogFile -Message "`nLicense Status:" -Color "Cyan" -Level Standard
         Write-LogFile -Message "E5: $(if($global:e5Present){"Present"}else{"Not Present"})" -Color $(if($global:e5Present){"Green"}else{"Yellow"}) -Level Standard
@@ -187,7 +262,12 @@ Function Get-LicenseCompatibility {
             }
         }
     } catch {
-        Write-LogFile -Message "[ERROR] Failed to check license capabilities: $($_.Exception.Message)" -Color "Red" -Level Minima
+        Write-LogFile -Message "[ERROR] Failed to check license capabilities: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
         throw
     }
 }     
@@ -209,6 +289,7 @@ Function Get-EntraSecurityDefaults {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
 
     .EXAMPLE
@@ -223,6 +304,24 @@ Function Get-EntraSecurityDefaults {
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
+        
+        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModules) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModules) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
 
     if (!(Test-Path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
@@ -243,6 +342,15 @@ Function Get-EntraSecurityDefaults {
         $securityDefaults = Get-MgPolicyIdentitySecurityDefaultEnforcementPolicy
         $isEnabled = $securityDefaults.IsEnabled
         $hasPremiumLicense = $global:e5Present -or $global:e3Present -or $global:p2Present -or $global:p1Present
+
+
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Security defaults analysis:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Security Defaults Enabled: $isEnabled" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Has Premium License: $hasPremiumLicense" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Policy ID: $($securityDefaults.Id)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Policy Display Name: $($securityDefaults.DisplayName)" -Level Debug
+        }
 
         Write-LogFile -Message "`nSecurity Defaults Status:" -Color "Cyan" -Level Standard
         if ($isEnabled) {
@@ -310,7 +418,11 @@ Function Get-EntraSecurityDefaults {
         Write-LogFile -Message "`nOutput Files:" -Color "Cyan" -Level Standard
         Write-LogFile -Message "- Results exported to: $outputFile" -Color "Green" -Level Standard
     } catch {
-        Write-LogFile -Message "[ERROR] Failed to check security defaults: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        Write-LogFile -Message "[ERROR] Failed to check security defaults: $($_.Exception.Message)" -Color "Red" -Level Minimalif ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
         throw
     }
 }
@@ -332,6 +444,7 @@ Function Get-LicensesByUser {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
 
     .EXAMPLE
@@ -346,6 +459,24 @@ Function Get-LicensesByUser {
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
+        
+        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModules) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModules) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
 
     if (!(Test-Path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
@@ -359,6 +490,13 @@ Function Get-LicensesByUser {
         }
 
         $skus = Get-MgSubscribedSku | Select-Object SkuId, SkuPartNumber
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Retrieved $($skus.Count) SKUs from tenant" -Level Debug
+            foreach ($sku in $skus) {
+                Write-LogFile -Message "[DEBUG]   SKU: $($sku.SkuPartNumber) (ID: $($sku.SkuId))" -Level Debug
+            }
+        }
+
         $results = @()
         $users = Get-MgUser -All -Property DisplayName, UserPrincipalName, Id
 
@@ -380,6 +518,10 @@ Function Get-LicensesByUser {
                     foreach ($license in $licenseDetails) {
                         $skuPartNumber = ($skus | Where-Object { $_.SkuId -eq $license.SkuId }).SkuPartNumber
 
+                        if ($isDebugEnabled) {
+                            Write-LogFile -Message "[DEBUG]   Found license: $skuPartNumber for user $($user.UserPrincipalName)" -Level Debug
+                        }
+
                         $results += [PSCustomObject]@{
                             DisplayName       = $user.DisplayName
                             UserPrincipalName = $user.UserPrincipalName
@@ -395,6 +537,11 @@ Function Get-LicensesByUser {
                 }
             } catch {
                 Write-LogFile -Message "[ERROR] Failed to retrieve license details for user $($user.UserPrincipalName): $($_.Exception.Message)" -Color "Red" -Level Minimal
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] Error details for user $($user.UserPrincipalName):" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+                }
             }
         }
 
@@ -429,6 +576,11 @@ Function Get-LicensesByUser {
         Write-LogFile -Message "  - File: $outputFile" -Level Standard
     } catch {
         Write-LogFile -Message "[ERROR] Failed to retrieve user license assignments: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
         throw
     }
 }

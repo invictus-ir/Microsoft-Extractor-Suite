@@ -26,6 +26,7 @@ function Get-UALStatistics
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+	Debug: Verbose logging for debugging purposes
     Default: Standard
     
     .EXAMPLE
@@ -47,6 +48,31 @@ function Get-UALStatistics
 	)
 
 	Set-LogLevel -Level ([LogLevel]::$LogLevel)
+	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+	if ($isDebugEnabled) {
+		Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+		Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+		Write-LogFile -Message "[DEBUG]   UserIds: '$UserIds'" -Level Debug
+		Write-LogFile -Message "[DEBUG]   StartDate: '$StartDate'" -Level Debug
+		Write-LogFile -Message "[DEBUG]   EndDate: '$EndDate'" -Level Debug
+		Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
+		Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
+		
+		$exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
+		if ($exchangeModule) {
+			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
+		} else {
+			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
+		}
+	
+		$connectionInfo = Get-ConnectionInformation -ErrorAction SilentlyContinue
+		if ($connectionInfo) {
+			Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
+			Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug
+		}
+	}
+
 	$date = Get-Date -Format "yyyyMMddHHmm"
     $results = @()
     $summary = @{
@@ -99,8 +125,17 @@ function Get-UALStatistics
 			}
 			
 			try {
-				$totalCount = Search-UnifiedAuditLog -Userids $UserIds -StartDate $script:StartDate -EndDate $script:EndDate -ResultSize 1 | 
-							  Select-Object -First 1 -ExpandProperty ResultCount
+				if ($isDebugEnabled) {
+					Write-LogFile -Message "[DEBUG] Executing total count query..." -Level Debug
+					$performance = Measure-Command {
+						$totalCount = Search-UnifiedAuditLog -Userids $UserIds -StartDate $script:StartDate -EndDate $script:EndDate -ResultSize 1 | 
+									  Select-Object -First 1 -ExpandProperty ResultCount
+					}
+					Write-LogFile -Message "[DEBUG] Total count query took $([math]::round($performance.TotalSeconds, 2)) seconds" -Level Debug
+				} else {
+					$totalCount = Search-UnifiedAuditLog -Userids $UserIds -StartDate $script:StartDate -EndDate $script:EndDate -ResultSize 1 | 
+								  Select-Object -First 1 -ExpandProperty ResultCount
+				}
 				
 				if ($null -eq $totalCount) {
 					$totalCount = 0
@@ -108,6 +143,12 @@ function Get-UALStatistics
 			}
 			catch {
 				Write-LogFile -Message "[WARNING] Error during attempt to get the total count $($retryCount+1): $($_.Exception.Message)" -Color "Yellow" -Level Standard
+				if ($isDebugEnabled) {
+					Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
+					Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+					Write-LogFile -Message "[DEBUG]   Error message: $($_.Exception.Message)" -Level Debug
+					Write-LogFile -Message "[DEBUG]   Retry count: $($retryCount+1) of $maxRetries" -Level Debug
+				}
 				$totalCount = 0
 			}
 			
@@ -136,14 +177,30 @@ function Get-UALStatistics
 	Foreach ($record in $recordTypes) {
 		$processedCount++
 
+		if ($isDebugEnabled) {
+			Write-LogFile -Message "[DEBUG] Processing record type: $record ($processedCount/$totalRecords)" -Level Debug
+		}
+
 		if ($processedCount % 25 -eq 0) {			
 			Write-LogFile -Message "[INFO] Processed $processedCount of $totalRecords record types" -Level Standard
 		}
 
-		$specificResult = Search-UnifiedAuditLog -Userids $UserIds -StartDate $script:StartDate -EndDate $script:EndDate -RecordType $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+		if ($isDebugEnabled) {
+			$recordPerformance = Measure-Command {
+				$specificResult = Search-UnifiedAuditLog -Userids $UserIds -StartDate $script:StartDate -EndDate $script:EndDate -RecordType $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+			}
+			Write-LogFile -Message "[DEBUG] Record query for $record took $([math]::round($recordPerformance.TotalSeconds, 2)) seconds" -Level Debug
+		} else {
+			$specificResult = Search-UnifiedAuditLog -Userids $UserIds -StartDate $script:StartDate -EndDate $script:EndDate -RecordType $record -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
+		}
+
 		if ($specificResult) {
 			$summary.RecordsWithData++
 			$percentage = if ($totalCount -eq 0 -or $null -eq $totalCount) { 0 } else { [math]::Round(($specificResult / $totalCount) * 100, 2) }
+
+			if ($isDebugEnabled) {
+				Write-LogFile -Message "[DEBUG] $record : $specificResult events ($percentage%)" -Level Debug
+			}
 
 			$results += [PSCustomObject]@{
 				RecordType = $record

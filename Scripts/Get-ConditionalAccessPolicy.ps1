@@ -20,6 +20,7 @@ Function Get-ConditionalAccessPolicies {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
     
     .EXAMPLE
@@ -47,10 +48,45 @@ Function Get-ConditionalAccessPolicies {
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
     $results=@();
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        
+        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModule) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModule) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
 
     $requiredScopes = @("Policy.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication completed" -Level Debug
+        try {
+            $context = Get-MgContext
+            if ($context) {
+                Write-LogFile -Message "[DEBUG] Graph context information:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Account: $($context.Account)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Environment: $($context.Environment)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   TenantId: $($context.TenantId)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Scopes: $($context.Scopes -join ', ')" -Level Debug
+            }
+        } catch {
+            Write-LogFile -Message "[DEBUG] Could not retrieve Graph context details" -Level Debug
+        }
+    }
 
     Write-LogFile -Message "=== Starting Conditional Access Policy Collection ===" -Color "Cyan" -Level Minimal
 
@@ -67,6 +103,14 @@ Function Get-ConditionalAccessPolicies {
         $policies = Get-MgIdentityConditionalAccessPolicy -All
         foreach ($policy in $policies) {
             Write-LogFile -Message "[INFO] Processing policy: $($policy.DisplayName)" -Level Standard
+
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Policy details:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   ID: $($policy.Id)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   State: $($policy.State)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Created: $($policy.CreatedDateTime)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Modified: $($policy.ModifiedDateTime)" -Level Debug
+            }
 
             $includeUsers = $policy.Conditions.Users.IncludeUsers -join '; '
             $excludeUsers = $policy.Conditions.Users.ExcludeUsers -join '; '
@@ -155,6 +199,13 @@ Function Get-ConditionalAccessPolicies {
 
     catch {
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)"  -Color "Red" -Level Minimal
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Fatal error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Policies collected before error: $($results.Count)" -Level Debug
+        }
         throw
     }
 

@@ -29,6 +29,7 @@ function Get-EntraSignInLogs {
 		None: No logging
 		Minimal: Critical errors only
 		Standard: Normal operational logging
+		Debug: Verbose logging for debugging purposes
 		Default: Standard
 	
 		.PARAMETER UserIds
@@ -68,11 +69,35 @@ function Get-EntraSignInLogs {
 		)
 	
 		Set-LogLevel -Level ([LogLevel]::$LogLevel)
+		$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
 		$summary = @{
 			TotalRecords = 0
 			StartTime = Get-Date
 			ProcessingTime = $null
 			totalFiles = 0
+		}
+
+		if ($isDebugEnabled) {
+			Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+			Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+			Write-LogFile -Message "[DEBUG]   StartDate: $startDate" -Level Debug
+			Write-LogFile -Message "[DEBUG]   EndDate: $endDate" -Level Debug
+			Write-LogFile -Message "[DEBUG]   OutputDir: $outputDir" -Level Debug
+			Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
+			Write-LogFile -Message "[DEBUG]   MergeOutput: $($MergeOutput.IsPresent)" -Level Debug
+			Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+			Write-LogFile -Message "[DEBUG]   Interval: $Interval minutes" -Level Debug
+			Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+			
+			$azureADModule = Get-Module -Name AzureAD* -ErrorAction SilentlyContinue
+			if ($azureADModule) {
+				Write-LogFile -Message "[DEBUG] AzureAD Modules loaded:" -Level Debug
+				foreach ($module in $azureADModule) {
+					Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+				}
+			} else {
+				Write-LogFile -Message "[DEBUG] No AzureAD modules loaded" -Level Debug
+			}
 		}
 	
 		Write-LogFile -Message "=== Starting Sign-in Log Collection ===" -Color "Cyan" -Level Minimal
@@ -133,6 +158,12 @@ function Get-EntraSignInLogs {
 				catch {
 					$retryCount++
 					if ($retryCount -lt $maxRetries) {
+						if ($isDebugEnabled) {
+							Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
+							Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+							Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+							Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+						}
 						Start-Sleep -Seconds 10
 						Write-LogFile -Message "[WARNING] Failed to acquire logs. Retrying... Attempt $retryCount of $maxRetries" -Level Standard -Color "Yellow"
 					} else {
@@ -213,6 +244,7 @@ function Get-EntraSignInLogs {
 		None: No logging
 		Minimal: Critical errors only
 		Standard: Normal operational logging
+		Debug: Verbose logging for debugging purposes
 		Default: Standard
 		
 		.EXAMPLE
@@ -249,11 +281,36 @@ function Get-EntraSignInLogs {
 		)
 	
 		Set-LogLevel -Level ([LogLevel]::$LogLevel)
+		$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
 		$summary = @{
 			TotalRecords = 0
 			StartTime = Get-Date
 			ProcessingTime = $null
 			TotalFiles = 0
+		}
+
+		if ($isDebugEnabled) {
+			Write-LogFile -Message "[DEBUG] === Get-EntraAuditLogs Started ===" -Level Debug
+			Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+			Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+			Write-LogFile -Message "[DEBUG]   StartDate: $startDate" -Level Debug
+			Write-LogFile -Message "[DEBUG]   EndDate: $endDate" -Level Debug
+			Write-LogFile -Message "[DEBUG]   OutputDir: $outputDir" -Level Debug
+			Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
+			Write-LogFile -Message "[DEBUG]   MergeOutput: $($MergeOutput.IsPresent)" -Level Debug
+			Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+			Write-LogFile -Message "[DEBUG]   Interval: $Interval minutes" -Level Debug
+			Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+			
+			$azureADModule = Get-Module -Name AzureAD* -ErrorAction SilentlyContinue
+			if ($azureADModule) {
+				Write-LogFile -Message "[DEBUG] AzureAD Modules loaded:" -Level Debug
+				foreach ($module in $azureADModule) {
+					Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+				}
+			} else {
+				Write-LogFile -Message "[DEBUG] No AzureAD modules loaded" -Level Debug
+			}
 		}
 	
 		Write-LogFile -Message "=== Starting Audit Log Collection ===" -Color "Cyan" -Level Minimal

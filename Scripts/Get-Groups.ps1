@@ -19,6 +19,7 @@ Function Get-Groups {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
     
     .EXAMPLE
@@ -43,8 +44,45 @@ Function Get-Groups {
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        
+        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModule) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModule) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+
     $requiredScopes = @("Group.Read.All", "AuditLog.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $requiredScopes
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication completed" -Level Debug
+        try {
+            $context = Get-MgContext
+            if ($context) {
+                Write-LogFile -Message "[DEBUG] Graph context information:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Account: $($context.Account)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Environment: $($context.Environment)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   TenantId: $($context.TenantId)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Scopes: $($context.Scopes -join ', ')" -Level Debug
+            }
+        } catch {
+            Write-LogFile -Message "[DEBUG] Could not retrieve Graph context details" -Level Debug
+        }
+    }
+
     Write-LogFile -Message "=== Starting Groups Collection ===" -Color "Cyan" -Level Minimal
 
     if (!(Test-Path $OutputDir)) {
@@ -58,10 +96,29 @@ Function Get-Groups {
 
     try {
         Write-LogFile -Message "[INFO] Fetching all groups..." -Level Standard
-        $allGroups = Get-MgGroup -All
+
+        if ($isDebugEnabled) {
+            $performance = Measure-Command {
+                $allGroups = Get-MgGroup -All
+            }
+            Write-LogFile -Message "[DEBUG] Groups retrieval completed in $([math]::round($performance.TotalSeconds, 2)) seconds" -Level Debug
+        } else {
+            $allGroups = Get-MgGroup -All
+        }
+
         Write-LogFile -Message "[INFO] Found $($allGroups.Count) groups" -Level Standard -Color "Green"
 
         $results = $allGroups | ForEach-Object {
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Processing group: $($_.DisplayName)" -Level Debug
+                if ($_.MembershipRule) {
+                    Write-LogFile -Message "[DEBUG]   Rule length: $($_.MembershipRule.Length) characters" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Processing state: $($_.MembershipRuleProcessingState)" -Level Debug
+                }
+                Write-LogFile -Message "[DEBUG]   Security enabled: $($_.SecurityEnabled)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Mail enabled: $($_.MailEnabled)" -Level Debug
+            }
+
             [PSCustomObject]@{
                 GroupId = $_.Id
                 DisplayName = $_.DisplayName
@@ -106,6 +163,12 @@ Function Get-Groups {
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
         throw
     }
 }
@@ -151,8 +214,44 @@ Function Get-GroupMembers {
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        
+        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModule) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModule) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+
     $requiredScopes = @("Group.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication completed" -Level Debug
+        try {
+            $context = Get-MgContext
+            if ($context) {
+                Write-LogFile -Message "[DEBUG] Graph context information:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Account: $($context.Account)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Environment: $($context.Environment)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   TenantId: $($context.TenantId)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Scopes: $($context.Scopes -join ', ')" -Level Debug
+            }
+        } catch {
+            Write-LogFile -Message "[DEBUG] Could not retrieve Graph context details" -Level Debug
+        }
+    }
 
     Write-LogFile -Message "=== Starting Group Members Collection ===" -Color "Cyan" -Level Minimal
 
@@ -162,12 +261,32 @@ Function Get-GroupMembers {
 
     try {
         Write-LogFile -Message "[INFO] Fetching all groups..." -Level Standard
-        $allGroups = Get-MgGroup -All
+        if ($isDebugEnabled) {
+            $groupsPerformance = Measure-Command {
+                $allGroups = Get-MgGroup -All
+            }
+            Write-LogFile -Message "[DEBUG] Groups retrieval completed in $([math]::round($groupsPerformance.TotalSeconds, 2)) seconds" -Level Debug
+        } else {
+            $allGroups = Get-MgGroup -All
+        }
         Write-LogFile -Message "[INFO] Found $($allGroups.Count) groups" -Level Standard -Color "Green"
+
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Starting member enumeration for $($allGroups.Count) groups..." -Level Debug
+        }
 
         $results = @()
         foreach ($group in $allGroups) {
             Write-LogFile -Message "[INFO] Processing group: $($group.DisplayName)" -Level Standard
+
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Processing group details:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Group ID: $($group.Id)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Display Name: $($group.DisplayName)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Group Types: $($group.GroupTypes -join ', ')" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Mail Enabled: $($group.MailEnabled)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Security Enabled: $($group.SecurityEnabled)" -Level Debug
+            }
 
             try {
                 $members = Get-MgGroupMember -GroupId $group.Id -All | ForEach-Object {
@@ -197,6 +316,12 @@ Function Get-GroupMembers {
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
         throw
     }
 }
@@ -241,8 +366,44 @@ Function Get-DynamicGroups {
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        
+        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModule) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModule) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+
     $requiredScopes = @("Group.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication completed" -Level Debug
+        try {
+            $context = Get-MgContext
+            if ($context) {
+                Write-LogFile -Message "[DEBUG] Graph context information:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Account: $($context.Account)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Environment: $($context.Environment)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   TenantId: $($context.TenantId)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Scopes: $($context.Scopes -join ', ')" -Level Debug
+            }
+        } catch {
+            Write-LogFile -Message "[DEBUG] Could not retrieve Graph context details" -Level Debug
+        }
+    }
         
     Write-LogFile -Message "=== Starting Dynamic Groups Collection ===" -Color "Cyan" -Level Minimal
 
@@ -257,13 +418,46 @@ Function Get-DynamicGroups {
 
     try {
         Write-LogFile -Message "[INFO] Fetching all groups from Microsoft Graph..." -Level Standard
-        $allGroups = Get-MgGroup -All
+
+        if ($isDebugEnabled) {
+            $groupsPerformance = Measure-Command {
+                $allGroups = Get-MgGroup -All
+            }
+            Write-LogFile -Message "[DEBUG] Groups retrieval completed in $([math]::round($groupsPerformance.TotalSeconds, 2)) seconds" -Level Debug
+        } else {
+            $allGroups = Get-MgGroup -All
+        }
+
         Write-LogFile -Message "[INFO] Found $($allGroups.Count) total groups" -Level Standard
 
-        $dynamicGroups = $allGroups | Where-Object { $_.MembershipRule -ne $null }
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Analyzing groups for dynamic membership rules..." -Level Debug
+            $filterPerformance = Measure-Command {
+                $dynamicGroups = $allGroups | Where-Object { $_.MembershipRule -ne $null }
+            }
+            Write-LogFile -Message "[DEBUG] Dynamic groups filtering completed in $([math]::round($filterPerformance.TotalSeconds, 2)) seconds" -Level Debug
+        } else {
+            $dynamicGroups = $allGroups | Where-Object { $_.MembershipRule -ne $null }
+        }
+
         Write-LogFile -Message "[INFO] Found $($dynamicGroups.Count) dynamic groups" -Level Standard
 
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Dynamic groups breakdown:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Dynamic groups: $($dynamicGroups.Count)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Static groups: $($allGroups.Count - $dynamicGroups.Count)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Dynamic percentage: $([math]::Round(($dynamicGroups.Count / [math]::Max($allGroups.Count, 1)) * 100, 2))%" -Level Debug
+        }
+
         $results = $dynamicGroups | ForEach-Object {
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Processing dynamic group: $($_.DisplayName)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Rule length: $($_.MembershipRule.Length) characters" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Processing state: $($_.MembershipRuleProcessingState)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Security enabled: $($_.SecurityEnabled)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Mail enabled: $($_.MailEnabled)" -Level Debug
+            }
+            
             [PSCustomObject]@{
                 GroupId = $_.Id
                 DisplayName = $_.DisplayName
@@ -304,6 +498,12 @@ Function Get-DynamicGroups {
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
         throw
     }
 }

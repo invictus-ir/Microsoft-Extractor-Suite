@@ -46,6 +46,10 @@ Parameters
     - Encoding is the parameter specifying the encoding of the JSON output file.
     - Default: UTF8
 
+-LogLevel (optional)
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
+    - Default: Standard
+    
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'DirectoryActivityLogs' directory within the 'Output' directory, with the file name 'DirectoryActivityLogs.csv'. 

@@ -49,6 +49,7 @@ function Get-TransportRules
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+	Debug: Verbose logging for debugging purposes
     Default: Standard
     
     .Example
@@ -64,7 +65,30 @@ function Get-TransportRules
 	)
 
 	Set-LogLevel -Level ([LogLevel]::$LogLevel)
+	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
     Write-LogFile -Message "=== Starting Transport Rules Collection ===" -Color "Cyan" -Level Minimal
+
+	if ($isDebugEnabled) {
+		Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+		Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+		Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
+		Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
+		Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
+		
+		$exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
+		if ($exchangeModule) {
+			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
+		} else {
+			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
+		}
+	
+		$connectionInfo = Get-ConnectionInformation -ErrorAction SilentlyContinue
+		if ($connectionInfo) {
+			Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
+			Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug
+		}
+	}
 
 	if (!(test-path $OutputDir)) {
 		New-Item -ItemType Directory -Force -Path $OutputDir > $null
@@ -78,7 +102,15 @@ function Get-TransportRules
     
 	$filename = "$($date)-TransportRules.csv"
 	$outputDirectory = Join-Path $OutputDir $filename		
-	$transportRules = Get-TransportRule | Select-Object -Property Name,Description,CreatedBy,WhenChanged,State, Priority, Mode
+	if ($isDebugEnabled) {
+		Write-LogFile -Message "[DEBUG] Retrieving transport rules from Exchange Online..." -Level Debug
+		$performance = Measure-Command {
+			$transportRules = Get-TransportRule | Select-Object -Property Name,Description,CreatedBy,WhenChanged,State, Priority, Mode
+		}
+		Write-LogFile -Message "[DEBUG] Transport rule retrieval took $([math]::round($performance.TotalSeconds, 2)) seconds" -Level Debug
+	} else {
+		$transportRules = Get-TransportRule | Select-Object -Property Name,Description,CreatedBy,WhenChanged,State, Priority, Mode
+	}
 
 	if ($null -eq $transportRules) {
 		Write-LogFile -Message "[INFO] No transport rules found" -Color "Yellow" -Level Minimal
@@ -93,6 +125,14 @@ function Get-TransportRules
 	$disabledCount = 0
 
 	$transportRules | ForEach-Object {
+		if ($isDebugEnabled) {
+			Write-LogFile -Message "[DEBUG] Processing rule: $($_.Name)" -Level Debug
+			Write-LogFile -Message "[DEBUG]   State: $($_.State)" -Level Debug
+			Write-LogFile -Message "[DEBUG]   Priority: $($_.Priority)" -Level Debug
+			Write-LogFile -Message "[DEBUG]   Mode: $($_.Mode)" -Level Debug
+			Write-LogFile -Message "[DEBUG]   Created By: $($_.CreatedBy)" -Level Debug
+			Write-LogFile -Message "[DEBUG]   When Changed: $($_.WhenChanged)" -Level Debug
+		}
 		if ($_.State -eq "Enabled") {
 			$enabledCount++
 		}
@@ -250,6 +290,7 @@ function Get-MailboxRules
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+	Debug: Verbose logging for debugging purposes
     Default: Standard
 
 	.PARAMETER Encoding
@@ -270,7 +311,31 @@ function Get-MailboxRules
 	)
 
 	Set-LogLevel -Level ([LogLevel]::$LogLevel)
+	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
     Write-LogFile -Message "=== Starting Mailbox Rules Collection ===" -Color "Cyan" -Level Minimal
+
+	if ($isDebugEnabled) {
+		Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+		Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+		Write-LogFile -Message "[DEBUG]   UserIds: '$UserIds'" -Level Debug
+		Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
+		Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
+		Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
+		
+		$exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
+		if ($exchangeModule) {
+			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
+		} else {
+			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
+		}
+	
+		$connectionInfo = Get-ConnectionInformation -ErrorAction SilentlyContinue
+		if ($connectionInfo) {
+			Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
+			Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug
+		}
+	}
 	
 	if (!(test-path $OutputDir)) {
 		New-Item -ItemType Directory -Force -Path $OutputDir > $null
@@ -301,7 +366,16 @@ function Get-MailboxRules
 	}
 	
 	if ($UserIds -eq "") {		
-		$mailboxes = Get-Mailbox -ResultSize Unlimited
+		if ($isDebugEnabled) {
+			Write-LogFile -Message "[DEBUG] Processing scenario: All mailboxes" -Level Debug
+			$performance = Measure-Command {
+				$mailboxes = Get-Mailbox -ResultSize Unlimited
+			}
+			Write-LogFile -Message "[DEBUG] Get-Mailbox took $([math]::round($performance.TotalSeconds, 2)) seconds" -Level Debug
+			Write-LogFile -Message "[DEBUG] Retrieved $($mailboxes.Count) mailboxes" -Level Debug
+		} else {
+			$mailboxes = Get-Mailbox -ResultSize Unlimited
+		}
         $summary.TotalUsers = $mailboxes.Count
 
 		foreach ($mailbox in $mailboxes) {
@@ -311,6 +385,15 @@ function Get-MailboxRules
 			if ($rules) {
 				$summary.UsersWithRules++
 				foreach ($rule in $rules) {
+					if ($isDebugEnabled) {
+						Write-LogFile -Message "[DEBUG]     Processing rule: $($rule.Name)" -Level Debug
+						Write-LogFile -Message "[DEBUG]       Enabled: $($rule.Enabled)" -Level Debug
+						Write-LogFile -Message "[DEBUG]       Priority: $($rule.Priority)" -Level Debug
+						Write-LogFile -Message "[DEBUG]       Forward To: $($rule.ForwardTo)" -Level Debug
+						Write-LogFile -Message "[DEBUG]       Redirect To: $($rule.RedirectTo)" -Level Debug
+						Write-LogFile -Message "[DEBUG]       Delete Message: $($rule.DeleteMessage)" -Level Debug
+						Write-LogFile -Message "[DEBUG]       Soft Delete: $($rule.SoftDeleteMessage)" -Level Debug
+					}
 					$summary.TotalRules++
 					if ($rule.Enabled) { $summary.EnabledRules++ }
                     if ($rule.ForwardTo) { $summary.ForwardingRules++ }
@@ -356,13 +439,39 @@ function Get-MailboxRules
 		$userList = $UserIds -split ','
         $summary.TotalUsers = $userList.Count
 
+		if ($isDebugEnabled) {
+			Write-LogFile -Message "[DEBUG] Processing scenario: Specific users" -Level Debug
+			Write-LogFile -Message "[DEBUG] Users to process: $($userList -join ', ')" -Level Debug
+			Write-LogFile -Message "[DEBUG] User count: $($userList.Count)" -Level Debug
+		}
+
 		foreach ($user in $userList) {
+			$trimmedUser = $user.Trim()
 			Write-LogFile -Message "[INFO] Checking rules for: $user" -Level Standard
-			$rules = Get-InboxRule -Mailbox $user.Trim()
+
+			if ($isDebugEnabled) {
+				Write-LogFile -Message "[DEBUG]   Processing user: $trimmedUser" -Level Debug
+				$rulePerformance = Measure-Command {
+					$rules = Get-InboxRule -Mailbox $trimmedUser
+				}
+				Write-LogFile -Message "[DEBUG]   Get-InboxRule took $([math]::round($rulePerformance.TotalSeconds, 2)) seconds" -Level Debug
+			} else {
+				$rules = Get-InboxRule -Mailbox $trimmedUser
+			}
 			
 			if ($rules) {
 				$summary.UsersWithRules++
+				if ($isDebugEnabled) {
+					Write-LogFile -Message "[DEBUG]   Found $($rules.Count) rules for user: $trimmedUser" -Level Debug
+				}
 				foreach ($rule in $rules) {
+					if ($isDebugEnabled) {
+						Write-LogFile -Message "[DEBUG]     Processing rule: $($rule.Name)" -Level Debug
+						Write-LogFile -Message "[DEBUG]       Enabled: $($rule.Enabled)" -Level Debug
+						Write-LogFile -Message "[DEBUG]       Priority: $($rule.Priority)" -Level Debug
+						Write-LogFile -Message "[DEBUG]       Forward To: $($rule.ForwardTo)" -Level Debug
+						Write-LogFile -Message "[DEBUG]       Redirect To: $($rule.RedirectTo)" -Level Debug
+					}
 					$summary.TotalRules++
 					if ($rule.Enabled) { $summary.EnabledRules++ }
                     if ($rule.ForwardTo) { $summary.ForwardingRules++ }
