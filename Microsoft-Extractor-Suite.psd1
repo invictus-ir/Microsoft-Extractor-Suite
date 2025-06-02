@@ -46,6 +46,8 @@
 		".\Scripts\Get-AllEvidence.ps1"
 		".\Scripts\Get-ProductLicenses.ps1"
 		".\Scripts\Get-Groups.ps1"
+		".\Scripts\Get-SecurityAlerts.ps1"
+		".\Scripts\Get-Roles.ps1"
 	)
 	
 	FunctionsToExport = @(
@@ -147,6 +149,13 @@
 		"Get-Groups"
 		"Get-GroupMembers"
 		"Get-DynamicGroups"
+
+		# Get-SecurityAlerts.ps1
+		"Get-SecurityAlerts"
+
+		# Get-Roles.ps1
+		"Get-AllRoleActivity"
+		"Get-PIMAssignments"
 	)
 	
 	# Variables to export from this module

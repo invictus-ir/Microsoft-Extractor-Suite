@@ -60,9 +60,14 @@ Parameters
 -LogLevel (optional)
     - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
     - Default: Standard
+
 -EventTypes (optional)
-    - Specifies which types of sign-in events to collect
-    - Valid options: 'All', 'interactiveUser', 'nonInteractiveUser', 'servicePrincipal', 'managedIdentity'
+    - Specifies which types of sign-in events to collect:
+        - All: Collects all event types (default)
+        - interactiveUser: User sign-ins requiring user interaction
+        - nonInteractiveUser: Automated user sign-ins
+        - servicePrincipal: Application sign-ins
+        - managedIdentity: Azure managed identity sign-ins
     - Can specify multiple types: -EventTypes interactiveUser,servicePrincipal
     - Default: 'All'
 

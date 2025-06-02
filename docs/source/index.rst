@@ -48,6 +48,8 @@ Retrieve other relevant information
   Audit Log Settings                    Retrieves audit status and settings for all mailboxes in Microsoft 365.
   Group Information                     Variety of functions designed to gather information about groups.
   License Information                   Variety of functions designed to gather information about licenses.
+  Role Activity                         Retrieves all directory role memberships with last login information for users.
+  PIM Assignments                       Generates a report of all Privileged Identity Management (PIM) role assignments in Entra ID.
 ===================================== =========================================================================================================================================================================== 
 
 Getting Started
@@ -124,6 +126,7 @@ Have a bug report or feature request? Open an issue on the Github repository.
    functionality/Azure/GetUserInfo
    functionality/Azure/GetGroups
    functionality/Azure/ProductLicenses
+   functionality/Azure/Roles.rst
 
 .. toctree::
    :maxdepth: 2

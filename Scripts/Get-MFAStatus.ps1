@@ -25,6 +25,10 @@ function Get-MFA {
     Standard: Normal operational logging
     Debug: Verbose logging for debugging purposes
     Default: Standard
+
+    .PARAMETER IncludePhoneNumbers
+    When this switch is set, the script will collect and include phone numbers used for MFA in the output.
+    Default: False
     
     .EXAMPLE
     Get-MFA
@@ -41,14 +45,19 @@ function Get-MFA {
     .EXAMPLE
     Get-MFA -OutputDir C:\Windows\Temp
     Retrieves the MFA status for all users and saves the output to the C:\Windows\Temp folder.    
+
+    .EXAMPLE
+    Get-MFA -IncludePhoneNumbers
+    Retrieves the MFA status for all users including their phone numbers used for MFA.
 #>
     [CmdletBinding()]
     param(
         [string]$OutputDir = "Output\MFA",
         [string]$Encoding = "UTF8",
         [string[]]$UserIds,
-        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
-        [string]$LogLevel = 'Standard'
+        [ValidateSet('None', 'Minimal', 'Standard')]
+        [string]$LogLevel = 'Standard',
+        [switch]$IncludePhoneNumbers
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
@@ -122,6 +131,9 @@ function Get-MFA {
   
     $results = @()
     $allUsers = @()
+    $userPhoneMethodsCache = @{}
+    $phoneNumberMap = @{}
+    $phoneResults = @()
 
     if ($UserIds) {
         if ($isDebugEnabled) {
@@ -156,6 +168,35 @@ function Get-MFA {
 
     $summary.TotalUsers = $allUsers.Count
     Write-LogFile -Message "[INFO] Found $($summary.TotalUsers) users to process" -Level Standard
+
+    if ($IncludePhoneNumbers) {
+        Write-LogFile -Message "[INFO] Collecting phone numbers for MFA..." -Level Standard  
+        foreach ($user in $allUsers) {
+            $userPrinc = $user.userPrincipalName
+            try {
+                $phoneMethods = Get-MgUserAuthenticationPhoneMethod -UserId $userPrinc -ErrorAction SilentlyContinue
+                
+                $userPhoneMethodsCache[$userPrinc] = $phoneMethods
+                
+                if ($phoneMethods -and $phoneMethods.Count -gt 0) {
+                    $summary.PhoneNumberUsers++
+                    
+                    foreach ($phoneMethod in $phoneMethods) {
+                        if (-not [string]::IsNullOrEmpty($phoneMethod.PhoneNumber)) {
+                            if (-not $phoneNumberMap.ContainsKey($phoneMethod.PhoneNumber)) {
+                                $phoneNumberMap[$phoneMethod.PhoneNumber] = @()
+                            }
+                            $phoneNumberMap[$phoneMethod.PhoneNumber] += $userPrinc
+                        }
+                    }
+                }
+            }
+            catch {
+                Write-LogFile -Message "[ERROR] Error retrieving phone methods for user $userPrinc : $_" -Level Minimal -Color "Red"
+                $userPhoneMethodsCache[$userPrinc] = @()
+            }
+        }
+    } 
 
     foreach ($user in $allUsers) {  
         $userPrinc = $user.userPrincipalName
@@ -253,6 +294,27 @@ function Get-MFA {
                     Write-LogFile -Message "[DEBUG]   MFAData: $($MFAData | ConvertTo-Json -Compress)" -Level Debug
                 }
             }
+
+            if ($IncludePhoneNumbers) {
+                try {
+                    $phoneMethods = Get-MgUserAuthenticationPhoneMethod -UserId $userPrinc -ErrorAction SilentlyContinue
+                    if ($phoneMethods) {
+                        foreach ($phoneMethod in $phoneMethods) {
+                            $phoneObject = [PSCustomObject]@{
+                                UserPrincipalName = $userPrinc
+                                UserId = $user.id
+                                PhoneNumber = $phoneMethod.PhoneNumber
+                                PhoneType = $phoneMethod.PhoneType
+                                SmsSignInState = $phoneMethod.SmsSignInState
+                            }
+                            $phoneResults += $phoneObject
+                        }
+                    }
+                }
+                catch {
+                    Write-LogFile -Message "[ERROR] Error retrieving phone methods for user $userPrinc : $_" -Level Minimal -Color "Red"
+                }
+            }
         }
 
         catch {
@@ -279,7 +341,7 @@ function Get-MFA {
     $authMethodsPath  = "$OutputDir\$($date)-MFA-AuthenticationMethods.csv"
     $results | Export-Csv -Path $authMethodsPath  -NoTypeInformation -Encoding $Encoding
 
-    Write-LogFile -Message "`n[INFO] Retrieving user registration details..." -Level Standard
+    Write-LogFile -Message "[INFO] Retrieving user registration details..." -Level Standard
     $results = @()
     $registrationResults  = "$OutputDir\$($date)-MFA-UserRegistrationDetails.csv"
     $nextLink = "https://graph.microsoft.com/v1.0/reports/authenticationMethods/userRegistrationDetails"
@@ -300,7 +362,33 @@ function Get-MFA {
                     }
                     $myObject | Add-Member -Type NoteProperty -Name $_.Name -Value $value
                 }
+                
                 $results += $myObject
+            }
+
+            if ($IncludePhoneNumbers) {
+                $userPrinc = $detail.userPrincipalName
+                    
+                if ($userPhoneMethodsCache.ContainsKey($userPrinc) -and $userPhoneMethodsCache[$userPrinc]) {
+                    $phoneNumbers = @()
+                    $phoneTypes = @()
+                    $smsStates = @()
+                    
+                    foreach ($phoneMethod in $userPhoneMethodsCache[$userPrinc]) {
+                        $phoneNumbers += $phoneMethod.PhoneNumber
+                        $phoneTypes += $phoneMethod.PhoneType
+                        $smsStates += $phoneMethod.SmsSignInState
+                    }
+                    
+                    $myObject | Add-Member -Type NoteProperty -Name "MfaPhoneNumbers" -Value ($phoneNumbers -join "; ")
+                    $myObject | Add-Member -Type NoteProperty -Name "MfaPhoneTypes" -Value ($phoneTypes -join "; ")
+                    $myObject | Add-Member -Type NoteProperty -Name "MfaSmsSignInStates" -Value ($smsStates -join "; ")
+                }
+                else {
+                    $myObject | Add-Member -Type NoteProperty -Name "MfaPhoneNumbers" -Value ""
+                    $myObject | Add-Member -Type NoteProperty -Name "MfaPhoneTypes" -Value ""
+                    $myObject | Add-Member -Type NoteProperty -Name "MfaSmsSignInStates" -Value ""
+                }
             }
         }
     } while ($nextLink)
@@ -311,7 +399,9 @@ function Get-MFA {
     Write-LogFile -Message "  Total Users: $($summary.TotalUsers)" -Level Standard
     Write-LogFile -Message "  MFA Enabled: $($summary.MFAEnabled) users ($([math]::Round($summary.MFAEnabled/$summary.TotalUsers*100,1))%)" -Level Standard
     Write-LogFile -Message "  MFA Disabled: $($summary.MFADisabled) users ($([math]::Round($summary.MFADisabled/$summary.TotalUsers*100,1))%)" -Level Standard
-    
+    if ($IncludePhoneNumbers) {
+        Write-LogFile -Message "  Users with Phone MFA: $($summary.PhoneNumberUsers) users" -Level Standard
+    }    
     Write-LogFile -Message "`nAuthentication Methods:" -Level Standard
     Write-LogFile -Message "  - Email: $($summary.MethodCounts.Email)" -Level Standard
     Write-LogFile -Message "  - Fido2: $($summary.MethodCounts.Fido2)" -Level Standard

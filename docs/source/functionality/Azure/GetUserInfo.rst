@@ -124,6 +124,9 @@ Parameters
 -UserIds (optional)
     - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
+-IncludePhoneNumbers (optional)
+    - When this switch is set, the script will collect and include phone numbers used for MFA in the output.
+
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'MFA' directory within the 'Output' directory.

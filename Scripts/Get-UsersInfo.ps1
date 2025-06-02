@@ -320,6 +320,11 @@ Function Get-AdminUsers {
     $rolesWithoutUsers = @()
     $exportedFiles = @()
     $totalAdminCount = 0
+    $inactiveAdminCount = 0
+
+    # Track users with no recent sign-in
+    $inactiveThreshold = (Get-Date).AddDays(-30)
+    $inactiveAdmins = @()
 
     try {
         if ($isDebugEnabled) {
@@ -373,22 +378,25 @@ Function Get-AdminUsers {
                         Write-LogFile -Message "[DEBUG]     Processing user $count/$($areThereUsers.Count): $userid" -Level Debug
                     }
                     try {
+                        $selectProperties = @(
+                        "UserPrincipalName", "DisplayName", "Id", "Department", "JobTitle", 
+                        "AccountEnabled", "CreatedDateTime","SignInActivity"
+                        )
+
+
                         try {
-                            $getUserName = Get-MgUser -Filter ("Id eq '$userid'") -ErrorAction Stop
+                            $getUserName = Get-MgUser -UserId $userid -Select $selectProperties -ErrorAction Stop
                         } catch {
                             if ($_.Exception.Response.StatusCode -eq 429) {
                                 Start-Sleep -Seconds 5
-                                $getUserName = Get-MgUser -Filter ("Id eq '$userid'") -ErrorAction Stop
+                                $getUserName = Get-MgUser -UserId $userid -Select $selectProperties -ErrorAction Stop
                             } else {
                                 throw
                             }
                         }
                     
                         $userName = $getUserName.UserPrincipalName
-                        if ($isDebugEnabled) {
-                            Write-LogFile -Message "[DEBUG]       Successfully retrieved: $userName" -Level Debug
-                        }
-                        $results += [PSCustomObject]@{
+                        $userObject = [PSCustomObject]@{
                             UserName = $userName
                             UserId = $userid
                             Role = $roleName
@@ -397,9 +405,28 @@ Function Get-AdminUsers {
                             JobTitle = $getUserName.JobTitle
                             AccountEnabled = $getUserName.AccountEnabled
                             CreatedDateTime = $getUserName.CreatedDateTime
+                            LastInteractiveSignIn = $getUserName.SignInActivity.LastSignInDateTime
+                            LastNonInteractiveSignIn = $getUserName.SignInActivity.LastNonInteractiveSignInDateTime
                         }
+
+                        if ($getUserName.SignInActivity.LastSignInDateTime) {
+                            $daysSinceSignIn = (New-TimeSpan -Start $getUserName.SignInActivity.LastSignInDateTime -End (Get-Date)).Days
+                            $userObject | Add-Member -MemberType NoteProperty -Name "DaysSinceLastSignIn" -Value $daysSinceSignIn
+                            
+                            if ($getUserName.SignInActivity.LastSignInDateTime -lt $inactiveThreshold) {
+                                $inactiveAdminCount++
+                                $inactiveAdmins += "$($getUserName.DisplayName) ($userName) - $daysSinceSignIn days"
+                            }
+                        } else {
+                            $userObject | Add-Member -MemberType NoteProperty -Name "DaysSinceLastSignIn" -Value "No sign-in data"
+                            $inactiveAdminCount++
+                            $inactiveAd                       
+                        }
+                        $results += $userObject
                     }
-                    catch {}
+                    catch {
+                        Write-LogFile -Message "[WARNING] Error processing user $userid in role $roleName`: $($_.Exception.Message)" -Color "Yellow" -Level Standard
+                    }
                 }
 
                 if ($results.Count -gt 0) {
@@ -437,11 +464,21 @@ Function Get-AdminUsers {
             Write-LogFile -Message "  - $role" -Level Standard
         }
 
+        if ($IncludeSignInActivity -and $inactiveAdmins.Count -gt 0) {
+            Write-LogFile -Message "`nInactive administrators (30+ days):" -Color "Yellow" -Level Standard
+            foreach ($admin in $inactiveAdmins) {
+                Write-LogFile -Message "  ! $admin" -Level Standard
+            }
+        }
+
         Write-LogFile -Message "`nSummary:" -Level Standard -Color "Cyan"
         Write-LogFile -Message "  Total admin roles: $($rolesWithUsers.Count + $rolesWithoutUsers.Count)" -Level Standard
         Write-LogFile -Message "  Roles with users: $($rolesWithUsers.Count)" -Level Standard
         Write-LogFile -Message "  Empty roles: $($rolesWithoutUsers.Count)" -Level Standard
         Write-LogFile -Message "  Total administrators: $totalAdminCount" -Level Standard
+        if ($IncludeSignInActivity) {
+            Write-LogFile -Message "  Inactive administrators: $inactiveAdminCount" -Level Standard
+        }
 
         Write-LogFile -Message "`nExported files:" -Level Standard -Color "Cyan"
         Write-LogFile -Message "  Individual role files: $OutputDir" -Level Standard

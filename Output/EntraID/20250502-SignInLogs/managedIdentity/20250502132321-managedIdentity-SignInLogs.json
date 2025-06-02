@@ -1,0 +1,3782 @@
+﻿[
+    {
+        "id":  "da1ddc45-4554-42e1-818a-7ee252f37c00",
+        "createdDateTime":  "2025-05-02T10:38:07Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "04e313a6-1827-4a0d-9586-d52a2a32ad43",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Restricted",
+        "resourceId":  "035f9e1d-4f00-4419-bf50-bf2d87eb4878",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "Rdwd2lRF4UKBin7iUvN8AA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "e9bfd5f7-499f-47e8-82ea-877e8a628ad5",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "b4b6a068-c24d-4587-8ed1-22052d733200",
+        "createdDateTime":  "2025-05-02T10:38:07Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "66b5561e-1643-4f87-9409-d9eab90f4719",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Control Service",
+        "resourceId":  "e933bd07-d2ee-4f1d-933c-3752b819567b",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "aKC2tE3Ch0WO0SIFLXMyAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "5e311751-a6c7-4599-bb5c-535733ef0c8c",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "2f304945-299c-4208-a216-8fcaeff03600",
+        "createdDateTime":  "2025-05-02T09:52:27Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "ccb1f219-c58b-4251-be19-689594195de0",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Restricted",
+        "resourceId":  "035f9e1d-4f00-4419-bf50-bf2d87eb4878",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "RUkwL5wpCEKiFo_K7_A2AA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "e9bfd5f7-499f-47e8-82ea-877e8a628ad5",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "2f304945-299c-4208-a216-8fcacdf03600",
+        "createdDateTime":  "2025-05-02T09:52:27Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "6d6bcbea-5ddb-4183-aee7-1cda68b6393b",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Control Service",
+        "resourceId":  "e933bd07-d2ee-4f1d-933c-3752b819567b",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "RUkwL5wpCEKiFo_KzfA2AA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "5e311751-a6c7-4599-bb5c-535733ef0c8c",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "052cf51f-583f-4f38-8d02-334f32a63000",
+        "createdDateTime":  "2025-05-02T09:06:46Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "db17618a-c96e-4fa6-999e-36cf3c1f2107",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Restricted",
+        "resourceId":  "035f9e1d-4f00-4419-bf50-bf2d87eb4878",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "H_UsBT9YOE-NAjNPMqYwAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "e9bfd5f7-499f-47e8-82ea-877e8a628ad5",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "2c8e33bc-9811-4da3-a8d3-7ba6166ca100",
+        "createdDateTime":  "2025-05-02T09:06:46Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "894631d4-4e50-4027-ad1a-74efb032abd5",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Control Service",
+        "resourceId":  "e933bd07-d2ee-4f1d-933c-3752b819567b",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "vDOOLBGYo02o03umFmyhAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "5e311751-a6c7-4599-bb5c-535733ef0c8c",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "69743bb6-357c-4727-8752-3094c6898d00",
+        "createdDateTime":  "2025-05-02T08:21:05Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "f7afab03-72fe-440e-9507-d0cf836ea5f8",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Restricted",
+        "resourceId":  "035f9e1d-4f00-4419-bf50-bf2d87eb4878",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "tjt0aXw1J0eHUjCUxomNAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "e9bfd5f7-499f-47e8-82ea-877e8a628ad5",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "a0399a38-7a31-4651-853d-21b06da52900",
+        "createdDateTime":  "2025-05-02T08:21:04Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "aa758f74-0b41-44e9-86f7-67ead6ad9049",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Control Service",
+        "resourceId":  "e933bd07-d2ee-4f1d-933c-3752b819567b",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "OJo5oDF6UUaFPSGwbaUpAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "5e311751-a6c7-4599-bb5c-535733ef0c8c",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "3226ddf1-2a6f-4dcf-bad9-33c788e08200",
+        "createdDateTime":  "2025-05-02T07:35:27Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "978b05f0-dc8c-402a-ae7f-bcc9bdbf0c4f",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Restricted",
+        "resourceId":  "035f9e1d-4f00-4419-bf50-bf2d87eb4878",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "8d0mMm8qz0262TPHiOCCAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "e9bfd5f7-499f-47e8-82ea-877e8a628ad5",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "102c4e6e-3648-44dc-990b-ea90544e8d00",
+        "createdDateTime":  "2025-05-02T07:35:27Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "18ac424c-0e1a-4d2f-ba21-1cbcf46d8e51",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Control Service",
+        "resourceId":  "e933bd07-d2ee-4f1d-933c-3752b819567b",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "bk4sEEg23ESZC-qQVE6NAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "5e311751-a6c7-4599-bb5c-535733ef0c8c",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "69743bb6-357c-4727-8752-30943df98600",
+        "createdDateTime":  "2025-05-02T06:49:49Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "4c04fef0-bbf7-4b1f-8d25-f61fef330f35",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Restricted",
+        "resourceId":  "035f9e1d-4f00-4419-bf50-bf2d87eb4878",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "tjt0aXw1J0eHUjCUPfmGAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "e9bfd5f7-499f-47e8-82ea-877e8a628ad5",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "bd07212e-f20a-4e87-9bd3-d7d1ae672100",
+        "createdDateTime":  "2025-05-02T06:49:49Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "6b70a4cb-2346-42bc-80a0-f82d8f7d814a",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Control Service",
+        "resourceId":  "e933bd07-d2ee-4f1d-933c-3752b819567b",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "LiEHvQryh06b09fRrmchAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "5e311751-a6c7-4599-bb5c-535733ef0c8c",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "bd07212e-f20a-4e87-9bd3-d7d10fdb1e00",
+        "createdDateTime":  "2025-05-02T06:04:11Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "c80edb5b-4980-45b8-ae25-d6dc843ec97c",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Restricted",
+        "resourceId":  "035f9e1d-4f00-4419-bf50-bf2d87eb4878",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "LiEHvQryh06b09fRD9seAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "e9bfd5f7-499f-47e8-82ea-877e8a628ad5",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "5891b613-3beb-4792-9926-4be4fe6e2800",
+        "createdDateTime":  "2025-05-02T06:04:11Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "5d1c3d63-3697-47cf-b092-d1650fa5a5bc",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Control Service",
+        "resourceId":  "e933bd07-d2ee-4f1d-933c-3752b819567b",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "E7aRWOs7kkeZJkvk_m4oAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "5e311751-a6c7-4599-bb5c-535733ef0c8c",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "04651d7b-b299-4ebd-a995-a3626cc86e00",
+        "createdDateTime":  "2025-05-02T05:18:38Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "9034976f-5347-43a9-90ec-b627d59db359",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Restricted",
+        "resourceId":  "035f9e1d-4f00-4419-bf50-bf2d87eb4878",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "ex1lBJmyvU6plaNibMhuAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "e9bfd5f7-499f-47e8-82ea-877e8a628ad5",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "8ca31eac-74a3-4993-bd56-b8ea03688400",
+        "createdDateTime":  "2025-05-02T05:18:38Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "f3698312-eead-4978-ae19-4bbb32ed604a",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Control Service",
+        "resourceId":  "e933bd07-d2ee-4f1d-933c-3752b819567b",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "rB6jjKN0k0m9VrjqA2iEAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "5e311751-a6c7-4599-bb5c-535733ef0c8c",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "a0399a38-7a31-4651-853d-21b0dd601b00",
+        "createdDateTime":  "2025-05-02T04:33:04Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "373e34d8-5a53-4cc0-980c-c8aed279edfb",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Restricted",
+        "resourceId":  "035f9e1d-4f00-4419-bf50-bf2d87eb4878",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "OJo5oDF6UUaFPSGw3WAbAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "e9bfd5f7-499f-47e8-82ea-877e8a628ad5",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "55d17f66-4843-4c1b-b70a-ede863e36500",
+        "createdDateTime":  "2025-05-02T04:33:04Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "64707c80-bc43-4be2-803c-71dd4a9fe991",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Control Service",
+        "resourceId":  "e933bd07-d2ee-4f1d-933c-3752b819567b",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "Zn_RVUNIG0y3Cu3oY-NlAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "5e311751-a6c7-4599-bb5c-535733ef0c8c",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "be600275-1f4f-4139-a955-89f1fa481b00",
+        "createdDateTime":  "2025-05-02T03:47:26Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "edfda169-4014-4d72-b55e-7e3f64b2c2ae",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Restricted",
+        "resourceId":  "035f9e1d-4f00-4419-bf50-bf2d87eb4878",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "dQJgvk8fOUGpVYnx-kgbAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "e9bfd5f7-499f-47e8-82ea-877e8a628ad5",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "052cf51f-583f-4f38-8d02-334f38441b00",
+        "createdDateTime":  "2025-05-02T03:47:26Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "c3ddc987-cda3-41c9-b2e9-8ca097e10a2c",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Control Service",
+        "resourceId":  "e933bd07-d2ee-4f1d-933c-3752b819567b",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "H_UsBT9YOE-NAjNPOEQbAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "5e311751-a6c7-4599-bb5c-535733ef0c8c",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "dd775d5f-e70e-44ed-8128-303c6b8f7b00",
+        "createdDateTime":  "2025-05-02T03:01:51Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "62276344-b011-458e-9459-1104d473cc0b",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Restricted",
+        "resourceId":  "035f9e1d-4f00-4419-bf50-bf2d87eb4878",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "X1133Q7n7USBKDA8a497AA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "e9bfd5f7-499f-47e8-82ea-877e8a628ad5",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "55d17f66-4843-4c1b-b70a-ede865856200",
+        "createdDateTime":  "2025-05-02T03:01:51Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "83cbf93b-26e5-42e0-9128-47a28f1b2950",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Control Service",
+        "resourceId":  "e933bd07-d2ee-4f1d-933c-3752b819567b",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "Zn_RVUNIG0y3Cu3oZYViAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "5e311751-a6c7-4599-bb5c-535733ef0c8c",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "be600275-1f4f-4139-a955-89f1141b1600",
+        "createdDateTime":  "2025-05-02T02:16:18Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "b1688f74-66eb-4a63-8c28-af6a103d1806",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Restricted",
+        "resourceId":  "035f9e1d-4f00-4419-bf50-bf2d87eb4878",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "dQJgvk8fOUGpVYnxFBsWAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "e9bfd5f7-499f-47e8-82ea-877e8a628ad5",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "9d9557b4-d6bf-4e9e-8820-cab64de96300",
+        "createdDateTime":  "2025-05-02T02:16:18Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "56a7d8b4-c982-4d73-b7f9-a43fda30aa39",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Control Service",
+        "resourceId":  "e933bd07-d2ee-4f1d-933c-3752b819567b",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "tFeVnb_Wnk6IIMq2TeljAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "5e311751-a6c7-4599-bb5c-535733ef0c8c",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "dd775d5f-e70e-44ed-8128-303c56727700",
+        "createdDateTime":  "2025-05-02T01:30:42Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "c7d711f4-297f-44ba-956d-691c43750e2f",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Restricted",
+        "resourceId":  "035f9e1d-4f00-4419-bf50-bf2d87eb4878",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "X1133Q7n7USBKDA8VnJ3AA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "e9bfd5f7-499f-47e8-82ea-877e8a628ad5",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "87a0564f-5cf2-444c-b1bf-66eaa8600d00",
+        "createdDateTime":  "2025-05-02T01:30:42Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "eb208397-b158-4a48-94f7-2c544a8a2e19",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Control Service",
+        "resourceId":  "e933bd07-d2ee-4f1d-933c-3752b819567b",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "T1agh_JcTESxv2bqqGANAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "5e311751-a6c7-4599-bb5c-535733ef0c8c",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "bd07212e-f20a-4e87-9bd3-d7d1a4070f00",
+        "createdDateTime":  "2025-05-02T00:45:02Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "c780be75-d646-4a8c-bd32-27f87e47f589",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Restricted",
+        "resourceId":  "035f9e1d-4f00-4419-bf50-bf2d87eb4878",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "LiEHvQryh06b09fRpAcPAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "e9bfd5f7-499f-47e8-82ea-877e8a628ad5",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    },
+    {
+        "id":  "04651d7b-b299-4ebd-a995-a3622e9a5e00",
+        "createdDateTime":  "2025-05-02T00:45:02Z",
+        "userDisplayName":  "",
+        "userPrincipalName":  "",
+        "userId":  "",
+        "appId":  "18c1bc0a-3d0c-4862-9be5-7460bbba6e0e",
+        "appDisplayName":  "tokens-1",
+        "ipAddress":  "",
+        "ipAddressFromResourceProvider":  null,
+        "clientAppUsed":  "",
+        "userAgent":  "",
+        "correlationId":  "f792842d-9d6e-42d0-9063-a61515bb913a",
+        "conditionalAccessStatus":  "notApplied",
+        "originalRequestId":  "",
+        "isInteractive":  false,
+        "tokenIssuerName":  "",
+        "tokenIssuerType":  "UnknownFutureValue",
+        "clientCredentialType":  "managedIdentity",
+        "processingTimeInMilliseconds":  -1,
+        "riskDetail":  "none",
+        "riskLevelAggregated":  "none",
+        "riskLevelDuringSignIn":  "none",
+        "riskState":  "none",
+        "riskEventTypes_v2":  [
+
+                              ],
+        "resourceDisplayName":  "Azure Monitor Control Service",
+        "resourceId":  "e933bd07-d2ee-4f1d-933c-3752b819567b",
+        "resourceTenantId":  "",
+        "homeTenantId":  "",
+        "homeTenantName":  "",
+        "authenticationMethodsUsed":  [
+
+                                      ],
+        "authenticationRequirement":  "",
+        "signInIdentifier":  "",
+        "signInIdentifierType":  null,
+        "servicePrincipalName":  "tokens-1",
+        "signInEventTypes":  [
+                                 "managedIdentity"
+                             ],
+        "servicePrincipalId":  "3e3cdeeb-9575-46bc-a20a-6241f409a96b",
+        "federatedCredentialId":  "",
+        "userType":  null,
+        "flaggedForReview":  false,
+        "isTenantRestricted":  false,
+        "autonomousSystemNumber":  0,
+        "crossTenantAccessType":  "none",
+        "servicePrincipalCredentialKeyId":  "",
+        "servicePrincipalCredentialThumbprint":  "",
+        "uniqueTokenIdentifier":  "ex1lBJmyvU6plaNiLppeAA",
+        "incomingTokenType":  "none",
+        "authenticationProtocol":  "none",
+        "resourceServicePrincipalId":  "5e311751-a6c7-4599-bb5c-535733ef0c8c",
+        "signInTokenProtectionStatus":  "none",
+        "originalTransferMethod":  "none",
+        "isThroughGlobalSecureAccess":  false,
+        "globalSecureAccessIpAddress":  "",
+        "sessionId":  "",
+        "appOwnerTenantId":  "",
+        "resourceOwnerTenantId":  "",
+        "mfaDetail":  null,
+        "authenticationAppDeviceDetails":  null,
+        "conditionalAccessAudiences":  [
+
+                                       ],
+        "status":  {
+                       "errorCode":  0,
+                       "failureReason":  "Other.",
+                       "additionalDetails":  null
+                   },
+        "deviceDetail":  {
+                             "deviceId":  "",
+                             "displayName":  "",
+                             "operatingSystem":  "",
+                             "browser":  "",
+                             "isCompliant":  null,
+                             "isManaged":  null,
+                             "trustType":  ""
+                         },
+        "location":  {
+                         "city":  "",
+                         "state":  "",
+                         "countryOrRegion":  "",
+                         "geoCoordinates":  {
+                                                "altitude":  null,
+                                                "latitude":  null,
+                                                "longitude":  null
+                                            }
+                     },
+        "appliedConditionalAccessPolicies":  [
+
+                                             ],
+        "authenticationContextClassReferences":  [
+
+                                                 ],
+        "authenticationProcessingDetails":  [
+
+                                            ],
+        "networkLocationDetails":  [
+
+                                   ],
+        "authenticationDetails":  [
+
+                                  ],
+        "authenticationRequirementPolicies":  [
+
+                                              ],
+        "sessionLifetimePolicies":  [
+
+                                    ],
+        "privateLinkDetails":  {
+                                   "policyId":  "",
+                                   "policyName":  "",
+                                   "resourceId":  "",
+                                   "policyTenantId":  ""
+                               },
+        "appliedEventListeners":  [
+
+                                  ],
+        "authenticationAppPolicyEvaluationDetails":  [
+
+                                                     ],
+        "managedServiceIdentity":  {
+                                       "msiType":  "none",
+                                       "associatedResourceId":  "/subscriptions/2b97dfaf-c5a5-4546-82c2-a3afdc570ed5/resourcegroups/IT-Production/providers/microsoft.compute/virtualMachines/tokens-1",
+                                       "federatedTokenId":  "",
+                                       "federatedTokenIssuer":  ""
+                                   },
+        "tokenProtectionStatusDetails":  {
+                                             "signInSessionStatus":  "none",
+                                             "signInSessionStatusCode":  null
+                                         }
+    }
+]

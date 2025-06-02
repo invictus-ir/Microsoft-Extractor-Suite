@@ -132,7 +132,20 @@ Each functionality requires one of the following permissions:
 |                           +-----------------------------------------+
 |                           | Directory.Read.All                      |
 +---------------------------+-----------------------------------------+
-
+| Role Activity information | User.Read.All                           |
+|                           +-----------------------------------------+
+|                           | Directory.Read.All                      |
+|                           +-----------------------------------------+
+|                           | AuditLog.Read.All                       |
++---------------------------+-----------------------------------------+
+| PIM Role Assignments      | RoleAssignmentSchedule.Read.Directory   |
+|                           +-----------------------------------------+
+|                           | RoleEligibilitySchedule.Read.Directory  |
+|                           +-----------------------------------------+
+|                           | User.Read.All                           |
+|                           +-----------------------------------------+
+|                           | Group.Read.All                          |
++---------------------------+-----------------------------------------+
 
 Authentication Methods
 """"""""""""""""""""""""""

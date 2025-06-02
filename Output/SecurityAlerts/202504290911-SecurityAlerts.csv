@@ -1,0 +1,2 @@
+﻿"Id","Title","Category","Severity","Status","CreatedDateTime","LastModifiedDateTime","AssignedTo","Description","DetectionSource","DetectionTimingType","Confidence","UserStates","HostStates","Comments","Vendor","Provider","ProviderVersion"
+"7780882c857c29ab803776a1279096c835a757cc643dcc49d41f7b9a54c3ee34","Atypical travel","ImpossibleTravel","low","newAlert","4/25/2025 2:30:53 PM","4/25/2025 2:47:31 PM",,"Sign-in from an atypical location based on the user’s recent sign-ins",,,," (172.205.146.219);  (163.116.240.152)","","","Microsoft","IPC",
