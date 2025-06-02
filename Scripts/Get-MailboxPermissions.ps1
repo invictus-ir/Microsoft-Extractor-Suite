@@ -23,6 +23,7 @@ function Get-MailboxPermissions {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
     
     .EXAMPLE
@@ -41,12 +42,14 @@ function Get-MailboxPermissions {
     param (
         [string]$outputDir = "Output\Delegated Permissions",
         [string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
         [string]$UserIds
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
     $summary = @{
         TotalMailboxes = 0
         MailboxesProcessed = 0
@@ -63,6 +66,35 @@ function Get-MailboxPermissions {
     }
 
     Write-LogFile -Message "=== Starting Mailbox Permissions Collection ===" -Color "Cyan" -Level Minimal
+    
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $outputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
+        
+        $exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
+        if ($exchangeModule) {
+            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
+        }
+
+        try {
+            $connectionInfo = Get-ConnectionInformation -ErrorAction SilentlyContinue
+            if ($connectionInfo) {
+                Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
+                Write-LogFile -Message "[DEBUG] Connection Type: $($connectionInfo.TokenStatus)" -Level Debug
+                Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug
+            } else {
+                Write-LogFile -Message "[DEBUG] No active Exchange Online connection found" -Level Debug
+            }
+        } catch {
+            Write-LogFile -Message "[DEBUG] Unable to retrieve connection information" -Level Debug
+        }
+    }
 
     $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
     $outputFile = "$($date)-MailboxDelegatedPermissions.csv"
@@ -83,6 +115,12 @@ function Get-MailboxPermissions {
     catch {
         write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow" -Level Minimal
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Connection error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
         throw
     }
 
@@ -110,6 +148,13 @@ function Get-MailboxPermissions {
             Write-Progress -Activity "Checking delegated permissions" -Status "Processing $($mailbox.DisplayName)" -PercentComplete (($current / $totalMailboxes) * 100)
         }
 
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Mailbox details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Display Name: $($mailbox.DisplayName)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   UPN: $($mailbox.UserPrincipalName)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Type: $($mailbox.RecipientTypeDetails)" -Level Debug
+        }
+
         # Get Full Access permissions
         $fullAccessDetails = Get-MailboxPermission -Identity $mailbox.UserPrincipalName | 
             Where-Object {
@@ -118,6 +163,11 @@ function Get-MailboxPermissions {
                 $_.User -notlike "DiscoverySearchMailbox" -and 
                 $_.User -notlike "S-1-5*"
             }
+
+        if ($isDebugEnabled) {
+            $fullAccessCount = ($fullAccessDetails | Measure-Object).Count
+            Write-LogFile -Message "[DEBUG]   Found $fullAccessCount Full Access permissions" -Level Debug
+        }
 
         # Get Send As permissions
         $sendAsDetails = $null
@@ -129,6 +179,10 @@ function Get-MailboxPermissions {
                     $_.User -notlike "DiscoverySearchMailbox" -and 
                     $_.Trustee -notlike "S-1-5*"
                 }
+            if ($isDebugEnabled) {
+                $sendAsCount = ($sendAsDetails | Measure-Object).Count
+                Write-LogFile -Message "[DEBUG]   Found $sendAsCount Send As permissions" -Level Debug
+            }
         }
         catch [System.Management.Automation.CommandNotFoundException] {
             if ($LogLevel -eq 'Standard') {
@@ -139,10 +193,21 @@ function Get-MailboxPermissions {
             if ($LogLevel -eq 'Standard') {
                 Write-LogFile -Message "[WARNING] Error getting Send As permissions for $($mailbox.UserPrincipalName): $($_.Exception.Message)" -Color "Yellow" -Level Standard
             }
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Mailbox retrieval error details:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+            }
         }
 
         # Get Send on Behalf permissions
         $sendOnBehalfUsers = $mailbox.GrantSendOnBehalfTo | Where-Object {$_ -ne $null}
+
+        if ($isDebugEnabled) {
+            $sendOnBehalfCount = ($sendOnBehalfUsers | Measure-Object).Count
+            Write-LogFile -Message "[DEBUG]   Found $sendOnBehalfCount Send on Behalf permissions" -Level Debug
+        }
         
         # Get Calendar Folder Permissions
         $calendarPermissions = @()
@@ -153,6 +218,11 @@ function Get-MailboxPermissions {
                     $_.User.DisplayName -notlike "Anonymous" -and 
                     $_.User.DisplayName -notlike "NT AUTHORITY\SELF"
                 }
+
+            if ($isDebugEnabled) {
+                $calendarCount = ($calendarPermissions | Measure-Object).Count
+                Write-LogFile -Message "[DEBUG]   Found $calendarCount Calendar permissions" -Level Debug
+            }
         }
         catch {
         }
@@ -166,6 +236,11 @@ function Get-MailboxPermissions {
                     $_.User.DisplayName -notlike "Anonymous" -and 
                     $_.User.DisplayName -notlike "NT AUTHORITY\SELF"
                 }
+
+            if ($isDebugEnabled) {
+                $inboxCount = ($inboxPermissions | Measure-Object).Count
+                Write-LogFile -Message "[DEBUG]   Found $inboxCount Inbox permissions" -Level Debug
+            }
         }
         catch {
         }

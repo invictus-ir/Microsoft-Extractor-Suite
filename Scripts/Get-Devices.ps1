@@ -27,6 +27,7 @@ function Get-Devices {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
     
     .EXAMPLE
@@ -55,12 +56,13 @@ function Get-Devices {
         [string]$Encoding = "UTF8",
         [ValidateSet("CSV", "JSON")]
         [string]$Output = "CSV",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
         [string]$UserIds
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
     $date = Get-Date -Format "yyyyMMddHHmm"
     $summary = @{
         TotalDevices = 0
@@ -80,6 +82,26 @@ function Get-Devices {
         ProcessingTime = $null
     }
 
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Output: $Output" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
+        
+        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModule) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModule) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+
     Write-LogFile -Message "=== Starting Device Collection ===" -Color "Cyan" -Level Minimal
 
     if (!(test-path $OutputDir)) {
@@ -97,6 +119,22 @@ function Get-Devices {
     $requiredScopes = @("Device.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication completed" -Level Debug
+        try {
+            $context = Get-MgContext
+            if ($context) {
+                Write-LogFile -Message "[DEBUG] Graph context information:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Account: $($context.Account)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Environment: $($context.Environment)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   TenantId: $($context.TenantId)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Scopes: $($context.Scopes -join ', ')" -Level Debug
+            }
+        } catch {
+            Write-LogFile -Message "[DEBUG] Could not retrieve Graph context details" -Level Debug
+        }
+    }
+
     try {
         write-logFile -Message "[INFO] Collecting device information..." -Level Standard
         $devices = Get-MgDevice -All
@@ -107,9 +145,19 @@ function Get-Devices {
             $filteredDevices = @()
             
             foreach ($device in $devices) {
-                $owners = Get-MgDeviceRegisteredOwner -DeviceId $device.Id
-                $users = Get-MgDeviceRegisteredUser -DeviceId $device.Id
-                
+                try {
+                    $owners = Get-MgDeviceRegisteredOwner -DeviceId $device.Id -ErrorAction SilentlyContinue
+                    $users = Get-MgDeviceRegisteresdUser -DeviceId $device.Id -ErrorAction SilentlyContinue
+                } catch {
+                    Write-LogFile -Message "[WARNING] Failed to retrieve owners/users for device $($device.DisplayName) (ID: $($device.Id)). Error: $($_.Exception.Message)" -Level Standard -Color "Yellow"
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG] Owner/User retrieval error:" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Device ID: $($device.Id)" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+                    }
+                }    
+
                 $matchFound = $false
                 foreach ($userId in $userIdList) {
                     if (($owners.AdditionalProperties.userPrincipalName -contains $userId) -or 
@@ -137,6 +185,11 @@ function Get-Devices {
 
         foreach ($device in $devices) {
             $current++
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Processing device: $($device.DisplayName) (ID: $($device.Id))" -Level Debug
+                Write-LogFile -Message "[DEBUG]   TrustType: $($device.TrustType)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   OperatingSystem: $($device.OperatingSystem)" -Level Debug
+            }
             if ($LogLevel -eq 'Standard') {
                 Write-Progress -Activity "Processing devices" -Status "Processing device $($current) of $($totalDevices)" -PercentComplete (($current / $totalDevices) * 100)
             }
@@ -240,6 +293,13 @@ function Get-Devices {
     }
     catch {
         write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Fatal error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Devices collected before error: $($results.Count)" -Level Debug
+        }
         throw
     }
 }

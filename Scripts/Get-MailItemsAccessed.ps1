@@ -28,6 +28,7 @@ Function Get-Sessions {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
 
 	.PARAMETER Encoding
@@ -56,11 +57,13 @@ Function Get-Sessions {
 		[string]$Encoding = "UTF8",
         [ValidateSet("Yes", "No")]
         [string]$Output = "Yes",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
     $summary = @{
         TotalEvents = 0
         UniqueSessions = @{}
@@ -68,6 +71,39 @@ Function Get-Sessions {
         StartTime = Get-Date
         ProcessingTime = $null
         QueryType = "All Events"
+    }
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   StartDate: $StartDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   EndDate: $EndDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
+        Write-LogFile -Message "[DEBUG]   IP: $IP" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Output: $Output" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        
+        $exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
+        if ($exchangeModule) {
+            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
+        }
+
+        try {
+            $connectionInfo = Get-ConnectionInformation -ErrorAction SilentlyContinue
+            if ($connectionInfo) {
+                Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
+                Write-LogFile -Message "[DEBUG] Connection Type: $($connectionInfo.TokenStatus)" -Level Debug
+                Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug
+            } else {
+                Write-LogFile -Message "[DEBUG] No active Exchange Online connection found" -Level Debug
+            }
+        } catch {
+            Write-LogFile -Message "[DEBUG] Unable to retrieve connection information" -Level Debug
+        }
     }
 
     if (!(test-path $OutputDir)) {
@@ -82,10 +118,27 @@ Function Get-Sessions {
 
     if ($UserIds -and $IP) {
         $summary.QueryType = "User and IP Filter"
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Query type: User and IP Filter" -Level Debug
+            Write-LogFile -Message "[DEBUG]   User: $UserIds" -Level Debug
+            Write-LogFile -Message "[DEBUG]   IP: $IP" -Level Debug
+        }
     } elseif ($UserIds) {
         $summary.QueryType = "User Filter"
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Query type: User Filter" -Level Debug
+            Write-LogFile -Message "[DEBUG]   User: $UserIds" -Level Debug
+        }
     } elseif ($IP) {
         $summary.QueryType = "IP Filter"
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Query type: IP Filter" -Level Debug
+            Write-LogFile -Message "[DEBUG]   IP: $IP" -Level Debug
+        }
+    } else {
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Query type: All Events (no filter)" -Level Debug
+        }
     }
 
     Write-LogFile -Message "=== Starting Session Collection ===" -Color "Cyan" -Level Minimal
@@ -97,6 +150,12 @@ Function Get-Sessions {
         catch {
             write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow" -Level Minimal
             Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Connection error details:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+            }
             throw
         }
 
@@ -105,11 +164,25 @@ Function Get-Sessions {
         }
 
         else {   
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Retrieving audit logs for user: $UserIds" -Level Debug
+            }
             $mailItemRecords = (Search-UnifiedAuditLog -UserIds $UserIds -StartDate $StartDate -EndDate $EndDate -ResultSize 5000 -Operations "MailItemsAccessed")
             $Results = @()
             
             foreach($rec in $mailItemRecords) {
                 $AuditData = ConvertFrom-Json $Rec.Auditdata
+
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] Processing audit record:" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   CreationTime: $($AuditData.CreationTime)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   UserId: $($AuditData.UserId)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Operation: $($AuditData.Operation)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   SessionId: $($AuditData.SessionId)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   ClientIPAddress: $($AuditData.ClientIPAddress)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   OperationCount: $($AuditData.OperationCount)" -Level Debug
+                }
+
                 $Line = [PSCustomObject]@{
                     TimeStamp   = $AuditData.CreationTime
                     User        = $AuditData.UserId
@@ -122,10 +195,18 @@ Function Get-Sessions {
                 $summary.TotalEvents++
                 if ($AuditData.SessionId) {
                     $summary.UniqueSessions[$AuditData.SessionId] = $true
+
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG]   Added SessionId to unique sessions: $($AuditData.SessionId)" -Level Debug
+                    }
                 }
                 
                 if ($AuditData.OperationCount) {
                     $summary.OperationCount += $AuditData.OperationCount
+
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG]   Added OperationCount: $($AuditData.OperationCount)" -Level Debug
+                    }
                 }                
                 $Results += $Line
             }
@@ -179,6 +260,13 @@ Function Get-Sessions {
                     $Results += $Line
                 }
              }
+
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Processing complete" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Total events processed: $($summary.TotalEvents)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Unique sessions found: $($summary.UniqueSessions.Count)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Total operation count: $($summary.OperationCount)" -Level Debug
+            }
                 
             $Results | Sort SessionId, TimeStamp | Format-Table Timestamp, User, Action, SessionId, ClientIP, OperationCount -AutoSize
         }
@@ -231,6 +319,13 @@ Function Get-Sessions {
                     $Results += $Line
                 }
             }
+
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Processing complete" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Total events processed: $($summary.TotalEvents)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Unique sessions found: $($summary.UniqueSessions.Count)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Total operation count: $($summary.OperationCount)" -Level Debug
+            }
                 
             $Results | Sort SessionId, TimeStamp | Format-Table Timestamp, User, Action, SessionId, ClientIP, OperationCount -AutoSize
         }
@@ -279,6 +374,14 @@ Function Get-Sessions {
                    
                 $Results += $Line
             }
+
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Processing complete" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Total events processed: $($summary.TotalEvents)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Unique sessions found: $($summary.UniqueSessions.Count)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Total operation count: $($summary.OperationCount)" -Level Debug
+            }
+
             $Results | Sort SessionId, TimeStamp | Format-Table Timestamp, User, Action, SessionId, ClientIP, OperationCount -AutoSize
         }
         if (($Output -eq "Yes") -and $results.Count -gt 0) {
@@ -345,6 +448,7 @@ function Get-MessageIDs {
 	None:  No logging
 	Minimal: Critical errors only
 	Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
 	Default: Standard
 
     .PARAMETER Download
@@ -373,16 +477,51 @@ function Get-MessageIDs {
         [ValidateSet("Yes", "No")]
         [string]$Output = "Yes",
         [switch]$Download,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
     $summary = @{
         TotalEvents = 0
         StartTime = Get-Date
         ProcessingTime = $null
         QueryType = "All Events"
+    }
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   StartDate: $StartDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   EndDate: $EndDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   IP: $IP" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Sessions: $Sessions" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Output: $Output" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Download: $($Download.IsPresent)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        
+        $exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
+        if ($exchangeModule) {
+            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
+        }
+
+        if ($Download.IsPresent) {
+            $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+            if ($graphModule) {
+                Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+                foreach ($module in $graphModule) {
+                    Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+                }
+            } else {
+                Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+            }
+        }
     }
 
     if (!(test-path $OutputDir)) {
@@ -771,6 +910,13 @@ function DownloadMails($iMessageID,$UserIds){
     if ($iMessageID -is [array]) {
         $iMessageID = $iMessageID[0]
     }
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] DownloadMails function called" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Input iMessageID: '$iMessageID'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Input UserIds: '$UserIds'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Current fileCounter: $script:fileCounter" -Level Debug
+    }
     
     if (-not (Get-Variable -Name fileCounter -ErrorAction SilentlyContinue)) {
         $script:fileCounter = 1
@@ -791,16 +937,31 @@ function DownloadMails($iMessageID,$UserIds){
     try {
         try {
             $onlyMessageID = $iMessageID.Split(" ")[0]
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Processing message ID split" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Original ID: '$iMessageID'" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Split ID: '$onlyMessageID'" -Level Debug
+            }
         }
         catch {
             Write-logFile -Message "[WARNING] Unable to download message with unknown ID '$iMessageID'." -Color "Yellow" -Level minimal
         }
 
         try {
-            $getMessage = Get-MgUserMessage -Filter "internetMessageId eq '$onlyMessageID'" -UserId $userId -ErrorAction Stop
+            $getMessage = Get-MgUserMessage -Filter "internetMessageId eq '$onlyMessageID'" -UserId $UserIds -ErrorAction Stop
+
             if ($null -eq $getMessage) {
                 Write-LogFile -Message "[WARNING] No message found with ID '$onlyMessageID'" -Color "Yellow" -Level Minimal
                 return
+            }
+
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Successfully retrieved message from Graph API" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Message ID: '$($getMessage.Id)'" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Subject: '$($getMessage.Subject)'" -Level Debug
+                Write-LogFile -Message "[DEBUG]   ReceivedDateTime: '$($getMessage.ReceivedDateTime)'" -Level Debug
+                Write-LogFile -Message "[DEBUG]   HasAttachments: '$($getMessage.HasAttachments)'" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Attachments count: $($getMessage.Attachments.Count)" -Level Debug
             }
 
             if ($messageId -match " ") {
@@ -823,13 +984,22 @@ function DownloadMails($iMessageID,$UserIds){
         $subject = $getMessage.Subject
         $subject = $subject -replace '[\\/:*?"<>|]', '_'
 
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] File naming preparation" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Processed date: '$ReceivedDateTime'" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Original subject: '$($getMessage.Subject)'" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Sanitized subject: '$subject'" -Level Debug
+        }
+
         do {
             $filePath = "$outputDir\$($script:fileCounter.ToString('D3'))-$ReceivedDateTime-$subject.eml"
             $script:fileCounter++
         } while (Test-Path $filePath)
 
         try {
-            Get-MgUserMessageContent -MessageId $messageId -UserId $userId -OutFile $filePath
+            Get-MgUserMessageContent -MessageId $messageId -UserId $UserIds -OutFile $filePath
+
+
             Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green" -Level Standard
         } catch {
             if ($_.Exception.Message -like "*Cannot bind argument to parameter 'MessageId' because it is an empty string*") {
@@ -841,7 +1011,8 @@ function DownloadMails($iMessageID,$UserIds){
 
         if ($attachment -eq "True"){
             Write-logFile -Message "[INFO] Found Attachment file!" -Level Standard
-            $attachment = Get-MgUserMessageAttachment -UserId $userIds -MessageId $messageId
+            $attachment = Get-MgUserMessageAttachment -UserId $UserIds -MessageId $messageId
+
             $filename = $attachment.Name
 
             Write-logFile -Message "[INFO] Downloading attachment" -Level Standard

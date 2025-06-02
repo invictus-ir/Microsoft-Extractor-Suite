@@ -66,9 +66,12 @@ function Get-MailboxAuditLog
         [string]$Output = "CSV",
         [switch]$MergeOutput,
         [string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
+
+    Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
 
     Write-LogFile -Message "== Starting the Mailbox Audit Log Collection (utilizing Get-UAL) ==" -Level Minimal
 
@@ -147,6 +150,7 @@ function Get-MailboxAuditLogLegacy
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
     
 	.EXAMPLE
@@ -172,9 +176,12 @@ function Get-MailboxAuditLogLegacy
 		[string]$EndDate,
 		[string]$OutputDir = "Output\MailboxAuditLog",
 		[string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
+
+    Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
 
 	try {
         $areYouConnected = Search-MailboxAuditlog -ErrorAction stop
@@ -183,6 +190,37 @@ function Get-MailboxAuditLogLegacy
         Write-LogFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Level Minimal -Color "Yellow"
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Level Minimal -Color "Red"
         throw
+    }
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
+        Write-LogFile -Message "[DEBUG]   StartDate: $StartDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   EndDate: $EndDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        
+        $exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
+        if ($exchangeModule) {
+            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
+        }
+
+        try {
+            $connectionInfo = Get-ConnectionInformation -ErrorAction SilentlyContinue
+            if ($connectionInfo) {
+                Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
+                Write-LogFile -Message "[DEBUG] Connection Type: $($connectionInfo.TokenStatus)" -Level Debug
+                Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug
+            } else {
+                Write-LogFile -Message "[DEBUG] No active Exchange Online connection found" -Level Debug
+            }
+        } catch {
+            Write-LogFile -Message "[DEBUG] Unable to retrieve connection information" -Level Debug
+        }
     }
 
     Write-LogFile -Message "[INFO] Running Get-MailboxAuditLogLegacy" -Level Minimal -Color "Green"

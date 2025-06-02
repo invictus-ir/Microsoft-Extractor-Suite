@@ -32,6 +32,7 @@ function Get-DirectoryActivityLogs {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
 	
     .EXAMPLE
@@ -53,11 +54,35 @@ function Get-DirectoryActivityLogs {
 		[string]$output = "CSV",
 		[string]$outputDir = "Output\DirectoryActivityLogs",
 		[string]$encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'	
 	)
 
+    Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
     Write-LogFile -Message "=== Starting Directory Activity Log Analysis ===" -Color "Cyan" -Level Minimal
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   StartDate: $StartDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   EndDate: $endDate" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Output: $output" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $outputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $encoding" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        
+        $azModule = Get-Module -Name Az* -ErrorAction SilentlyContinue
+        if ($azModule) {
+            Write-LogFile -Message "[DEBUG] Azure Modules loaded:" -Level Debug
+            foreach ($module in $azModule) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Azure modules loaded" -Level Debug
+        }
+    }
 	
 	StartDate -Quiet
     EndDate -Quiet
@@ -82,16 +107,47 @@ function Get-DirectoryActivityLogs {
 	try {
 		$encryptedToken  = (Get-AzAccessToken -ResourceUrl "https://management.azure.com" -AsSecureString).token
 		$accessToken = [PSCredential]::new("token", $encryptedToken)
+
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Azure access token acquired successfully" -Level Debug
+            
+            try {
+                $azContext = Get-AzContext
+                if ($azContext) {
+                    Write-LogFile -Message "[DEBUG] Azure context information:" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Account: $($azContext.Account.Id)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Environment: $($azContext.Environment.Name)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Tenant: $($azContext.Tenant.Id)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Subscription: $($azContext.Subscription.Name)" -Level Debug
+                }
+            } catch {
+                Write-LogFile -Message "[DEBUG] Could not retrieve Azure context details" -Level Debug
+            }
+        }
 	}
 	catch {
 		write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-AzureAz command before executing this script" -Color "Yellow" -Level Minimal
 		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Token acquisition error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
 		throw
 	}
 
     Write-LogFile -Message "[INFO] Retrieving Directory Activity logs..." -Level Standard
     $uriBase = "https://management.azure.com/providers/microsoft.insights/eventtypes/management/values?api-version=2015-04-01&`$filter=eventTimestamp ge '$script:StartDate' and eventTimestamp le '$script:endDate'"
     $events = @()
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] API configuration:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Base URL: https://management.azure.com/providers/microsoft.insights/eventtypes/management/values" -Level Debug
+        Write-LogFile -Message "[DEBUG]   API Version: 2015-04-01" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Filter: eventTimestamp ge '$script:StartDate' and eventTimestamp le '$script:endDate'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Full URI: $uriBase" -Level Debug
+    }
 
     do {
         $listOperations = @{

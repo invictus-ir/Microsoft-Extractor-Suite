@@ -32,6 +32,7 @@ Function Get-Email {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
     
     .EXAMPLE
@@ -55,11 +56,12 @@ Function Get-Email {
         [string]$outputDir = "Output\EmailExport",
         [switch]$attachment,
         [string]$inputFile,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     ) 
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
     $summary = @{
         TotalProcessed = 0
         SuccessfulDownloads = 0
@@ -71,10 +73,48 @@ Function Get-Email {
         Errors = @()
     }
 
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds: $userIds" -Level Debug
+        Write-LogFile -Message "[DEBUG]   InternetMessageId: $internetMessageId" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Output: $Output" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $outputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Attachment: $($attachment.IsPresent)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   InputFile: $inputFile" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        
+        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModule) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModule) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+
     Write-LogFile -Message "=== Starting Email Export ===" -Color "Cyan" -Level Minimal
 
     $requiredScopes = @("Mail.Readwrite")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication completed" -Level Debug
+        try {
+            $context = Get-MgContext
+            if ($context) {
+                Write-LogFile -Message "[DEBUG] Graph context information:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Account: $($context.Account)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Environment: $($context.Environment)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   TenantId: $($context.TenantId)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Scopes: $($context.Scopes -join ', ')" -Level Debug
+            }
+        } catch {
+            Write-LogFile -Message "[DEBUG] Could not retrieve Graph context details" -Level Debug
+        }
+    }
 
     if (!(Test-Path -Path $outputDir)) {
         New-Item -ItemType Directory -Path $outputDir -Force > $null
@@ -87,12 +127,21 @@ Function Get-Email {
     $ProgressPreference = 'SilentlyContinue' 
 
     if ($inputFile) {
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Processing input file: $inputFile" -Level Debug
+        }
         try {
             $internetMessageIds = Get-Content $inputFile
             Write-LogFile -Message "[INFO] Found $($internetMessageIds.Count) messages in the input file to process" -Level Standard -Color "Green"
         }
         catch {
             write-LogFile -Message "[ERROR] Failed to read the input file. Ensure it is a text file with the message IDs on new lines: $_" -Level Minimal -Color "Red"
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Input file read error details:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   File path: $inputFile" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+            }
             return
         }
     
@@ -100,6 +149,13 @@ Function Get-Email {
             $summary.TotalProcessed++ 
             $id = $id.Trim()
             Write-LogFile -Message "[INFO] Processing Internet Message ID: $id" -Level Standard
+
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Processing message details:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Raw ID from file: '$($id)'" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Trimmed ID: '$($id)'" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Progress: $($summary.TotalProcessed) of $($internetMessageIds.Count)" -Level Debug
+            }
            
             try {
                 $getMessage = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages?filter=internetMessageId eq '$id'"
@@ -109,10 +165,25 @@ Function Get-Email {
                     Write-LogFile -Message "[WARNING] No message found for Internet Message ID: $($id). This might happen when the email is removed from the mailbox." -Level Minimal -Color "Yellow"
                     $notCollected += $id
                     $summary.FailedDownloads++
+
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG] Message not found details:" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Searched ID: $id" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   API response value count: $($getMessage.value.Count)" -Level Debug
+                    }
                     continue
                 }
 
                 $messageId = $message.Id
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] Message found successfully:" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Message ID: $messageId" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Subject: $($message.Subject)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Received: $($message.receivedDateTime)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   From: $($message.from.emailAddress.address)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Has attachments: $($message.hasAttachments)" -Level Debug
+                }
+
                 if ($processedMessages.ContainsKey($messageId)) {
                     $duplicateMessages += @{
                         'MessageId' = $messageId
@@ -121,12 +192,28 @@ Function Get-Email {
                     }
                     $summary.DuplicatesFound++
                     Write-LogFile -Message "[INFO] Duplicate message detected! Message ID $messageId was previously processed with Internet Message ID $($processedMessages[$messageId])" -Color "Yellow" -Level Standard
+
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG] Duplicate detection details:" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Duplicate message ID: $messageId" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   First seen with: $($processedMessages[$messageId])" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Current ID: $id" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Total duplicates found so far: $($summary.DuplicatesFound)" -Level Debug
+                    }
                     continue
                 }
 
                 $processedMessages[$messageId] = $id
                 $subject = $message.Subject -replace '[\\/:*?"<>|]', '_'
                 $extension = if ($output -eq "txt") { "txt" } else { "eml" }
+
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] File preparation:" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Original subject: $($message.Subject)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Sanitized subject: $subject" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   File extension: $extension" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Current file counter: $fileCounter" -Level Debug
+                }
 
                 try {
                     $ReceivedDateTime = [datetime]::Parse($message.receivedDateTime).ToString("yyyyMMdd_HHmmss")
@@ -140,6 +227,10 @@ Function Get-Email {
                         $filePath = "$outputDir\$($fileCounter.ToString('D3'))-$subject.$extension"
                         $fileCounter++
                     } while (Test-Path $filePath)
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG] Date parsing failed, using file path without date: $filePath" -Level Debug
+                        Write-LogFile -Message "[DEBUG] Date parsing error: $($_.Exception.Message)" -Level Debug
+                    }
                 }
 
                 $contentUri = "https://graph.microsoft.com/v1.0/users/$userIds/messages/" + $messageId + "/`$value"
@@ -161,6 +252,15 @@ Function Get-Email {
                 Write-LogFile -Message "[WARNING] Failed to collect message with ID '$id': $_"
                 Write-LogFile -Message "[ERROR] Failed to process message: $_" -Color "Red" -Level Minimal
                 $notCollected += $id
+
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] Message processing error details:" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Failed message ID: $id" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Total failures so far: $($summary.FailedDownloads)" -Level Debug
+                }
            }
         }
     }
@@ -178,12 +278,28 @@ Function Get-Email {
             if ($null -eq $message) {
                 Write-LogFile -Message "[WARNING] No message found for Internet Message ID: $($internetMessageId). This might happen when the email is removed from the mailbox." -Level Minimal -Color "Yellow"
                 $summary.FailedDownloads++
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] Single message not found:" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Searched ID: $internetMessageId" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   API response value count: $($getMessage.value.Count)" -Level Debug
+                }
                 return
             }
 
             $ReceivedDateTime = [datetime]::Parse($message.receivedDateTime).ToString("yyyyMMdd_HHmmss")
             $messageId = $message.id
             $subject = $message.Subject -replace '[\\/:*?"<>|]', '_'
+
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Single message details:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Message ID: $messageId" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Subject: $($message.Subject)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Sanitized subject: $subject" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Received: $($message.receivedDateTime)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Formatted date: $ReceivedDateTime" -Level Debug
+                Write-LogFile -Message "[DEBUG]   From: $($message.from.emailAddress.address)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Has attachments: $($message.hasAttachments)" -Level Debug
+            }
 
             $extension = if ($output -eq "txt") { "txt" } else { "eml" }
             do {
@@ -192,9 +308,26 @@ Function Get-Email {
             } while (Test-Path $filePath)
 
             $contentUri = "https://graph.microsoft.com/v1.0/users/$userIds/messages/" + $messageId + "/`$value"
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Single message download:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Content URI: $contentUri" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Output file path: $filePath" -Level Debug
+                Write-LogFile -Message "[DEBUG]   File extension: $extension" -Level Debug
+            }
+
             Invoke-MgGraphRequest -Method GET $contentUri -OutputFilePath $filePath
             $summary.SuccessfulDownloads++
             Write-LogFile -Message "[INFO] Output written to $filePath" -Color "Green" -Level Standard
+
+            if ($isDebugEnabled) {
+                $fileInfo = Get-Item $filePath -ErrorAction SilentlyContinue
+                Write-LogFile -Message "[DEBUG] Single message download completed:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Download time: $([math]::round($downloadPerformance.TotalSeconds, 2)) seconds" -Level Debug
+                if ($fileInfo) {
+                    Write-LogFile -Message "[DEBUG]   File size: $($fileInfo.Length) bytes" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   File created: $($fileInfo.CreationTime)" -Level Debug
+                }
+            }
 
             if ($attachment.IsPresent){
                 $attachmentProcessed = Get-Attachment -Userid $Userids -internetMessageId $internetMessageId
@@ -208,6 +341,14 @@ Function Get-Email {
             $summary.Errors += "Failed to process $internetMessageId : $_"
             Write-LogFile -Message "[WARNING] The 'Mail.Readwrite' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Yellow" -Level Minimal
             Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Level Minimal -Color "Red"
+
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Single message processing error details:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Failed message ID: $internetMessageId" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+            }
             return
         }  
     }
@@ -285,7 +426,7 @@ Function Get-Attachment {
         [Parameter(Mandatory=$true)]$userIds,
         [Parameter(Mandatory=$true)]$internetMessageId,
         [string]$outputDir = "Output\EmailExport",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
@@ -369,7 +510,7 @@ Function Show-Email {
     param(
         [Parameter(Mandatory=$true)]$userIds,
         [Parameter(Mandatory=$true)]$internetMessageId,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 

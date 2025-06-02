@@ -528,7 +528,7 @@ function Start-EvidenceCollection {
         [ValidateSet('All', 'Azure', 'M365')]
         [string]$Platform = 'All',
         [Parameter(Mandatory=$false)]
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Minimal',
         [Parameter(Mandatory=$false)]
         [string]$UserIds,

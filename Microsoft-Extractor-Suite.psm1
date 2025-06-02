@@ -101,6 +101,7 @@ enum LogLevel {
     None     = 0
     Minimal  = 1
     Standard = 2
+    Debug    = 3
 }
 
 $script:LogLevel = [LogLevel]::Standard
@@ -119,7 +120,7 @@ function Write-LogFile {
     param(
         [Parameter(Mandatory=$true)]
         [string]$Message,
-        [string]$Color = "White",
+        [string]$Color,
         [switch]$NoNewLine,
         [LogLevel]$Level = [LogLevel]::Standard
     )
@@ -136,6 +137,10 @@ function Write-LogFile {
 	if (!(test-path $outputDir)) {
 		New-Item -ItemType Directory -Force -Name $Outputdir > $null
 	}
+
+    if(!$color -and $Level -eq [LogLevel]::Debug) {
+        $color = "Yellow"
+    }
 
 	switch ($color) {
         "Yellow" { [Console]::ForegroundColor = [ConsoleColor]::Yellow }

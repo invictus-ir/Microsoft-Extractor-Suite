@@ -23,6 +23,7 @@ function Get-MFA {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
     
     .EXAMPLE
@@ -46,16 +47,49 @@ function Get-MFA {
         [string]$OutputDir = "Output\MFA",
         [string]$Encoding = "UTF8",
         [string[]]$UserIds,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds: '$($UserIds -join ', ')'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds count: $($UserIds.Count)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
+        
+        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModules) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModules) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+
     Write-LogFile -Message "=== Starting MFA Status Collection ===" -Color "Cyan" -Level Minimal
 
     $requiredScopes = @("UserAuthenticationMethod.Read.All","User.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
+        if ($graphAuth.MissingScopes.Count -gt 0) {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
+        }
+    }
     $summary = @{
         TotalUsers = 0
         MFAEnabled = 0
@@ -90,14 +124,24 @@ function Get-MFA {
     $allUsers = @()
 
     if ($UserIds) {
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Processing scenario: Specific users" -Level Debug
+            Write-LogFile -Message "[DEBUG] Users to process: $($UserIds -join ', ')" -Level Debug
+        }
         Write-LogFile -Message "[INFO] Processing specific users..." -Level Standard
         foreach ($userId in $UserIds) {
             $userUri = "https://graph.microsoft.com/v1.0/users/$userId"
             try {
                 $user = Invoke-MgGraphRequest -Uri $userUri -Method Get -OutputType PSObject
                 $allUsers += $user
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] Successfully retrieved user: $($user.userPrincipalName)" -Level Debug
+                }
             } catch {
                 Write-LogFile -Message "[WARNING] User with ID $userId not found" -Color "Yellow" -Level Minimal 
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] Error details for user $userId : $($_.Exception.Message)" -Level Debug
+                }
             }
         }
     } else {
@@ -115,6 +159,9 @@ function Get-MFA {
 
     foreach ($user in $allUsers) {  
         $userPrinc = $user.userPrincipalName
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG]   Processing user: $userPrinc" -Level Debug
+        }
         $myObject = [PSCustomObject]@{
             user               = $userPrinc
             MFAstatus          = "Disabled"
@@ -132,9 +179,18 @@ function Get-MFA {
         try {
             $contentUri = "https://graph.microsoft.com/v1.0/users/$($user.id)/authentication/methods"
             $MFAData = Invoke-MgGraphRequest -Uri $contentUri -Method Get -OutputType PSObject
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG]   Fetching auth methods from: $contentUri" -Level Debug
+            }
             if ($MFAData -and $MFAData.value) {
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG]   Found $($MFAData.value.Count) authentication methods" -Level Debug
+                }
                 ForEach ($method in $MFAData.value) {
                     $odataType = $method.'@odata.type'
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG]     Processing method: $odataType" -Level Debug
+                    }
                     
                     Switch ($odataType) {
                         "#microsoft.graph.emailAuthenticationMethod" { 
@@ -192,11 +248,21 @@ function Get-MFA {
             
             else {
                 Write-LogFile -Message "[WARNING] No MFA data found for user $userPrinc" -Level Standard -Color "Yellow"
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG]   MFAData is null or empty" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   MFAData: $($MFAData | ConvertTo-Json -Compress)" -Level Debug
+                }
             }
         }
 
         catch {
             Write-LogFile -Message "[ERROR] Error processing user $userPrinc : $_" -Level Minimal -Color "Red"
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG]   Error details:" -Level Debug
+                Write-LogFile -Message "[DEBUG]     Exception type: $($_.Exception.GetType().Name)" -Level Debug
+                Write-LogFile -Message "[DEBUG]     Error message: $($_.Exception.Message)" -Level Debug
+                Write-LogFile -Message "[DEBUG]     Stack trace: $($_.ScriptStackTrace)" -Level Debug
+            }
         }
         
         if ($myObject.MFAstatus -eq "Enabled") {

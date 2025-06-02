@@ -23,6 +23,7 @@ function Get-RiskyUsers {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
     
     .EXAMPLE
@@ -46,16 +47,49 @@ function Get-RiskyUsers {
         [string]$OutputDir = "Output\RiskyEvents",
         [string]$Encoding = "UTF8",
         [string[]]$UserIds,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
     Write-LogFile -Message "=== Starting Risky Users Collection ===" -Color "Cyan" -Level Minimal
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds: '$($UserIds -join ', ')'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds count: $($UserIds.Count)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
+        
+        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModules) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModules) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
 
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
+        if ($graphAuth.MissingScopes.Count -gt 0) {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
+        }
+    }
     if (!(test-path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir > $null
     }
@@ -84,16 +118,48 @@ function Get-RiskyUsers {
         $baseUri = "https://graph.microsoft.com/v1.0/identityProtection/riskyUsers"
 
         if ($UserIds) {
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Processing scenario: Specific users" -Level Debug
+                Write-LogFile -Message "[DEBUG] Users to process: $($UserIds -join ', ')" -Level Debug
+            }
             foreach ($userId in $UserIds) {
                 $encodedUserId = [System.Web.HttpUtility]::UrlEncode($userId)
                 $uri = "$baseUri`?`$filter=userPrincipalName eq '$encodedUserId'"
                 Write-LogFile -Message "[INFO] Retrieving risky user for UPN: $userId" -Level Standard
-
+        
                 try {
                     $response = Invoke-MgGraphRequest -Method GET -Uri $uri
-
+        
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG]   Response received:" -Level Debug
+                        Write-LogFile -Message "[DEBUG]     Value count: $($response.value.Count)" -Level Debug
+                        Write-LogFile -Message "[DEBUG]     Has @odata.nextLink: $($null -ne $response.'@odata.nextLink')" -Level Debug
+                    }
+        
                     if ($response.value -and $response.value.Count -gt 0) {
+                        if ($isDebugEnabled) {
+                            Write-LogFile -Message "[DEBUG]   Found $($response.value.Count) risky user records" -Level Debug
+                        }
                         foreach ($user in $response.value) {
+                            if ($isDebugEnabled) {
+                                $userIdentifier = if ([string]::IsNullOrEmpty($user.UserPrincipalName)) {
+                                    if (![string]::IsNullOrEmpty($user.UserDisplayName)) {
+                                        "DisplayName: $($user.UserDisplayName)"
+                                    } elseif (![string]::IsNullOrEmpty($user.Id)) {
+                                        "ID: $($user.Id)"
+                                    } else {
+                                        "[Unknown User]"
+                                    }
+                                } else {
+                                    $user.UserPrincipalName
+                                }
+                                Write-LogFile -Message "[DEBUG]     Processing user record:" -Level Debug
+                                Write-LogFile -Message "[DEBUG]       User: $userIdentifier" -Level Debug
+                                Write-LogFile -Message "[DEBUG]       Risk Level: $($user.RiskLevel)" -Level Debug
+                                Write-LogFile -Message "[DEBUG]       Risk State: $($user.RiskState)" -Level Debug
+                                Write-LogFile -Message "[DEBUG]       Risk Detail: $($user.RiskDetail)" -Level Debug
+                                Write-LogFile -Message "[DEBUG]       Last Updated: $($user.RiskLastUpdatedDateTime)" -Level Debug
+                            }
                             $results += [PSCustomObject]@{
                                 Id                          = $user.Id
                                 IsDeleted                   = $user.IsDeleted
@@ -113,22 +179,59 @@ function Get-RiskyUsers {
                             elseif ($user.RiskState -eq "remediated") { $riskSummary.Remediated++ }
                             elseif ($user.RiskState -eq "dismissed") { $riskSummary.Dismissed++ }
                             $count++
+
+                            if ($isDebugEnabled) {
+                                Write-LogFile -Message "[DEBUG]     Updated summary counts - Total: $count, RiskLevel: $($user.RiskLevel), RiskState: $($user.RiskState)" -Level Debug
+                            }
                         }
                     } else {
                         Write-LogFile -Message "[INFO] User ID $userId not found or not risky." -Level Standard
                     }
                 } catch {
                     Write-LogFile -Message "[ERROR] Failed to retrieve data for User ID $userId : $($_.Exception.Message)" -Color "Red" -Level Minimal
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG]   Error details for user $userId :" -Level Debug
+                        Write-LogFile -Message "[DEBUG]     Exception type: $($_.Exception.GetType().Name)" -Level Debug
+                        Write-LogFile -Message "[DEBUG]     Error message: $($_.Exception.Message)" -Level Debug
+                        Write-LogFile -Message "[DEBUG]     Stack trace: $($_.ScriptStackTrace)" -Level Debug
+                    }
                 }
             }
         }
         else {
             $uri = "https://graph.microsoft.com/v1.0/identityProtection/riskyUsers"
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Processing scenario: All risky users" -Level Debug
+                Write-LogFile -Message "[DEBUG] Base URI: $uri" -Level Debug
+            }
             do {
                 $response = Invoke-MgGraphRequest -Method GET -Uri $uri
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG]     Value count: $($response.value.Count)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]     Has @odata.nextLink: $($null -ne $response.'@odata.nextLink')" -Level Debug
+                }
 
                 if ($response.value) {
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG]   Processing $($response.value.Count) users from page $pageCount" -Level Debug
+                    }
                     foreach ($user in $response.value) {
+                        if ($isDebugEnabled) {
+                            $userIdentifier = if ([string]::IsNullOrEmpty($user.UserPrincipalName)) {
+                                if (![string]::IsNullOrEmpty($user.UserDisplayName)) {
+                                    "DisplayName: $($user.UserDisplayName)"
+                                } elseif (![string]::IsNullOrEmpty($user.Id)) {
+                                    "ID: $($user.Id)"
+                                } else {
+                                    "[Unknown User]"
+                                }
+                            } else {
+                                $user.UserPrincipalName
+                            }
+                            Write-LogFile -Message "[DEBUG]     Processing user: $userIdentifier" -Level Debug
+                            Write-LogFile -Message "[DEBUG]       Risk Level: $($user.RiskLevel)" -Level Debug
+                            Write-LogFile -Message "[DEBUG]       Risk State: $($user.RiskState)" -Level Debug
+                        }
                         $results += [PSCustomObject]@{
                             Id                          = $user.Id
                             IsDeleted                   = $user.IsDeleted
@@ -155,6 +258,12 @@ function Get-RiskyUsers {
         }
     } catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Error message: $($_.Exception.Message)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
         throw
     }
 
@@ -210,6 +319,7 @@ function Get-RiskyDetections {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
         
     .EXAMPLE
@@ -233,15 +343,49 @@ function Get-RiskyDetections {
         [string]$OutputDir= "Output\RiskyEvents",
         [string]$Encoding = "UTF8",
         [string[]]$UserIds,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds: '$($UserIds -join ', ')'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds count: $($UserIds.Count)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
+        
+        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModules) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModules) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+
     Write-LogFile -Message "=== Starting Risky Detections Collection ===" -Color "Cyan" -Level Minimal
 
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
+        if ($graphAuth.MissingScopes.Count -gt 0) {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
+        }
+    }
 
     if (!(test-path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir > $null
@@ -272,6 +416,10 @@ function Get-RiskyDetections {
         $baseUri = "https://graph.microsoft.com/v1.0/identityProtection/riskDetections"
 
         if ($UserIds) {
+            if ($isDebugEnabled) {
+                Write-LogFile -Message "[DEBUG] Processing scenario: Specific users" -Level Debug
+                Write-LogFile -Message "[DEBUG] Users to process: $($UserIds -join ', ')" -Level Debug
+            }
             foreach ($userId in $UserIds) {
                 $encodedUserId = [System.Web.HttpUtility]::UrlEncode($userId)
                 $uri = "$baseUri`?`$filter=UserPrincipalName eq '$encodedUserId'"
@@ -280,8 +428,37 @@ function Get-RiskyDetections {
                 do {
                     $response = Invoke-MgGraphRequest -Method GET -Uri $uri
 
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG]     Value count: $($response.value.Count)" -Level Debug
+                        Write-LogFile -Message "[DEBUG]     Has @odata.nextLink: $($null -ne $response.'@odata.nextLink')" -Level Debug
+                    }
+
                     if ($response.value) {
+                        if ($isDebugEnabled) {
+                            Write-LogFile -Message "[DEBUG]   Processing $($response.value.Count) detections from page $pageCount" -Level Debug
+                        }
                         foreach ($detection in $response.value) {
+                            if ($isDebugEnabled) {
+                                $userIdentifier = if ([string]::IsNullOrEmpty($detection.UserPrincipalName)) {
+                                    if (![string]::IsNullOrEmpty($detection.UserDisplayName)) {
+                                        "DisplayName: $($detection.UserDisplayName)"
+                                    } elseif (![string]::IsNullOrEmpty($detection.UserId)) {
+                                        "ID: $($detection.UserId)"
+                                    } else {
+                                        "[Unknown User]"
+                                    }
+                                } else {
+                                    $detection.UserPrincipalName
+                                }
+                                Write-LogFile -Message "[DEBUG]     Processing detection:" -Level Debug
+                                Write-LogFile -Message "[DEBUG]       Detection ID: $($detection.Id)" -Level Debug
+                                Write-LogFile -Message "[DEBUG]       Risk Event Type: $($detection.RiskEventType)" -Level Debug
+                                Write-LogFile -Message "[DEBUG]       Risk Level: $($detection.RiskLevel)" -Level Debug
+                                Write-LogFile -Message "[DEBUG]       Risk State: $($detection.RiskState)" -Level Debug
+                                Write-LogFile -Message "[DEBUG]       User: $userIdentifier" -Level Debug
+                                Write-LogFile -Message "[DEBUG]       IP Address: $($detection.IPAddress)" -Level Debug
+                                Write-LogFile -Message "[DEBUG]       Location: $($detection.Location.City), $($detection.Location.CountryOrRegion)" -Level Debug
+                            }
                             $results += [PSCustomObject]@{
                                 Activity = $detection.Activity
                                 ActivityDateTime = $detection.ActivityDateTime
@@ -329,9 +506,35 @@ function Get-RiskyDetections {
         else {
             do {
                 $response = Invoke-MgGraphRequest -Method GET -Uri $baseUri
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] Processing scenario: All risky detections" -Level Debug
+                    Write-LogFile -Message "[DEBUG] Base URI: $baseUri" -Level Debug
+                    Write-LogFile -Message "[DEBUG]     Value count: $($response.value.Count)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]     Has @odata.nextLink: $($null -ne $response.'@odata.nextLink')" -Level Debug
+                }
 
                 if ($response.value) {
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG]   Processing $($response.value.Count) detections from page $pageCount" -Level Debug
+                    }
                     foreach ($detection in $response.value) {
+                        if ($isDebugEnabled) {
+                            $userIdentifier = if ([string]::IsNullOrEmpty($detection.UserPrincipalName)) {
+                                if (![string]::IsNullOrEmpty($detection.UserDisplayName)) {
+                                    "DisplayName: $($detection.UserDisplayName)"
+                                } elseif (![string]::IsNullOrEmpty($detection.UserId)) {
+                                    "ID: $($detection.UserId)"
+                                } else {
+                                    "[Unknown User]"
+                                }
+                            } else {
+                                $detection.UserPrincipalName
+                            }
+                            Write-LogFile -Message "[DEBUG]     Processing detection: $($detection.Id)" -Level Debug
+                            Write-LogFile -Message "[DEBUG]       Risk Event Type: $($detection.RiskEventType)" -Level Debug
+                            Write-LogFile -Message "[DEBUG]       Risk Level: $($detection.RiskLevel)" -Level Debug
+                            Write-LogFile -Message "[DEBUG]       User: $userIdentifier" -Level Debug
+                        }
                         $results += [PSCustomObject]@{
                             Activity = $detection.Activity
                             ActivityDateTime = $detection.ActivityDateTime

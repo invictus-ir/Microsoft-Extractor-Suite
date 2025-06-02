@@ -23,6 +23,7 @@ function Get-MailboxAuditStatus {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
     
     .EXAMPLE
@@ -37,12 +38,30 @@ function Get-MailboxAuditStatus {
     param (
         [string]$OutputDir = "Output\Audit Status",
         [string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
         [string]$UserIds
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
+
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        $exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
+        if ($exchangeModule) {
+            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
+        }
+    }
+
     $summary = @{
         TotalMailboxes = 0
         AuditEnabled = 0
@@ -72,9 +91,23 @@ function Get-MailboxAuditStatus {
     $outputFile = "$date-MailboxAuditStatus.csv"
     $outputDirectory = Join-Path $OutputDir $outputFile
 
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Output file configuration:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Date stamp: $date" -Level Debug
+        Write-LogFile -Message "[DEBUG]   File name: $outputFile" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Full path: $outputDirectory" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
+    }
+
     try {
         $orgConfig = Get-OrganizationConfig | Select-Object -ExpandProperty AuditDisabled
         $summary.OrgWideAuditingEnabled = -not $orgConfig
+
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Organization audit configuration:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   AuditDisabled property: $orgConfig" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Organization-wide auditing enabled: $($summary.OrgWideAuditingEnabled)" -Level Debug
+        }
         
         if ($orgConfig) {
             Write-LogFile -Message "[WARNING] Organization-wide auditing is disabled!" -Level Minimal -Color "Red"
@@ -85,13 +118,46 @@ function Get-MailboxAuditStatus {
     catch {
         Write-LogFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-ExchangeOnline or Connect-M365 command before executing this script" -Level Minimal -Color "Yellow"
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Level Minimal -Color "Red"
+
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Organization config retrieval failed:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception message: $($_.Exception.Message)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
         throw
     }
 
     Write-LogFile -Message "[INFO] Retrieving mailbox list..." -Level Standard
-    $mailboxes = Get-EXOMailbox -ResultSize unlimited -PropertySets All
-    $summary.TotalMailboxes = $mailboxes.Count
-    Write-LogFile -Message "[INFO] Found $($mailboxes.Count) mailboxes to process" -Level Standard
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Executing Get-EXOMailbox command..." -Level Debug
+        Write-LogFile -Message "[DEBUG]   Parameters: -ResultSize unlimited -PropertySets All" -Level Debug
+        $mailboxRetrievalStart = Get-Date
+    }
+
+    try {
+        $mailboxes = Get-EXOMailbox -ResultSize unlimited -PropertySets All
+        $summary.TotalMailboxes = $mailboxes.Count
+        Write-LogFile -Message "[INFO] Found $($mailboxes.Count) mailboxes to process" -Level Standard
+
+        if ($isDebugEnabled) {
+            $mailboxRetrievalTime = (Get-Date) - $mailboxRetrievalStart
+            Write-LogFile -Message "[DEBUG] Mailbox retrieval completed:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Total mailboxes: $($mailboxes.Count)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Retrieval time: $($mailboxRetrievalTime.TotalSeconds) seconds" -Level Debug
+        }
+    }
+    catch {
+        Write-LogFile -Message "[ERROR] Failed to retrieve mailboxes: $($_.Exception.Message)" -Level Minimal -Color "Red"
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Mailbox retrieval error:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception: $($_.Exception.Message)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
+        throw
+    }
+
 
     Write-LogFile -Message "[INFO] Retrieving audit bypass associations..." -Level Standard
     $bypassLookup = @{}
@@ -100,32 +166,60 @@ function Get-MailboxAuditStatus {
         $bypassLookup[$mailbox.UserPrincipalName] = $false
     }
 
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Bypass lookup initialized with $($bypassLookup.Count) entries (all set to false)" -Level Debug
+    }
+
     try {
         Write-LogFile -Message "[INFO] Attempting bulk retrieval of audit bypass associations..." -Level Standard
         $bypassAssociations = Get-MailboxAuditBypassAssociation -ResultSize Unlimited -WarningAction SilentlyContinue | 
             Select-Object Identity, AuditBypassEnabled | 
             Where-Object { $_.AuditBypassEnabled -eq $true }
         
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Bulk bypass retrieval completed:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Bypass associations found: $($bypassAssociations.Count)" -Level Debug
+        }
+        
         foreach ($bypass in $bypassAssociations) {
             if ($null -ne $bypass.Identity) {
                 $bypassLookup[$bypass.Identity] = $True
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG]   Set bypass = true for: $($bypass.Identity)" -Level Debug
+                }
             }
+        }
+        if ($isDebugEnabled) {
+            $bypassCount = ($bypassLookup.Values | Where-Object { $_ -eq $true }).Count
+            Write-LogFile -Message "[DEBUG] Bypass lookup updated: $bypassCount mailboxes with bypass enabled" -Level Debug
         }
     }
     catch {
         Write-LogFile -Message "[WARNING] Bulk retrieval failed, likely due to too many mailboxes. This will timeout the cmdlet. Processing mailboxes individually..." -Level Standard -Color "Yellow"
         Write-LogFile -Message "[WARNING] This may take some time..." -Level Standard -Color "Yellow"
 
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Bulk bypass retrieval failed, switching to individual processing:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception: $($_.Exception.Message)" -Level Debug
+        }
+
         $batchSize = 10
         for ($i = 0; $i -lt $mailboxes.Count; $i += $batchSize) {
             $batch = $mailboxes | Select-Object -Skip $i -First $batchSize
-            
+
+            if ($isDebugEnabled) {
+                $batchNumber = [Math]::Floor($i / $batchSize) + 1
+                Write-LogFile -Message "[DEBUG] Processing batch $batchNumber (mailboxes $($i + 1) to $([Math]::Min($i + $batchSize, $mailboxes.Count)))" -Level Debug
+            }
             foreach ($mbx in $batch) {
                 try {
                     $bypass = Get-MailboxAuditBypassAssociation -Identity $mbx.UserPrincipalName -WarningAction SilentlyContinue | Select-Object Identity, AuditBypassEnabled
                     if ($bypass -and $bypass.Identity) {
                         $bypassLookup[$bypass.Identity] = [bool]$bypass.AuditBypassEnabled 
                     }
+                    if ($isDebugEnabled -and $bypass.AuditBypassEnabled) {
+                            Write-LogFile -Message "[DEBUG]     Individual bypass found: $($mbx.UserPrincipalName)" -Level Debug
+                        }
                     else {
                         $bypassLookup[$mbx.UserPrincipalName] = $false
                     }
@@ -155,6 +249,12 @@ function Get-MailboxAuditStatus {
         if ($mailbox.AuditOwner) { $summary.OwnerActionsConfigured++ }
         if ($mailbox.AuditDelegate) { $summary.DelegateActionsConfigured++ }
         if ($mailbox.AuditAdmin) { $summary.AdminActionsConfigured++ }
+
+        if ($isDebugEnabled -and ($summary.ProcessedMailboxes % 100 -eq 0 -or $summary.ProcessedMailboxes -le 10)) {
+            Write-LogFile -Message "[DEBUG] Processing mailbox $($summary.ProcessedMailboxes)/$($summary.TotalMailboxes): $($mailbox.UserPrincipalName)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   AuditEnabled: $($mailbox.AuditEnabled), Bypass: $bypassStatus" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Owner actions: $($mailbox.AuditOwner.Count), Delegate: $($mailbox.AuditDelegate.Count), Admin: $($mailbox.AuditAdmin.Count)" -Level Debug
+        }
 
          # Sort the audit actions for each category
          $ownerActions = if ($mailbox.AuditOwner) { 

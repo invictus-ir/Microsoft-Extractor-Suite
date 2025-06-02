@@ -35,6 +35,7 @@ Function Get-UALGraph {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
 
     .PARAMETER Encoding
@@ -108,7 +109,7 @@ Function Get-UALGraph {
         [string[]]$UserIds = @(),
         [string[]]$IPAddress = @(),
         [string[]]$ObjecIDs = @(),
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
         [double]$MaxEventsPerFile = 250000,
         [ValidateSet("CSV", "JSON", "SOF-ELK")]
@@ -117,6 +118,39 @@ Function Get-UALGraph {
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
+    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   SearchName: '$searchName'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   StartDate: '$startDate'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   EndDate: '$endDate'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   RecordType: '$($RecordType -join ', ')'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Keyword: '$Keyword'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Service: '$Service'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Operations: '$($Operations -join ', ')'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   UserIds: '$($UserIds -join ', ')'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   IPAddress: '$($IPAddress -join ', ')'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   ObjecIDs: '$($ObjecIDs -join ', ')'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   MaxEventsPerFile: $MaxEventsPerFile" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Output: '$Output'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   SplitFiles: $SplitFiles" -Level Debug
+        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
+        
+        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModules) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModules) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+
     $date = Get-Date -Format "yyyyMMddHHmm"
     $summary = @{
         TotalRecords = 0
@@ -129,6 +163,18 @@ Function Get-UALGraph {
 
     $requiredScopes = @("AuditLogsQuery.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
+        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
+        if ($graphAuth.MissingScopes.Count -gt 0) {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
+        } else {
+            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
+        }
+    }
 
     Write-LogFile -Message "=== Starting Microsoft Graph Audit Log Retrieval ===" -Color "Cyan" -Level Minimal
     
@@ -167,10 +213,26 @@ Function Get-UALGraph {
     } | ConvertTo-Json
 
     try {
-        $response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/security/auditLog/queries" -Body $body -ContentType "application/json"
+        
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Initiating Graph API audit log query..." -Level Debug
+            $createPerformance = Measure-Command {
+                $response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/security/auditLog/queries" -Body $body -ContentType "application/json"
+            }
+            Write-LogFile -Message "[DEBUG] Query creation took $([math]::round($createPerformance.TotalSeconds, 2)) seconds" -Level Debug
+        } else {
+            $response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/security/auditLog/queries" -Body $body -ContentType "application/json"
+        }
+        
         $scanId = $response.id
         $summary.SearchId = $scanId
         write-logFile -Message "[INFO] A new Unified Audit Log search has started with the name: $searchName and ID: $scanId." -Color "Green" -Level Minimal
+    
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Search created successfully:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Search ID: $scanId" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Response status: $($response.status)" -Level Debug
+        }
 
         Start-Sleep -Seconds 10
         $apiUrl = "https://graph.microsoft.com/beta/security/auditLog/queries/$scanId"
@@ -191,6 +253,9 @@ Function Get-UALGraph {
                 $response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl -ContentType 'application/json'
                 $status = $response.status
                 if ($status -ne $lastStatus) {
+                    if ($isDebugEnabled -and $status -ne $lastStatus) {
+                        Write-LogFile -Message "[DEBUG] Status changed to: $status" -Level Debug
+                    }
                     write-logFile -Message "[INFO] Unified Audit Log search is still running. Waiting..." -Level Standard
                     $lastStatus = $status
                 }
@@ -201,6 +266,12 @@ Function Get-UALGraph {
     }
     catch {
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Error message: $($_.Exception.Message)" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+        }
         throw
     }
 
@@ -248,6 +319,13 @@ Function Get-UALGraph {
             }
         }
 
+        if ($isDebugEnabled) {
+            Write-LogFile -Message "[DEBUG] Starting data collection:" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Split files: $SplitFiles" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Max events per file: $MaxEventsPerFile" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Initial file path: $filePath" -Level Debug
+        }
+
         $apiUrl = "https://graph.microsoft.com/beta/security/auditLog/queries/$scanId/records"
         Write-LogFile -Message "[INFO] Starting to collect records..." -Level Standard
 
@@ -259,12 +337,27 @@ Function Get-UALGraph {
 
             while (-not $success -and $retryCount -lt $maxRetries) {
                 try {
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG] Attempting to fetch records batch (attempt $($retryCount + 1))" -Level Debug
+                        Write-LogFile -Message "[DEBUG] API URL: $apiUrl" -Level Debug
+                    }
                     $response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl -ContentType "application/json; odata.metadata=minimal; odata.streaming=true;" -OutputType Json
                     $success = $true
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG] Successfully retrieved batch data" -Level Debug
+                    }
                 }
                 catch {
                     $retryCount++
                     $errorMessage = $_.Exception.Message
+
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Error message: $errorMessage" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Retry count: $retryCount of $maxRetries" -Level Debug
+                    }
+                    
                     
                     if ($retryCount -lt $maxRetries) {
                         $waitTime = 30 * $retryCount
@@ -291,6 +384,11 @@ Function Get-UALGraph {
             if ($responseJson.value -and $responseJson.value.Count -gt 0) {
                 $batchCount = $responseJson.value.Count
                 $totalEvents += $batchCount
+
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] Processing batch: $batchCount records (Total: $totalEvents)" -Level Debug
+                    Write-LogFile -Message "[DEBUG] Current file events: $currentFileEvents" -Level Debug
+                }
 
                 if ($Output -eq "JSON") {
                     foreach ($record in $responseJson.value) {
@@ -362,6 +460,12 @@ Function Get-UALGraph {
 
                 if ($totalEvents % 10000 -eq 0 -or $batchCount -lt 100) {
                     Write-LogFile -Message "[INFO] Progress: $totalEvents total events processed" -Level Standard
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG] Progress details:" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Batch size: $batchCount" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Current file: $outputFilePath" -Level Debug
+                        Write-LogFile -Message "[DEBUG]   Current file events: $currentFileEvents" -Level Debug
+                    }
                 }
             } else {
                 if ($totalEvents -eq 0) {
