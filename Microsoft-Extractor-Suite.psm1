@@ -298,6 +298,22 @@ function Merge-OutputFiles {
             Write-LogFile -Message "[INFO] JSON files merged into $mergedPath"
             
         }
+        'JSONL' {
+            $jsonlFiles = Get-ChildItem -Path $OutputDir -Filter *.jsonl
+            if ($jsonlFiles.Count -eq 0) {
+                Write-LogFile -Message "[ERROR] No JSONL files found in the specified directory: $OutputDir" -Color Red
+                return
+            }
+
+            $mergedContent = @()
+            foreach ($file in $jsonlFiles) {
+                $content = Get-Content -Path $file.FullName -Raw
+                $mergedContent += $content.Trim()
+            }
+
+            Set-Content -Path $mergedPath -Value ($mergedContent -join "`n") -Encoding UTF8
+            Write-LogFile -Message "[INFO] JSONL files merged into $mergedPath"
+        }
         default {
             Write-LogFile -Message "[ERROR] Unsupported file type specified: $OutputType" -Color Red
         }
