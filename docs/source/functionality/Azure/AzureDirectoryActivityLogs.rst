@@ -35,7 +35,7 @@ Parameters
     - Default: Now
 
 -Output (optional)
-    - Output is the parameter specifying the CSV or JSON output type.
+    - Output is the parameter specifying the CSV, JSONL or JSON output type.
     - Default: CSV
 
 -OutputDir (optional)
