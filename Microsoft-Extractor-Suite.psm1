@@ -158,9 +158,9 @@ function Write-LogFile {
     }
 
     if ($NoNewLine) {
-        [Console]::Write($message)
+        [Console]::Write($Message)
     } else {
-        [Console]::WriteLine($message)
+        [Console]::WriteLine($Message)
     }
 
     [Console]::ResetColor()

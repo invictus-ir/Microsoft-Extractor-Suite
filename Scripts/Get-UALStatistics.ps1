@@ -83,7 +83,7 @@ function Get-UALStatistics
         ProcessingTime = $null
     }
 
-	Write-LogFile -Message "=== Analyzing audit log distribution across record types ===" -Color "Cyan" -Level Minimal
+	Write-LogFile -Message "=== Analyzing audit log distribution across record types ===" -Color "Cyan" -Level Standard
 	Write-LogFile -Message "Started: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -Level Standard
 
 	StartDateUAL -Quiet

@@ -37,7 +37,7 @@ function Get-Devices {
     .EXAMPLE
     Get-Devices -Output JSON
     Retrieves information about all devices and exports to a JSON file.
-		
+        
     .EXAMPLE
     Get-Devices -OutputDir C:\Windows\Temp -Encoding UTF32
     Retrieves device information and saves the output to the C:\Windows\Temp folder with UTF-32 encoding.
@@ -102,7 +102,7 @@ function Get-Devices {
         }
     }
 
-    Write-LogFile -Message "=== Starting Device Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Device Collection ===" -Color "Cyan" -Level Standard
 
     if (!(test-path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir > $null

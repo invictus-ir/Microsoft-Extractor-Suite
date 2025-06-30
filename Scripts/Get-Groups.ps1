@@ -83,7 +83,7 @@ Function Get-Groups {
         }
     }
 
-    Write-LogFile -Message "=== Starting Groups Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Groups Collection ===" -Color "Cyan" -Level Standard
 
     if (!(Test-Path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir > $null
@@ -253,7 +253,7 @@ Function Get-GroupMembers {
         }
     }
 
-    Write-LogFile -Message "=== Starting Group Members Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Group Members Collection ===" -Color "Cyan" -Level Standard
 
     if (!(Test-Path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
@@ -405,7 +405,7 @@ Function Get-DynamicGroups {
         }
     }
         
-    Write-LogFile -Message "=== Starting Dynamic Groups Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Dynamic Groups Collection ===" -Color "Cyan" -Level Standard
 
     if (!(Test-Path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir > $null

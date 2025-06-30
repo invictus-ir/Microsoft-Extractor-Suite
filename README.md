@@ -35,11 +35,13 @@ In addition to the log sources above the tool is also able to retrieve other rel
 * The conditional access policies
 * Administrator directory roles and their users
 * A specific or list of e-mail(s) or attachment(s)
-* Delegated permissions for all mailboxes in Microsoft 365.
-* Information about all devices registered in Entra ID. 
-* Audit status and settings for all mailboxes in Microsoft 365.
-* Functions designed to gather information about groups.
-* Functions designed to gather information about licenses.
+* Delegated permissions for all mailboxes in Microsoft 365
+* Information about all devices registered in Entra ID
+* Audit status and settings for all mailboxes in Microsoft 365
+* Functions designed to gather information about groups
+* Functions designed to gather information about licenses
+* Retrieve Role Activity Information
+* Generates a report of all Privileged Identity Management (PIM) role assignments
 
 Microsoft-Extractor-Suite was created by Joey Rentenaar and Korstiaan Stam and is maintained by the [Invictus IR](https://www.invictus-ir.com/) team.
 
@@ -102,7 +104,7 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 - `Get-RiskyUsers` - Collect risky users
 - `Get-RiskyDetections` - Collect risky detection events
 
-## Conditional Access Policies
+### Conditional Access Policies
 - `Get-ConditionalAccessPolicies` - Collect conditional access policies
 
 ### Device Management
@@ -122,6 +124,10 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 - `Get-Groups` - Collect all groups in the organization including details such as group ID and display name
 - `Get-GroupMembers` - Collect all members of each group and their relevant details
 - `Get-DynamicGroups` - Collect all dynamic groups and their membership rules
+
+### Role Management
+- `Get-PIMAssignments` - Generates a report of all Privileged Identity Management (PIM) role assignments in Entra ID.
+- `Get-AllRoleActivity` - Retrieves all directory role memberships with last login information for users.
 
 ### Automatically collect everything you want
 - `Get-AllEvidence` - Collect all (almost) available evidence types automatically

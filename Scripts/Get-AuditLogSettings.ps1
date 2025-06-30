@@ -29,7 +29,7 @@ function Get-MailboxAuditStatus {
     .EXAMPLE
     Get-MailboxAuditStatus
     Retrieves audit status for all mailboxes and exports to a CSV file in the default directory.
-		
+        
     .EXAMPLE
     Get-MailboxAuditStatus -OutputDir C:\Temp -Encoding UTF32
     Retrieves audit status and saves the output to C:\Temp with UTF-32 encoding.
@@ -40,7 +40,7 @@ function Get-MailboxAuditStatus {
         [string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
-        [string]$UserIds
+        [string[]]$UserIds
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
@@ -76,7 +76,7 @@ function Get-MailboxAuditStatus {
         OrgWideAuditingEnabled = $false
     }
 
-    Write-LogFile -Message "=== Starting Mailbox Audit Status Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Mailbox Audit Status Collection ===" -Color "Cyan" -Level Standard
 
     if (!(Test-Path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir > $null
@@ -329,3 +329,4 @@ function Get-MailboxAuditStatus {
     Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Level Standard
     Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
 }
+    

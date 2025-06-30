@@ -64,7 +64,7 @@ Function Get-SecurityAlerts {
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
     $date = Get-Date -Format "yyyyMMddHHmm"
 
-    Write-LogFile -Message "=== Starting Security Alerts Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Security Alerts Collection ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("SecurityEvents.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes

@@ -102,7 +102,8 @@ $Global:CollectionTasks = @{
                 }
 
                 if ($UserIds) {
-                    Get-GraphEntraSignInLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $UserIds -Output $Output -MergeOutput
+                    Get-GraphEntraSignInLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $UserIds -Output $Output -MergeOutput -EventTypes interactiveUser,nonInteractiveUser
+                    
                 } else {
                     Get-GraphEntraSignInLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel -Output $Output -MergeOutput
                 }
@@ -118,7 +119,7 @@ $Global:CollectionTasks = @{
                 New-Item -ItemType Directory -Force -Path $OutputDirAudit > $null
 
                 if ($Output -eq 'CSV') {
-                    Write-LogFile -Message "[WARNING] CSV output not supported for Sign-In Logs. Using JSON format." -Color "Yellow" -Level Minimal
+                    Write-LogFile -Message "[WARNING] CSV output not supported for Audit Logs. Using JSON format." -Color "Yellow" -Level Minimal
                     $Output = 'JSON'
                 }
 

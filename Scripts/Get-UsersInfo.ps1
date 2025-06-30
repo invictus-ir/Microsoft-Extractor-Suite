@@ -95,7 +95,7 @@ function Get-Users {
         }
     }    
 
-    Write-LogFile -Message "=== Starting Users Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Users Collection ===" -Color "Cyan" -Level Standard
 
     try {
         $selectobjects = "UserPrincipalName","DisplayName","Id","CompanyName","Department","JobTitle","City","Country","Identities","UserType","LastPasswordChangeDateTime","AccountEnabled","CreatedDateTime","CreationType","ExternalUserState","ExternalUserStateChangeDateTime","SignInActivity","OnPremisesSyncEnabled"
@@ -287,7 +287,7 @@ Function Get-AdminUsers {
     }
 
     $date = Get-Date -Format "yyyyMMddHHmm"
-    Write-LogFile -Message "=== Starting Admin Users Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Admin Users Collection ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("User.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes

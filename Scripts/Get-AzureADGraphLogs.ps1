@@ -84,7 +84,7 @@ function Get-GraphEntraSignInLogs {
 		[ValidateSet("JSON", "SOF-ELK")] 
 		[string]$Output = "JSON",
         [string]$OutputDir,
-        [string]$UserIds,
+		[string[]]$UserIds,
 		[switch]$MergeOutput,
         [string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
@@ -127,7 +127,7 @@ function Get-GraphEntraSignInLogs {
         }
     }
 
-	Write-LogFile -Message "=== Starting Sign-in Log Collection ===" -Color "Cyan" -Level Minimal
+	Write-LogFile -Message "=== Starting Sign-in Log Collection ===" -Color "Cyan" -Level Standard
 	$requiredScopes = @("AuditLog.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
@@ -142,8 +142,6 @@ function Get-GraphEntraSignInLogs {
             Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
         }
     }
-
-
 
 	$date = [datetime]::Now.ToString('yyyyMMdd') 
 	if ($OutputDir -eq "" ){
@@ -203,15 +201,20 @@ function Get-GraphEntraSignInLogs {
 	}
 
 	$eventTypesToProcess = @()
-    if ($EventTypes -contains 'All') {
-		$eventTypesToProcess = @('combinedUser', 'servicePrincipal', 'managedIdentity')
-    } elseif ($EventTypes -contains 'interactiveUser' -and $EventTypes -contains 'nonInteractiveUser') {
-		$remainingTypes = $EventTypes | Where-Object { $_ -ne 'interactiveUser' -and $_ -ne 'nonInteractiveUser' }
-		$eventTypesToProcess = @('combinedUser') + $remainingTypes
-	}
-	else {
-		$eventTypesToProcess = $EventTypes
-	}
+if ($EventTypes -contains 'All') {
+    if ($UserIds -and $UserIds.Count -gt 0) {
+        $eventTypesToProcess = @('combinedUser')
+        Write-LogFile -Message "[INFO] Filtering by users - skipping servicePrincipal and managedIdentity (will be empty)" -Level Standard -Color "Yellow"
+    } else {
+        $eventTypesToProcess = @('combinedUser', 'servicePrincipal', 'managedIdentity')
+    }
+} elseif ($EventTypes -contains 'interactiveUser' -and $EventTypes -contains 'nonInteractiveUser') {
+    $remainingTypes = $EventTypes | Where-Object { $_ -ne 'interactiveUser' -and $_ -ne 'nonInteractiveUser' }
+    $eventTypesToProcess = @('combinedUser') + $remainingTypes
+}
+else {
+    $eventTypesToProcess = $EventTypes
+}
 
 	foreach ($eventType in $eventTypesToProcess) {
 		$currentEventType = $eventTypeMapping[$eventType]
@@ -230,9 +233,11 @@ function Get-GraphEntraSignInLogs {
 		}
         
         $filterQuery = "createdDateTime ge $StartDate and createdDateTime le $EndDate"
-        if ($UserIds) {
-            $filterQuery += " and startsWith(userPrincipalName, '$UserIds')"
-        }
+
+		if ($UserIds -and $UserIds.Count -gt 0) {
+			$userFilters = $UserIds | ForEach-Object { "startsWith(userPrincipalName, '$_')" }
+			$filterQuery += " and (" + ($userFilters -join " or ") + ")"
+		}
         
 		$filterQuery += " and $($currentEventType.filterQuery)"
         $encodedFilterQuery = [System.Web.HttpUtility]::UrlEncode($filterQuery)
@@ -448,7 +453,7 @@ function Get-GraphEntraAuditLogs {
 		[string]$Output = "JSON",
 		[string]$Encoding = "UTF8",
 		[switch]$MergeOutput,
-		[string]$UserIds,
+		[string[]]$UserIds,
         [switch]$All,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
@@ -487,7 +492,7 @@ function Get-GraphEntraAuditLogs {
         }
     }
 
-    Write-LogFile -Message "=== Starting Sign-in Log Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Sign-in Log Collection ===" -Color "Cyan" -Level Standard
     $requiredScopes = @("AuditLog.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
@@ -534,12 +539,14 @@ function Get-GraphEntraAuditLogs {
     Write-LogFile -Message "----------------------------------------`n" -Level Standard
 
 	$filterQuery = "activityDateTime ge $StartDate and activityDateTime le $EndDate"
-	if ($UserIds) {
-		$filterQuery += " and startsWith(initiatedBy/user/userPrincipalName, '$UserIds')"
-
+	if ($UserIds -and $UserIds.Count -gt 0) {
+		$userFilters = $UserIds | ForEach-Object { "startsWith(initiatedBy/user/userPrincipalName, '$_')" }
+		$filterQuery += " and (" + ($userFilters -join " or ") + ")"
+		
 		if ($All.IsPresent) {
-            $filterQuery = "($filterQuery) or (targetResources/any(tr: tr/userPrincipalName eq '$UserIds'))"
-        }
+			$targetFilters = $UserIds | ForEach-Object { "targetResources/any(tr: tr/userPrincipalName eq '$_')" }
+			$filterQuery = "($filterQuery) or (" + ($targetFilters -join " or ") + ")"
+		}
 	}
 	else {
         if ($All.IsPresent) {

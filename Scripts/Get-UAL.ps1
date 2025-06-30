@@ -154,7 +154,7 @@ function Get-UAL {
 		IntervalAdjustments = 0
 	}
 
-	Write-LogFile -Message "=== Starting Unified Audit Log Collection ===" -Color "Cyan" -Level Minimal
+	Write-LogFile -Message "=== Starting Unified Audit Log Collection ===" -Color "Cyan" -Level Standard
 
     if ($isDebugEnabled) {
         Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
@@ -713,7 +713,7 @@ function Get-UAL {
 											$stats.FilesCreated++
 											$allResults | export-CSV "$outputPath.csv" -NoTypeInformation -Append -Encoding $Encoding
 										}
-										Write-LogFile -Message "[INFO] Successfully retrieved $totalProcessed records for the current time range. Moving on!" -Level Minimal -Color "Green"
+										Write-LogFile -Message "[INFO] Successfully retrieved $totalProcessed records for the current time range. Moving on!" -Level Standard -Color "Green"
 									}
 								}
 							}

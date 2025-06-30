@@ -61,7 +61,7 @@ function Get-DirectoryActivityLogs {
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
     $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
 
-    Write-LogFile -Message "=== Starting Directory Activity Log Analysis ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Directory Activity Log Analysis ===" -Color "Cyan" -Level Standard
 
     if ($isDebugEnabled) {
         Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
@@ -174,11 +174,11 @@ function Get-DirectoryActivityLogs {
 
     $date = [datetime]::Now.ToString('yyyyMMddHHmmss')
     if ($output -eq "JSON") {
-        $processedEvents | ConvertTo-Json -Depth 100 | Set-Content -Path "$OutputDir/$($date)-DirectoryActivityLogs.JSON"   
+        $processedEvents | ConvertTo-Json -Depth 100 | Set-Content -Path "$OutputDir/DirectoryActivityLogs.JSON"   
     }
 
     elseif ($output -eq "CSV") {
-        $processedEvents | Export-Csv -Path "$OutputDir/$($date)-DirectoryActivityLogs.csv" -NoTypeInformation -Encoding $Encoding
+        $processedEvents | Export-Csv -Path "$OutputDir/DirectoryActivityLogs.csv" -NoTypeInformation -Encoding $Encoding
     }
 
     Write-LogFile -Message "[INFO] Done all Directory Activity Logs are collected" -Color "Green" -Level Standard

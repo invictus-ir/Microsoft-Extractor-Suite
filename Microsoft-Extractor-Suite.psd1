@@ -48,6 +48,8 @@
 		".\Scripts\Get-Groups.ps1"
 		".\Scripts\Get-SecurityAlerts.ps1"
 		".\Scripts\Get-Roles.ps1"
+		".\Scripts\Start-MESTriage.ps1"
+		".\Scripts\TriageFunctions.ps1"
 	)
 	
 	FunctionsToExport = @(
@@ -156,6 +158,13 @@
 		# Get-Roles.ps1
 		"Get-AllRoleActivity"
 		"Get-PIMAssignments"
+
+		# Start-MESTriage.ps1
+		"Start-MESTriage"
+
+		# TriageFunctions
+		"Get-EntraApplicationsForSpecificUsers"
+		"Get-QuickUALOperations"
 	)
 	
 	# Variables to export from this module

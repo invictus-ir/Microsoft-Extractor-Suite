@@ -88,7 +88,7 @@ Function Get-ConditionalAccessPolicies {
         }
     }
 
-    Write-LogFile -Message "=== Starting Conditional Access Policy Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Conditional Access Policy Collection ===" -Color "Cyan" -Level Standard
 
     if (!(test-path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir > $null
@@ -220,4 +220,4 @@ Function Get-ConditionalAccessPolicies {
     Write-LogFile -Message "Output: $filePath" -Level Standard
     Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
 }
-    
+        

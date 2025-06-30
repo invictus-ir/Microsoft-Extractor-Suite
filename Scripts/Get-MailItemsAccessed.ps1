@@ -1,27 +1,27 @@
 Function Get-Sessions {
 <#
     .SYNOPSIS
-	Find SessionID(s) in the Audit Log.
+    Find SessionID(s) in the Audit Log.
 
     .DESCRIPTION
     Find SessionID(s) in the Audit Log. You can filter based on IP address or Username. The first step is to identify what sessions belong to the threat actor. 
     With this information you can go to the next step and find the MessageID(s) belonging to those sessions. Output is saved in: Output\MailItemsAccessed\
-	
-	.PARAMETER UserIds
+    
+    .PARAMETER UserIds
     The unique identifier of the user.
 
-	.PARAMETER StartDate
+    .PARAMETER StartDate
     startDate is the parameter specifying the start date of the date range.
 
-	.PARAMETER EndDate
+    .PARAMETER EndDate
     endDate is the parameter specifying the end date of the date range.
-	
-	.PARAMETER IP
+    
+    .PARAMETER IP
     The IP address parameter is used to filter the logs by specifying the desired IP address.
 
-	.PARAMETER OutputDir
+    .PARAMETER OutputDir
     outputDir is the parameter specifying the output directory.
-	Default: Output\MailItemsAccessed
+    Default: Output\MailItemsAccessed
 
     .PARAMETER LogLevel
     Specifies the level of logging:
@@ -31,35 +31,35 @@ Function Get-Sessions {
     Debug: Verbose logging for debugging purposes
     Default: Standard
 
-	.PARAMETER Encoding
+    .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
-	Default: UTF8
+    Default: UTF8
 
     .PARAMETER Output
     "Yes" or "No" to specify whether the output should be saved to a file.
-	Default: Yes
+    Default: Yes
 
-	.EXAMPLE
+    .EXAMPLE
     Get-Sessions -StartDate 1/4/2024 -EndDate 5/4/2024
-	Collects all sessions for all users between 1/4/2024 and 5/4/2024.
+    Collects all sessions for all users between 1/4/2024 and 5/4/2024.
     
     .EXAMPLE
     Get-Sessions -StartDate 1/4/2024 -EndDate 5/4/2024 -UserIds HR@invictus-ir.com
-	Collects all sessions for the user HR@invictus-ir.com.
+    Collects all sessions for the user HR@invictus-ir.com.
 #>
     [CmdletBinding()]
-	param(
+    param(
         [Parameter(Mandatory=$true)]$StartDate,
         [Parameter(Mandatory=$true)]$EndDate,
-		[string]$OutputDir = "Output\MailItemsAccessed",
+        [string]$OutputDir = "Output\MailItemsAccessed",
         [string]$UserIds,
         [string]$IP,
-		[string]$Encoding = "UTF8",
+        [string]$Encoding = "UTF8",
         [ValidateSet("Yes", "No")]
         [string]$Output = "Yes",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
-	)
+    )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
     $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
@@ -141,7 +141,7 @@ Function Get-Sessions {
         }
     }
 
-    Write-LogFile -Message "=== Starting Session Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Session Collection ===" -Color "Cyan" -Level Standard
     
     if ($UserIds -And !$IP){
         try {
@@ -413,27 +413,27 @@ Function Get-Sessions {
 function Get-MessageIDs {
 <#
     .SYNOPSIS
-	Find the InternetMessageID(s).
+    Find the InternetMessageID(s).
 
     .DESCRIPTION
     Find the InternetMessageID(s). You can filter on SessionID(s) or IP addresses. After you identified the session(s) of the threat actor, you can use this information to find all MessageID(s).
     belonging to the sessions. With the MessageID(s) you can identify what emails were exposed to the threat actor. Output is saved in: Output\MailItemsAccessed\
 
-	.PARAMETER StartDate
+    .PARAMETER StartDate
     startDate is the parameter specifying the start date of the date range.
 
-	.PARAMETER EndDate
+    .PARAMETER EndDate
     endDate is the parameter specifying the end date of the date range.
 
-	.PARAMETER OutputDir
+    .PARAMETER OutputDir
     outputDir is the parameter specifying the output directory.
-	Default: Output\MailItemsAccessed
+    Default: Output\MailItemsAccessed
 
-	.PARAMETER Encoding
+    .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV output file.
-	Default: UTF8
-	
-	.PARAMETER Sessions
+    Default: UTF8
+    
+    .PARAMETER Sessions
     The sessions parameter is used to filter the logs by specifying the desired session id.
 
     .PARAMETER IP
@@ -441,45 +441,45 @@ function Get-MessageIDs {
 
     .PARAMETER Output
     "Yes" or "No" to specify whether the output should be saved to a file.
-	Default: Yes
+    Default: Yes
 
     .PARAMETER LogLevel
-	Specifies the level of logging:
-	None:  No logging
-	Minimal: Critical errors only
-	Standard: Normal operational logging
+    Specifies the level of logging:
+    None:  No logging
+    Minimal: Critical errors only
+    Standard: Normal operational logging
     Debug: Verbose logging for debugging purposes
-	Default: Standard
+    Default: Standard
 
     .PARAMETER Download
     To specifiy whether the messages and their attachments should be saved.
 
-	.EXAMPLE
+    .EXAMPLE
     Get-MessageIDs -StartDate 1/4/2024 -EndDate 5/4/2024
-	Collects all sessions for all users between 1/4/2024 and 5/4/2024.
+    Collects all sessions for all users between 1/4/2024 and 5/4/2024.
     
     .EXAMPLE
     Get-MessageIDs -StartDate 1/4/2024 -EndDate 5/4/2024 -IP 1.1.1.1
-	Collects all sessions for the IP address 1.1.1.1.
+    Collects all sessions for the IP address 1.1.1.1.
 
     .EXAMPLE
     Get-MessageIDs -StartDate 1/4/2024 -EndDate 5/4/2024 -IP 1.1.1.1 -Download
-	Collects all sessions for the IP address 1.1.1.1 and downloads the e-mails and attachments.
+    Collects all sessions for the IP address 1.1.1.1 and downloads the e-mails and attachments.
 #>
     [CmdletBinding()]
-	param(
+    param(
         [Parameter(Mandatory=$true)]$StartDate,
         [Parameter(Mandatory=$true)]$EndDate,
-		[string]$OutputDir = "Output\MailItemsAccessed",
+        [string]$OutputDir = "Output\MailItemsAccessed",
         [string]$IP,
-		[string]$Encoding = "UTF8",
+        [string]$Encoding = "UTF8",
         [string]$Sessions,
         [ValidateSet("Yes", "No")]
         [string]$Output = "Yes",
         [switch]$Download,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
-	)
+    )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
     $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
@@ -532,14 +532,14 @@ function Get-MessageIDs {
         }
     }
     
-    Write-LogFile -Message "=== Starting Message IDs Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Message IDs Collection ===" -Color "Cyan" -Level Standard
 
     if ($Download.IsPresent) {
         $requiredScopes = @("Mail.ReadWrite")
         $graphAuth = Get-GraphAuthType -RequiredScopes $requiredScopes
     }
-	
-	if (!$Sessions -And !$IP){
+    
+    if (!$Sessions -And !$IP){
         try {
             $amountResults = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
         }
@@ -727,7 +727,7 @@ function Get-MessageIDs {
             Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
             throw
         }
-		
+        
         if ($amountResults -gt 4999){
             write-logFile -Message "[WARNING] A total of $amountResults events have been identified, surpassing the maximum limit of 5000 results for a single session. To refine your search, kindly lower the time window." -Color "Red" -Level Minimal
             return
@@ -1038,4 +1038,5 @@ function DownloadMails($iMessageID,$UserIds){
         Write-logFile "[WARNING] Error Message: $($_.Exception.Message)"  -Level minimal
     }
 }
-
+    
+    

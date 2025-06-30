@@ -83,7 +83,7 @@ function Get-MFA {
         }
     }
 
-    Write-LogFile -Message "=== Starting MFA Status Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting MFA Status Collection ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("UserAuthenticationMethod.Read.All","User.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
@@ -315,6 +315,27 @@ function Get-MFA {
                     Write-LogFile -Message "[ERROR] Error retrieving phone methods for user $userPrinc : $_" -Level Minimal -Color "Red"
                 }
             }
+
+            if ($IncludePhoneNumbers) {
+                try {
+                    $phoneMethods = Get-MgUserAuthenticationPhoneMethod -UserId $userPrinc -ErrorAction SilentlyContinue
+                    if ($phoneMethods) {
+                        foreach ($phoneMethod in $phoneMethods) {
+                            $phoneObject = [PSCustomObject]@{
+                                UserPrincipalName = $userPrinc
+                                UserId = $user.id
+                                PhoneNumber = $phoneMethod.PhoneNumber
+                                PhoneType = $phoneMethod.PhoneType
+                                SmsSignInState = $phoneMethod.SmsSignInState
+                            }
+                            $phoneResults += $phoneObject
+                        }
+                    }
+                }
+                catch {
+                    Write-LogFile -Message "[ERROR] Error retrieving phone methods for user $userPrinc : $_" -Level Minimal -Color "Red"
+                }
+            }
         }
 
         catch {
@@ -418,5 +439,5 @@ function Get-MFA {
     Write-LogFile -Message "Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
     Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
 }
-      
-    
+          
+        

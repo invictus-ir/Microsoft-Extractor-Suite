@@ -53,7 +53,7 @@ Function Get-Licenses {
         New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
     }
 
-    Write-LogFile -Message "=== Starting License Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting License Collection ===" -Color "Cyan" -Level Standard
 
     try {
         $licenses = Get-MgSubscribedSku | Select-Object SkuPartNumber, CapabilityStatus, AppliesTo, ConsumedUnits, ServicePlans
@@ -141,6 +141,10 @@ Function Get-LicenseCompatibility {
     .DESCRIPTION
     Determines if E5, P2, P1, and E3 licenses are present and outputs messages regarding the capabilities and limitations.
 
+    .PARAMETER OutputDir
+    OutputDir is the parameter specifying the output directory.
+    Default: Output\Licenses
+
     .PARAMETER LogLevel
     Specifies the level of logging:
     None: No logging
@@ -156,7 +160,8 @@ Function Get-LicenseCompatibility {
     [CmdletBinding()]
     param(
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
-        [string]$LogLevel = 'Standard'
+        [string]$LogLevel = 'Standard',
+        [string]$OutputDir = "Output\Licenses"
     )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
@@ -179,7 +184,11 @@ Function Get-LicenseCompatibility {
         }
     }
 
-    Write-LogFile -Message "=== Starting License Compatibility Check ===" -Color "Cyan" -Level Minimal
+    if (!(Test-Path $OutputDir)) {
+        New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
+    }
+
+    Write-LogFile -Message "=== Starting License Compatibility Check ===" -Color "Cyan" -Level Standard
 
     try {
         $licenses = Get-MgSubscribedSku
@@ -327,7 +336,7 @@ Function Get-EntraSecurityDefaults {
         New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
     }
 
-    Write-LogFile -Message "=== Starting Security Defaults Check ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Security Defaults Check ===" -Color "Cyan" -Level Standard
 
     try {
         if ($null -eq $global:e5Present) {
@@ -418,7 +427,8 @@ Function Get-EntraSecurityDefaults {
         Write-LogFile -Message "`nOutput Files:" -Color "Cyan" -Level Standard
         Write-LogFile -Message "- Results exported to: $outputFile" -Color "Green" -Level Standard
     } catch {
-        Write-LogFile -Message "[ERROR] Failed to check security defaults: $($_.Exception.Message)" -Color "Red" -Level Minimalif ($isDebugEnabled) {
+        Write-LogFile -Message "[ERROR] Failed to check security defaults: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        if ($isDebugEnabled) {
             Write-LogFile -Message "[DEBUG] Error details:" -Level Debug
             Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
             Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
@@ -482,7 +492,7 @@ Function Get-LicensesByUser {
         New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
     }
 
-    Write-LogFile -Message "=== Starting User License Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting User License Collection ===" -Color "Cyan" -Level Standard
 
     try {
         if (!(Get-MgContext)) {
@@ -584,4 +594,4 @@ Function Get-LicensesByUser {
         throw
     }
 }
-    
+        

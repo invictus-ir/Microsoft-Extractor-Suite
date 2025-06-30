@@ -44,8 +44,8 @@ function Get-MailboxPermissions {
         [string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
-        [string]$UserIds
-    )
+        [string[]]$UserIds
+        )
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
     $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
@@ -65,7 +65,7 @@ function Get-MailboxPermissions {
         ProcessingTime = $null
     }
 
-    Write-LogFile -Message "=== Starting Mailbox Permissions Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Mailbox Permissions Collection ===" -Color "Cyan" -Level Standard
     
     if ($isDebugEnabled) {
         Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug

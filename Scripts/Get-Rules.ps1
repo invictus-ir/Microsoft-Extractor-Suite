@@ -67,7 +67,7 @@ function Get-TransportRules
 	Set-LogLevel -Level ([LogLevel]::$LogLevel)
 	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
 
-    Write-LogFile -Message "=== Starting Transport Rules Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Transport Rules Collection ===" -Color "Cyan" -Level Standard
 
 	if ($isDebugEnabled) {
 		Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
@@ -303,7 +303,7 @@ function Get-MailboxRules
 #>
 	[CmdletBinding()]
 	param(
-		[string]$UserIds,
+		[string[]]$UserIds,
 		[string]$OutputDir = "Output\Rules",
 		[string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
@@ -313,7 +313,7 @@ function Get-MailboxRules
 	Set-LogLevel -Level ([LogLevel]::$LogLevel)
 	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
 
-    Write-LogFile -Message "=== Starting Mailbox Rules Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Mailbox Rules Collection ===" -Color "Cyan" -Level Standard
 
 	if ($isDebugEnabled) {
 		Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
@@ -365,7 +365,7 @@ function Get-MailboxRules
         HighImportanceRules = 0
 	}
 	
-	if ($UserIds -eq "") {		
+	if ($null -eq $UserIds -or $UserIds.Count -eq 0 -or [string]::IsNullOrWhiteSpace($UserIds -join '')) {	
 		if ($isDebugEnabled) {
 			Write-LogFile -Message "[DEBUG] Processing scenario: All mailboxes" -Level Debug
 			$performance = Measure-Command {

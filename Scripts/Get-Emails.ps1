@@ -95,7 +95,7 @@ Function Get-Email {
         }
     }
 
-    Write-LogFile -Message "=== Starting Email Export ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Email Export ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("Mail.Readwrite")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
@@ -531,4 +531,4 @@ Function Show-Email {
 
     $message.Value
 }
-        
+            

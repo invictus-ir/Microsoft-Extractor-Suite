@@ -5,52 +5,52 @@ function Get-AdminAuditLog {
 
     .DESCRIPTION
     Administrator audit logging records when a user or administrator makes a change in your organization (in the Exchange admin center or by using cmdlets).
-	The output will be written to: Output\AdminAuditLog\
+    The output will be written to: Output\AdminAuditLog\
 
-	.PARAMETER StartDate
+    .PARAMETER StartDate
     startDate is the parameter specifying the start date of the date range.
 
-	.PARAMETER EndDate
+    .PARAMETER EndDate
     endDate is the parameter specifying the end date of the date range.
 
-	.PARAMETER Interval
+    .PARAMETER Interval
     Interval is the parameter specifying the interval in which the logs are being gathered.
 
-	.PARAMETER Output
+    .PARAMETER Output
     Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
     Default: CSV
 
     .PARAMETER MergeOutput
     MergeOutput is the parameter specifying if you wish to merge CSV outputs to a single file.
 
-	.PARAMETER OutputDir
+    .PARAMETER OutputDir
     OutputDir is the parameter specifying the output directory.
-	Default: Output\AdminAuditLog
+    Default: Output\AdminAuditLog
 
-	.PARAMETER LogLevel
+    .PARAMETER LogLevel
     Specifies the level of logging:
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
     Default: Standard
 
-	.PARAMETER Encoding
+    .PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.
-	Default: UTF8
+    Default: UTF8
 
-	.PARAMETER UserIds
+    .PARAMETER UserIds
     UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
     
     .EXAMPLE
     Get-AdminAuditLog
-	Displays the total number of logs within the admin audit log.
+    Displays the total number of logs within the admin audit log.
 
-	.EXAMPLE
-	Get-AdminAuditLog -StartDate 1/4/2024 -EndDate 5/4/2024
-	Collects the admin audit log between 1/4/2024 and 5/4/2024
+    .EXAMPLE
+    Get-AdminAuditLog -StartDate 1/4/2024 -EndDate 5/4/2024
+    Collects the admin audit log between 1/4/2024 and 5/4/2024
 #>
     [CmdletBinding()]
-	param(
+    param(
         [string]$UserIds = "*",
         [string]$StartDate,
         [string]$EndDate,
@@ -107,3 +107,4 @@ function Get-AdminAuditLog {
     # Call Get-UAL with the constructed parameters
     Get-UAL @params
 }
+    

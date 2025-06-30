@@ -73,7 +73,7 @@ function Get-MailboxAuditLog
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
     $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
 
-    Write-LogFile -Message "== Starting the Mailbox Audit Log Collection (utilizing Get-UAL) ==" -Level Minimal
+    Write-LogFile -Message "== Starting the Mailbox Audit Log Collection (utilizing Get-UAL) ==" -Level Standard
 
     $date = [datetime]::Now.ToString('yyyyMMddHHmmss')
     if ($OutputDir -eq "Output\MailboxAuditLog") {

@@ -93,7 +93,7 @@ function Get-MessageTraceLog
 #>
 	[CmdletBinding()]
 	param(
-		[string]$UserIds,
+		[string[]]$UserIds,
 		[string]$StartDate,
 		[string]$EndDate,
 		[string]$OutputDir = "Output\MessageTrace",
@@ -101,17 +101,8 @@ function Get-MessageTraceLog
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
-
-	try {
-		$areYouConnected = Get-MessageTrace -ErrorAction stop
-	}
-	catch {
-		write-logFile -Message "[INFO] Ensure you are connected to M365 by running the Connect-M365 command before executing this script" -Color "Yellow" -Level Minimal
-		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
-		break
-	}
-		
-	Write-LogFile -Message "=== Starting Message Trace Log Collection ===" -Color "Cyan" -Level Minimal
+	
+	Write-LogFile -Message "=== Starting Message Trace Log Collection ===" -Color "Cyan" -Level Standard
 
 	StartDateMTL -Quiet
 	EndDateMTL -Quiet

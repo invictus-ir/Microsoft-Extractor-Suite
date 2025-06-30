@@ -55,7 +55,7 @@ Function Get-AllRoleActivity {
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
     $date = Get-Date -Format "yyyyMMddHHmm"
 
-    Write-LogFile -Message "=== Starting Directory Role Membership Export ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Directory Role Membership Export ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("User.Read.All", "Directory.Read.All", "AuditLog.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
@@ -99,11 +99,11 @@ Function Get-AllRoleActivity {
             $roleMemberCount = 0
             
             foreach ($member in $roleMembers) {
-                # Skip service principals
-                #if ($member.AdditionalProperties.'@odata.type' -match "servicePrincipal") {
-                #    Write-LogFile -Message "[INFO] Skipping service principal in role $displayName" -Level Standard
-                #    continue
-                #}
+                #Skip service principals
+                if ($member.AdditionalProperties.'@odata.type' -match "servicePrincipal") {
+                    Write-LogFile -Message "[INFO] Skipping service principal in role $displayName" -Level Standard
+                    continue
+                }
                 
                 $totalMembers++
                 $userId = $member.Id
@@ -257,7 +257,7 @@ function Get-PIMAssignments {
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
     $date = Get-Date -Format "yyyyMMddHHmm"
 
-    Write-LogFile -Message "=== Starting PIM Role Assignment Export ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting PIM Role Assignment Export ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("RoleAssignmentSchedule.Read.Directory", "RoleEligibilitySchedule.Read.Directory", "User.Read.All", "Group.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes

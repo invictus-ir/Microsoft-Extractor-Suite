@@ -29,11 +29,11 @@ function Get-RiskyUsers {
     .EXAMPLE
     Get-RiskyUsers
     Retrieves all risky users.
-	
+    
     .EXAMPLE
     Get-RiskyUsers -Encoding utf32
     Retrieves all risky users and exports the output to a CSV file with UTF-32 encoding.
-		
+        
     .EXAMPLE
     Get-RiskyUsers -OutputDir C:\Windows\Temp
     Retrieves all risky users and saves the output to the C:\Windows\Temp folder.
@@ -54,7 +54,7 @@ function Get-RiskyUsers {
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
     $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
 
-    Write-LogFile -Message "=== Starting Risky Users Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Risky Users Collection ===" -Color "Cyan" -Level Standard
 
     if ($isDebugEnabled) {
         Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
@@ -325,11 +325,11 @@ function Get-RiskyDetections {
     .EXAMPLE
     Get-RiskyDetections
     Retrieves all the risky detections.
-	
+    
     .EXAMPLE
     Get-RiskyDetections -Encoding utf32
     Retrieves the risky detections and exports the output to a CSV file with UTF-32 encoding.
-		
+        
     .EXAMPLE
     Get-RiskyDetections -OutputDir C:\Windows\Temp
     Retrieves the risky detections and saves the output to the C:\Windows\Temp folder.
@@ -370,7 +370,7 @@ function Get-RiskyDetections {
         }
     }
 
-    Write-LogFile -Message "=== Starting Risky Detections Collection ===" -Color "Cyan" -Level Minimal
+    Write-LogFile -Message "=== Starting Risky Detections Collection ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes

@@ -101,7 +101,7 @@ function Get-ActivityLogs {
         ProcessingTime = $null
     }
 
-	Write-LogFile -Message "=== Starting Azure Activity Log Collection ===" -Color "Cyan" -Level Minimal
+	Write-LogFile -Message "=== Starting Azure Activity Log Collection ===" -Color "Cyan" -Level Standard
 
 	StartDate -Quiet
     EndDate -Quiet
@@ -246,6 +246,9 @@ function Get-ActivityLogs {
 		$summary.SubscriptionsProcessed++
 		$subId = $sub.subscriptionId
 		write-logFile -Message "[INFO] Retrieving all Activity Logs for $subId" -Color "Green" -Level Standard
+        
+        $apiCallCount = 0
+        $totalApiTime = 0
 
 		if ($isDebugEnabled) {
             Write-LogFile -Message "[DEBUG] === Processing subscription $($summary.SubscriptionsProcessed) of $($subScription.Count) ===" -Level Debug
@@ -268,6 +271,8 @@ function Get-ActivityLogs {
         }
 
 		do {
+            $apiCallStart = Get-Date
+            $apiCallCount++
 			$listOperations = @{
 				Uri     = $uriBase
 				Headers = @{
@@ -300,7 +305,7 @@ function Get-ActivityLogs {
             Write-LogFile -Message "[DEBUG] Subscription processing completed:" -Level Debug
             Write-LogFile -Message "[DEBUG]   Total API calls: $apiCallCount" -Level Debug
             Write-LogFile -Message "[DEBUG]   Total API time: $([Math]::Round($totalApiTime, 2)) seconds" -Level Debug
-            Write-LogFile -Message "[DEBUG]   Average API call time: $([Math]::Round($totalApiTime / $apiCallCount, 2)) seconds" -Level Debug
+            if ($apiCallCount -gt 0) { Write-LogFile -Message "[DEBUG]   Average API call time: $([Math]::Round($totalApiTime / $apiCallCount, 2)) seconds" -Level Debug } else { Write-LogFile -Message "[DEBUG]   Average API call time: N/A" -Level Debug }
             Write-LogFile -Message "[DEBUG]   Total processing time: $($subscriptionProcessingTime.TotalSeconds) seconds" -Level Debug
             Write-LogFile -Message "[DEBUG]   Events retrieved: $($events.Count)" -Level Debug
         }
