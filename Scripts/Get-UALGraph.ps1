@@ -112,7 +112,7 @@ Function Get-UALGraph {
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
         [double]$MaxEventsPerFile = 250000,
-        [ValidateSet("CSV", "JSON", "SOF-ELK")]
+        [ValidateSet("CSV", "JSON", "JSONL", "SOF-ELK")]
         [string]$Output = "JSON",
         [switch]$SplitFiles
     )
