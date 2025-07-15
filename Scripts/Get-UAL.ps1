@@ -409,14 +409,13 @@ function Get-UAL {
 			if ($null -ne $totalResults -And $totalResults -gt 1) {
 				$estimatedIntervals = [math]::Ceiling($totalResults / $MaxItemsPerInterval)
 				
-				if ($estimatedIntervals -eq 0) {
+				if ($estimatedIntervals -lt 2) {
 					$Interval = $totalMinutes
 				} else {
 					$Interval = [math]::Max(1, [math]::Floor(($totalMinutes / $estimatedIntervals) / 1.2))
-					
-					Write-LogFile -Message "[INFO] Using interval of $Interval minutes based on estimated $totalResults records" -Level Standard -Color "Green"
 				}
-			} 
+				Write-LogFile -Message "[INFO] Using interval of $Interval minutes based on estimated $totalResults records" -Level Standard -Color "Green"
+			}
 			else { 
 				$Interval = 60
 			}
