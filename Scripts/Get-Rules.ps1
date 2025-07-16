@@ -11,7 +11,7 @@ function Show-TransportRules
     .Example
     Show-TransportRules
 #>
-	$transportRules = Get-TransportRule | Select-Object -Property Name,Description,CreatedBy,WhenChanged,State
+	$transportRules = Get-TransportRule | Select-Object -Property Name,Description,CreatedBy,@{Name="WhenChanged";Expression={(Get-Date $_.WhenChanged).ToUniversalTime()}},State
 	
 	if ($null -ne $transportRules) {
 		write-LogFile -Message "[INFO] Checking all TransportRules"
@@ -105,11 +105,11 @@ function Get-TransportRules
 	if ($isDebugEnabled) {
 		Write-LogFile -Message "[DEBUG] Retrieving transport rules from Exchange Online..." -Level Debug
 		$performance = Measure-Command {
-			$transportRules = Get-TransportRule | Select-Object -Property Name,Description,CreatedBy,WhenChanged,State, Priority, Mode
+			$transportRules = Get-TransportRule | Select-Object -Property Name,Description,CreatedBy,@{Name="WhenChanged";Expression={(Get-Date $_.WhenChanged).ToUniversalTime()}},State,Priority,Mode
 		}
 		Write-LogFile -Message "[DEBUG] Transport rule retrieval took $([math]::round($performance.TotalSeconds, 2)) seconds" -Level Debug
 	} else {
-		$transportRules = Get-TransportRule | Select-Object -Property Name,Description,CreatedBy,WhenChanged,State, Priority, Mode
+		$transportRules = Get-TransportRule | Select-Object -Property Name,Description,CreatedBy,@{Name="WhenChanged";Expression={(Get-Date $_.WhenChanged).ToUniversalTime()}},State,Priority,Mode
 	}
 
 	if ($null -eq $transportRules) {
