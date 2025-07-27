@@ -125,7 +125,7 @@ Parameters
     - Interval is the parameter specifying the interval in which the logs are being gathered.
 
 -Output (optional)
-    - Output is the parameter specifying the CSV or JSON output type.
+    - Output is the parameter specifying the CSV, JSONL, SOF-ELK or JSON output type.
     - Default: CSV
 
 -MergeOutput (optional)

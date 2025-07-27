@@ -36,7 +36,7 @@ Parameters
     - Default: Output\AdminAuditLog
 
 -Output (optional)
-    - Output is the parameter specifying the CSV, JSON or SOF-ELK output type.
+    - Output is the parameter specifying the CSV, JSON, JSONL or SOF-ELK output type.
     - The SOF-ELK output type can be used to export logs in a format suitable for the [platform of the same name](https://github.com/philhagen/sof-elk).
     - Default: CSV
 

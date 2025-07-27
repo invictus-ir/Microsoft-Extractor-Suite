@@ -27,7 +27,7 @@ Function Get-UALGraph {
     Default: 250000
 
     .PARAMETER Output
-    Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
+    Output is the parameter specifying the CSV, JSON, JSONL or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
     Default: JSON
 
     .PARAMETER LogLevel
@@ -112,7 +112,7 @@ Function Get-UALGraph {
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
         [double]$MaxEventsPerFile = 250000,
-        [ValidateSet("CSV", "JSON", "SOF-ELK")]
+        [ValidateSet("CSV", "JSON", "JSONL", "SOF-ELK")]
         [string]$Output = "JSON",
         [switch]$SplitFiles
     )
@@ -296,6 +296,11 @@ Function Get-UALGraph {
                 $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
                 $csvCollection = @()
             }
+            elseif ($Output -eq "JSONL") {
+                $outputFilePath = "$outputFileBase-part$fileCounter.jsonl"
+                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                $firstRecordInFile = $true
+            }
             elseif ($Output -eq "SOF-ELK") {
                 $outputFilePath = "$outputFileBase-part$fileCounter.json"
                 $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
@@ -312,6 +317,11 @@ Function Get-UALGraph {
                 $outputFilePath = "$outputFileBase.csv"
                 $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
                 $csvCollection = @()
+            }
+            elseif ($Output -eq "JSONL") {
+                $outputFilePath = "$outputFileBase.jsonl"
+                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                $firstRecordInFile = $true
             }
             elseif ($Output -eq "SOF-ELK") {
                 $outputFilePath = "$outputFileBase.json"
@@ -435,6 +445,27 @@ Function Get-UALGraph {
                         $csvCollection = @()
                         $outputFilePath = "$outputFileBase-part$fileCounter.csv"
                         $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                    }
+                }
+                elseif ($Output -eq "JSONL") {
+                    foreach ($record in $responseJson.value) {
+                        if ($SplitFiles -and $currentFileEvents -ge $MaxEventsPerFile) {
+                            Write-LogFile -Message "[INFO] File complete: $outputFilePath ($currentFileEvents events)" -Level Standard
+                            
+                            $fileCounter++
+                            $summary.ExportedFiles++
+                            $currentFileEvents = 0
+
+                            $outputFilePath = "$outputFileBase-part$fileCounter.jsonl"
+                            $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                        }
+                        if ($record.auditData) {
+                            $record.auditData | ConvertTo-Json -Compress -Depth 100 | 
+                                Out-File -Append $filePath -Encoding UTF8
+                        }
+                        "`r`n" | Out-File -FilePath $filePath -Append -Encoding UTF8
+                        $currentFileEvents++
+                        $summary.ProcessedRecords++
                     }
                 }
                 elseif ($Output -eq "SOF-ELK") {

@@ -21,7 +21,7 @@ function Get-UAL {
 	Default: Now
 
 	.PARAMETER Output
-    Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
+    Output is the parameter specifying the CSV, JSON, JSONL or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
 	Default: CSV
 
 	.PARAMETER OutputDir
@@ -29,7 +29,7 @@ function Get-UAL {
 	Default: Output\UnifiedAuditLog
 
  	.PARAMETER MergeOutput
-    MergeOutput is the parameter specifying if you wish to merge CSV/JSON/SOF-ELK outputs to a single file.
+    MergeOutput is the parameter specifying if you wish to merge CSV/JSON/JSONL/SOF-ELK outputs to a single file.
 
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.
@@ -130,7 +130,7 @@ function Get-UAL {
 			[string]$Group = $null,
 			[array]$RecordType = $null,
 			[array]$Operation = $null,
-			[ValidateSet("CSV", "JSON", "SOF-ELK")]
+			[ValidateSet("CSV", "JSON", "SOF-ELK", "JSONL")]
 			[string]$Output = "CSV",
 			[switch]$MergeOutput,
 			[string]$OutputDir,
@@ -409,14 +409,13 @@ function Get-UAL {
 			if ($null -ne $totalResults -And $totalResults -gt 1) {
 				$estimatedIntervals = [math]::Ceiling($totalResults / $MaxItemsPerInterval)
 				
-				if ($estimatedIntervals -eq 0) {
+				if ($estimatedIntervals -lt 2) {
 					$Interval = $totalMinutes
 				} else {
 					$Interval = [math]::Max(1, [math]::Floor(($totalMinutes / $estimatedIntervals) / 1.2))
-					
-					Write-LogFile -Message "[INFO] Using interval of $Interval minutes based on estimated $totalResults records" -Level Standard -Color "Green"
 				}
-			} 
+				Write-LogFile -Message "[INFO] Using interval of $Interval minutes based on estimated $totalResults records" -Level Standard -Color "Green"
+			}
 			else { 
 				$Interval = 60
 			}
@@ -709,6 +708,12 @@ function Get-UAL {
 											}
 											Add-Content "$OutputDir/UAL-$sessionID.json" "`n"
 										}
+										elseif ($Output -eq "JSONL") {
+											$stats.FilesCreated++
+											$allResults | ForEach-Object {
+												$_ | ConvertTo-Json -Compress -Depth 100 | Out-File -Append "$outputPath.jsonl" -Encoding $Encoding
+											}
+										}
 										elseif ($Output -eq "CSV") {
 											$stats.FilesCreated++
 											$allResults | export-CSV "$outputPath.csv" -NoTypeInformation -Append -Encoding $Encoding
@@ -772,6 +777,7 @@ function Get-UAL {
         switch ($Output) {
             "CSV" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "CSV" -MergedFileName "UAL-Combined.csv" }
             "JSON" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "UAL-Combined.json" }
+			"JSONL" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSONL" -MergedFileName "UAL-Combined.jsonl" }
             "SOF-ELK" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "SOF-ELK" -MergedFileName "UAL-Combined.json" }
         }
     }

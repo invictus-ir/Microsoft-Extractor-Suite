@@ -16,8 +16,8 @@ function Get-AdminAuditLog {
     .PARAMETER Interval
     Interval is the parameter specifying the interval in which the logs are being gathered.
 
-    .PARAMETER Output
-    Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
+	.PARAMETER Output
+    Output is the parameter specifying the CSV, JSON, JSONL or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
     Default: CSV
 
     .PARAMETER MergeOutput
@@ -56,7 +56,7 @@ function Get-AdminAuditLog {
         [string]$EndDate,
         [decimal]$Interval,
         [string]$OutputDir = "Output\AdminAuditLog",
-        [ValidateSet("CSV", "JSON", "SOF-ELK")]
+        [ValidateSet("CSV", "JSON", "SOF-ELK", "JSONL")]
         [string]$Output = "CSV",
         [switch]$MergeOutput,
         [string]$Encoding = "UTF8",

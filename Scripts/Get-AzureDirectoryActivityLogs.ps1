@@ -24,7 +24,7 @@ function Get-DirectoryActivityLogs {
 	Default: UTF8
 
     .PARAMETER Output
-    Output is the parameter specifying the CSV or JSON output type.
+    Output is the parameter specifying the CSV, JSONL or JSON output type.
 	Default: CSV
 
     .PARAMETER LogLevel
@@ -176,7 +176,9 @@ function Get-DirectoryActivityLogs {
     if ($output -eq "JSON") {
         $processedEvents | ConvertTo-Json -Depth 100 | Set-Content -Path "$OutputDir/DirectoryActivityLogs.JSON"   
     }
-
+    elseif ($output -eq "JSONL") {
+        $processedEvents | ConvertTo-Json -Depth 100 | Out-File -FilePath "$OutputDir/$($date)-DirectoryActivityLogs.jsonl" -Encoding $Encoding
+    }
     elseif ($output -eq "CSV") {
         $processedEvents | Export-Csv -Path "$OutputDir/DirectoryActivityLogs.csv" -NoTypeInformation -Encoding $Encoding
     }

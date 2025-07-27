@@ -507,7 +507,7 @@ function Start-EvidenceCollection {
     Optional. Comma-separated list of user IDs to filter the collection scope.
 
     .PARAMETER Output
-    Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
+    Output is the parameter specifying the CSV, JSON, JSONL or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
 	Default: CSV
 
     .PARAMETER Interactive
@@ -536,7 +536,7 @@ function Start-EvidenceCollection {
         [Parameter(Mandatory=$false)]
         [switch]$Interactive,
         [Parameter(Mandatory=$false)]
-        [ValidateSet('CSV', 'JSON', 'SOF-ELK')]
+        [ValidateSet('CSV', 'JSON', 'SOF-ELK', "JSONL")]
         [string]$Output = 'CSV',
         [Parameter(Mandatory=$false)]
         [string]$OutputDir
