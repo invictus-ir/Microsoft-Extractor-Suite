@@ -1,4 +1,4 @@
-Entra ID Sign-in Logs via Graph API
+Entra ID Sign-in Logs
 =======
 Use **Get-GraphEntraSignInLogs** to collect the contents of the Entra ID sign-in log. The cmdlet supports collecting different types of sign-in events (interactive, non-interactive, service principal, and managed identity) either all at once or individually.
 

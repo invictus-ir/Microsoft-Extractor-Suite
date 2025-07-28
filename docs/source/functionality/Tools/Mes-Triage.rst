@@ -3,9 +3,7 @@ Start-MESTriage
 
 The Start-MESTriage function performs a quick security triage for specific users across Azure, Entra ID and Microsoft 365 environments. It executes multiple data collection tasks based on customizable templates, making it ideal for incident response and security investigations.
 
-.. note::
-
-  **Important** : Regarding the UserIds filter:
+**Important: Regarding the UserIds filter:**
 
 - If you do not specify one or more user IDs, the script may take a long time to run.
 - It’s strongly recommended to always filter by specific users.
@@ -122,14 +120,6 @@ Parameters
     - Debug: Verbose logging for debugging purposes
     - Default: Minimal
 
-.. note::
-
-  **Important note** regarding the StartDate and EndDate variables.
-
-- When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
-- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2025-01-01 08:15:00 will be converted to 2025-01-01 06:15:00 in UTC.
-- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2025-01-01T08:15:00Z).
-
 Output
 """"""""""""""""""""""""""
 The output will be saved to the specified OutputDir, organized by task type. Each triage creates:
@@ -140,48 +130,48 @@ Available Tasks in Templates
 Start-MESTriage can execute the following tasks based on template configuration:
 
 **User related**
-- Get-Users: User creation dates and password changes
-- Get-AdminUsers: Administrator directory roles and assignments
-- Get-MFA: Multi-factor authentication status for all users
-- Get-RiskyUsers: Users flagged by Entra ID Identity Protection
-- Get-RiskyDetections: Risk detections from Identity Protection
+ - Get-Users: User creation dates and password changes
+ - Get-AdminUsers: Administrator directory roles and assignments
+ - Get-MFA: Multi-factor authentication status for all users
+ - Get-RiskyUsers: Users flagged by Entra ID Identity Protection
+ - Get-RiskyDetections: Risk detections from Identity Protection
 
 **Sign-in, Audit, Unified Audit Log and Activity Logs**
-- Get-UAL: Unified Audit Logs from Microsoft 365
-- Get-UALStatistics: Statistics on available audit log data
-- Get-GraphEntraSignInLogs: Sign-in logs via Graph API
-- Get-GraphEntraAuditLogs: Audit logs via Graph API
-- Get-MailboxAuditLog: Exchange mailbox audit logs
-- Get-ActivityLogs: Azure activity logs
-- Get-DirectoryActivityLogs: Directory service activity logs
+ - Get-UAL: Unified Audit Logs from Microsoft 365
+ - Get-UALStatistics: Statistics on available audit log data
+ - Get-GraphEntraSignInLogs: Sign-in logs
+ - Get-GraphEntraAuditLogs: Audit logs
+ - Get-MailboxAuditLog: Exchange mailbox audit logs
+ - Get-ActivityLogs: Azure activity logs
+ - Get-DirectoryActivityLogs: Directory service activity logs
 
 **Email related**
-- Get-MailboxRules: Mailbox rules that could indicate compromise
-- Get-MailboxAuditStatus: Audit configuration for mailboxes
-- Get-MailboxPermissions: Mailbox delegation and permissions
-- Get-MessageTraceLog: Email message trace logs
-- Get-TransportRules: Exchange transport rule configurations
+ - Get-MailboxRules: Mailbox rules that could indicate compromise
+ - Get-MailboxAuditStatus: Audit configuration for mailboxes
+ - Get-MailboxPermissions: Mailbox delegation and permissions
+ - Get-MessageTraceLog: Email message trace logs
+ - Get-TransportRules: Exchange transport rule configurations
 
 **Applications and Permissions**
-- Get-OAuthPermissionsGraph: OAuth application permissions
-- Get-ConditionalAccessPolicies: Conditional access policy configurations
+ - Get-OAuthPermissionsGraph: OAuth application permissions
+ - Get-ConditionalAccessPolicies: Conditional access policy configurations
 
 **Device and Groups**
-- Get-Devices: Device registration and compliance information
-- Get-Groups: Group configurations and memberships
-- Get-GroupMembers: Detailed group membership information
-- Get-DynamicGroups: Dynamic group configurations
+ - Get-Devices: Device registration and compliance information
+ - Get-Groups: Group configurations and memberships
+ - Get-GroupMembers: Detailed group membership information
+ - Get-DynamicGroups: Dynamic group configurations
 
 **Alerts, licenses and roles**
-- Get-SecurityAlerts: Security alerts from Microsoft Defender
-- Get-PIMAssignments: Privileged Identity Management assignments
-- Get-AllRoleActivity: Administrative role activity logs
-- Get-Licenses: License assignments and configurations
-- Get-LicenseCompatibility: License compatibility analysis
-- Get-EntraSecurityDefaults: Security defaults configuration
+ - Get-SecurityAlerts: Security alerts from Microsoft Defender
+ - Get-PIMAssignments: Privileged Identity Management assignments
+ - Get-AllRoleActivity: Administrative role activity logs
+ - Get-Licenses: License assignments and configurations
+ - Get-LicenseCompatibility: License compatibility analysis
+ - Get-EntraSecurityDefaults: Security defaults configuration
 
 **Custom Operations**
-- UALOperations: Custom Unified Audit Log operations based on specific activities
+ - UALOperations: Custom Unified Audit Log operations based on specific activities
 
 Template Customization
 """"""""""""""""""""""""""

@@ -1,4 +1,4 @@
-## Role Management
+Role Management
 =======
 This section contains functions for managing and auditing role assignments in Microsoft Entra ID. These functions help identify who has access to administrative roles, both through direct assignments and through Privileged Identity Management (PIM).
 

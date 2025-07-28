@@ -15,8 +15,8 @@
         "Get-OAuthPermissionsGraph"      # Collect OAuth application permissions via Graph API
 
         # ===== Sign-In & Audit Logging (UNCOMMENT TO ENABLE) =====
-        "Get-GraphEntraSignInLogs"        # Collect sign-in logs via Graph API
-        "Get-GraphEntraAuditLogs"         # Collect audit logs via Graph API
+        "Get-GraphEntraSignInLogs"        # Collect sign-in logs
+        "Get-GraphEntraAuditLogs"         # Collect audit logs
 
         # ===== Unified Audit Log (UNCOMMENT TO ENABLE) =====
         "Get-UAL"                         # Collect all Unified Audit Logs (NOT RECOMMENDED FOR ALL USERS)

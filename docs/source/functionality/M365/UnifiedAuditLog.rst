@@ -141,8 +141,7 @@ Parameters
 
 -ObjectIDs (optional)
     - The ObjectIds parameter filters the log entries by object ID. The object ID is the target object that was acted upon, and depends on the RecordType and Operations values of the event.
-	- You can enter multiple values separated by commas.
-
+    
 -LogLevel (optional)
     - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
     - Default: Standard

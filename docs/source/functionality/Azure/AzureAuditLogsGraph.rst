@@ -1,4 +1,4 @@
-Entra ID Audit Logs via Graph API
+Entra ID Audit Logs
 =======
 Use **Get-GraphEntraAuditLogs** to collect the contents of the Entra ID Audit Log.
 

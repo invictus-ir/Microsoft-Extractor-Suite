@@ -1,4 +1,4 @@
- Security Alerts
+Security Alerts
 =======
 Retrieves security alerts from Microsoft Graph Security API, providing information about security incidents and threats detected across your environment. The function automatically selects the appropriate API endpoint based on your authentication type.
 
@@ -59,9 +59,7 @@ Output
 """"""""""""""""""""""""""
 The output will be saved to the 'SecurityAlerts' directory within the 'Output' directory with the file name format: [date]-SecurityAlerts.csv
 
-The script provides:
-
-A CSV file containing detailed security alert information including:
+The script provides A CSV file containing detailed security alert information including:
 
 * Id
 * Title 

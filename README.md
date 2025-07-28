@@ -85,8 +85,8 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 - `Get-MessageIDs` - Extract message IDs from MailItemsaccessed events
 
 ### Sign-In & Audit Logging
-- `Get-GraphEntraSignInLogs` - Collect sign-in logs via Graph API
-- `Get-GraphEntraAuditLogs` - Collect audit logs via Graph API
+- `Get-GraphEntraSignInLogs` - Collect sign-in logs
+- `Get-GraphEntraAuditLogs` - Collect audit logs
 
 ### Activity Logging
 - `Get-ActivityLogs` - Collect activity logs
