@@ -52,15 +52,15 @@ function Get-MailboxAuditLog
 	Get mailbox audit log entries for the users Test@invictus-ir.com and HR@invictus-ir.com.
 
 	.EXAMPLE
-	Get-MailboxAuditLog -UserIds Test@invictus-ir.com -StartDate 1/4/2024 -EndDate 5/4/2024
-	Get mailbox audit log entries for the user Test@invictus-ir.com between 1/4/2024 and 5/4/2024.
+	Get-MailboxAuditLog -UserIds Test@invictus-ir.com -StartDate 1/4/2025 -EndDate 5/4/2025
+	Get mailbox audit log entries for the user Test@invictus-ir.com between 1/4/2025 and 5/4/2025.
 #>
     [CmdletBinding()]
     param(
         [string]$UserIds = "*",
         [string]$StartDate,
         [string]$EndDate,
-        [decimal]$Interval,
+        [decimal]$Interval = 1440,
         [string]$OutputDir = "Output\MailboxAuditLog",
         [ValidateSet("CSV", "JSON", "SOF-ELK")]
         [string]$Output = "CSV",
@@ -98,6 +98,7 @@ function Get-MailboxAuditLog
         OutputDir = $OutputDir
         LogLevel = $LogLevel
         Encoding = $Encoding
+        Interval = $Interval
     }
 
     if ($PSBoundParameters.ContainsKey('Interval')) {

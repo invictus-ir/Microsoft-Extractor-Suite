@@ -41,12 +41,13 @@ In addition to the log sources above the tool is also able to retrieve other rel
 * Functions designed to gather information about groups
 * Functions designed to gather information about licenses
 * Retrieve Role Activity Information
-* Generates a report of all Privileged Identity Management (PIM) role assignments
+* Generates an overview of all Privileged Identity Management (PIM) role assignments
+* Security alerts
 
 Microsoft-Extractor-Suite was created by Joey Rentenaar and Korstiaan Stam and is maintained by the [Invictus IR](https://www.invictus-ir.com/) team.
 
 ## Usage
-To get started with the Microsoft-Extractor-Suite tool, make sure the requirements are met. If you do not have the Connect-ExchangeOnline, AZ module or/and Connect-AzureAD installed check [the installation guide](https://microsoft-365-extractor-suite.readthedocs.io/en/latest/installation/Installation.html).
+To get started with the Microsoft-Extractor-Suite tool, make sure the requirements are met. If you do not have the Connect-ExchangeOnline, AZ module or/and connect-mggraph installed check [the installation guide](https://microsoft-365-extractor-suite.readthedocs.io/en/latest/installation/Installation.html).
 
 Install the Microsoft-Extractor-Suite toolkit:
 > Install-Module -Name Microsoft-Extractor-Suite
@@ -57,7 +58,7 @@ To import the Microsoft-Extractor-Suite:
 You must sign-in to Microsoft 365 or Azure depending on your use case before running the functions. To sign in, use one of the cmdlets:
 > Connect-M365 or connect-exchangeonline
 
-> Connect-Azure or Connect-AzureAD
+> connect-mggraph
 
 > Connect-AzureAZ or Connect-AzAccount
 
@@ -84,8 +85,6 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 - `Get-MessageIDs` - Extract message IDs from MailItemsaccessed events
 
 ### Sign-In & Audit Logging
-- `Get-EntraAuditLogs` - Collect audit logs via AzureAD
-- `Get-EntraSignInLogs` - Collect sign-in logs via AzureAD
 - `Get-GraphEntraSignInLogs` - Collect sign-in logs via Graph API
 - `Get-GraphEntraAuditLogs` - Collect audit logs via Graph API
 
@@ -129,8 +128,12 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 - `Get-PIMAssignments` - Generates a report of all Privileged Identity Management (PIM) role assignments in Entra ID.
 - `Get-AllRoleActivity` - Retrieves all directory role memberships with last login information for users.
 
+### Security Management
+- `Get-SecurityAlerts` - Retrieves security alerts
+
 ### Automatically collect everything you want
 - `Get-AllEvidence` - Collect all (almost) available evidence types automatically
+- `Start-MESTriage` - Performs quick triage for specific users using customizable templates
 
 ### Authentication & Session Management
 - `Connect-M365` - Connect to Microsoft 365 services

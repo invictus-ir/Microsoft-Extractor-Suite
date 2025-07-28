@@ -24,10 +24,10 @@ Get mailbox audit log entries for the users HR[@]invictus-ir.com and test[@]invi
 
    Get-MailboxAuditLog -UserIds "test@invictus-ir.com,HR@invictus-ir.com"
 
-Get mailbox audit log entries for the user test@invictus-ir.com between 1/4/2024 and 5/4/2024:
+Get mailbox audit log entries for the user test@invictus-ir.com between 1/4/2025 and 5/4/2025:
 ::
 
-   Get-MailboxAuditLog -UserIds test[@]invictus-ir.com -StartDate 1/4/2024 -EndDate 5/4/2024
+   Get-MailboxAuditLog -UserIds test[@]invictus-ir.com -StartDate 1/4/2025 -EndDate 5/4/2025
 
 Parameters
 """"""""""""""""""""""""""

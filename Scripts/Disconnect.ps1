@@ -7,8 +7,6 @@ Function Disconnect-M365
 Function Disconnect-Azure
 {
     Disconnect-MgGraph > $null;
-    Disconnect-AzureAD > $null;
-    Remove-Module AzureADPreview -Force > $null;
     Remove-Module Microsoft.Graph -Force > $null;
 }
 

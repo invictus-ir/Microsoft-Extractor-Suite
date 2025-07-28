@@ -28,10 +28,10 @@ Get the trace messages for the full @invictus-ir.com domain:
 
    Get-MessageTraceLog -UserIds "*@invictus-ir.com"
 
-Get the trace messages for the user test[@]invictus-ir.com between 1/4/2024 and 5/4/2024:
+Get the trace messages for the user test[@]invictus-ir.com between 1/4/2025 and 5/4/2025:
 ::
 
-   Get-MessageTraceLog -UserIds test[@]invictus-ir.com -StartDate 1/4/2024 -EndDate 5/4/2024
+   Get-MessageTraceLog -UserIds test[@]invictus-ir.com -StartDate 1/4/2025 -EndDate 5/4/2025
 
 Parameters
 """"""""""""""""""""""""""
@@ -64,8 +64,8 @@ Parameters
   **Important note** regarding the StartDate and EndDate variables. 
 
 - When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
-- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2024-01-01 08:15:00 will be converted to 2024-01-01 06:15:00 in UTC.
-- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2024-01-01T08:15:00Z). This format will retrieve data from January 1st, 2024, starting from a quarter past 8 in the morning until the specified end date.
+- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2025-01-01 08:15:00 will be converted to 2025-01-01 06:15:00 in UTC.
+- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2025-01-01T08:15:00Z). This format will retrieve data from January 1st, 2025, starting from a quarter past 8 in the morning until the specified end date.
 
 Output
 """"""""""""""""""""""""""

@@ -144,6 +144,42 @@ $Global:CollectionTasks = @{
             }
             Enabled = $true
         }
+        "AllRoleActivity" = @{
+            Name = "Directory Role Activity"
+            Description = "Exports all directory role memberships with last login information"
+            Function = { param($OutputDir, $LogLevel, $UserIds)
+                if (-not $UserIds) {
+                    Get-AllRoleActivity -OutputDir "$OutputDir\Roles" -LogLevel $LogLevel
+                    return $true
+                }
+                return $false
+            }
+            Enabled = $true
+        }
+        "PIMAssignments" = @{
+            Name = "PIM Assignments"
+            Description = "Generates a report of all Entra ID PIM role assignments (active and eligible)"
+            Function = { param($OutputDir, $LogLevel, $UserIds)
+                if (-not $UserIds) {
+                    Get-PIMAssignments -OutputDir "$OutputDir\Roles" -LogLevel $LogLevel
+                    return $true
+                }
+                return $false
+            }
+            Enabled = $true
+        }
+        "SecurityAlerts" = @{
+            Name = "Security Alerts"
+            Description = "Retrieves security alerts from Microsoft Graph Security API"
+            Function = { param($OutputDir, $LogLevel, $UserIds)
+                if (-not $UserIds) {
+                    Get-SecurityAlerts -OutputDir "$OutputDir\SecurityAlerts" -LogLevel $LogLevel
+                    return $true
+                }
+                return $false
+            }
+            Enabled = $true
+        }
     }
     M365 = @{
         "InboxRules" = @{

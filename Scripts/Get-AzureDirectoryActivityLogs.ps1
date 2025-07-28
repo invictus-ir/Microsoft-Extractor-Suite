@@ -40,12 +40,12 @@ function Get-DirectoryActivityLogs {
 	Get all the Directory Activity logs for the last 90 days.
 
 	.EXAMPLE
-    Get-DirectoryActivityLogs -EndDate 2024-04-12
-	Get all the Directory Activity before 2024-04-12.
+    Get-DirectoryActivityLogs -EndDate 2025-04-12
+	Get all the Directory Activity before 2025-04-12.
 
 	.EXAMPLE
-    Get-DirectoryActivityLogs -StartDate 2024-04-12
-	Get all the Directory Activity after 2024-04-12.
+    Get-DirectoryActivityLogs -StartDate 2025-04-12
+	Get all the Directory Activity after 2025-04-12.
 #>
 	[CmdletBinding()]
 	param(

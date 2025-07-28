@@ -9,15 +9,15 @@ Running the script without any parameters will gather the Azure Activity Logs fo
 
    Get-ActivityLogs
 
-Get all the activity logs before 2024-03-04:
+Get all the activity logs before 2025-03-04:
 ::
 
-   Get-ActivityLogs -EndDate 2024-06-05
+   Get-ActivityLogs -EndDate 2025-06-05
 
-Get all the activity logs after 2024-06-05:
+Get all the activity logs after 2025-06-05:
 ::
 
-   Get-ActivityLogs -StartDate 2024-06-05
+   Get-ActivityLogs -StartDate 2025-06-05
 
 Get all the activity logs for the subscription 4947f939-cf12-4329-960d-4dg68a3eb66f:
 ::

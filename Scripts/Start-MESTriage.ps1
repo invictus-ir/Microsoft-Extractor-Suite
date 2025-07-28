@@ -1,20 +1,20 @@
 function Start-MESTriage {
 <#
     .SYNOPSIS
-    Performs a quick security triage for specific users across Entra ID and Microsoft 365 environments.
+    Performs a collection triage for specific users or all users—across Azure, Entra ID, and Microsoft 365 environments, based on a customizable template.
 
     .DESCRIPTION
-    Executes triage tasks based on template files in the TriageTemplates directory.
+    Executes triage tasks based on template files in the Templates directory.
     Automatically discovers all available templates (built-in and custom).
     Users can easily customize templates by commenting/uncommenting tasks. Default templates:
-    - Quick: Critical security indicators only (fastest, essential data)
-    - Default: Standard investigation data (balanced approach)
-    - Full: Comprehensive data collection (everything available)
+    - Quick: fastest, essential data
+    - Default: balanced approach
+    - Full: (almost) )everything available
 
     .PARAMETER Template
-    Template to use. Available templates are automatically discovered from TriageTemplates folder.
+    Template to use. Available templates are automatically discovered from Templates folder.
     Built-in: Quick, Standard, Comprehensive
-    Custom: Any .psd1 file in TriageTemplates folder
+    Custom: Any .psd1 file in Templates folder
 
     .PARAMETER TriageName
     TriageName is the mandatory parameter specifying the name of the triage project. This will be used as the folder name for outputs.
@@ -31,7 +31,9 @@ function Start-MESTriage {
     Default: Now
 
     .PARAMETER Output
-    Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. Note: Some tasks automatically use JSON format regardless of this setting.
+    Output is the parameter specifying the CSV, JSON, JSONL, or SOF-ELK output type. 
+    Note: JSONL format is only supported by specific functions (Get-UAL, Get-UALGraph).
+    Other tasks automatically use JSON format regardless of this setting. The Operations from the Unified Audit Log will be collected in CSV and JSON.
     Default: CSV
 
     .PARAMETER MergeOutput
@@ -74,7 +76,7 @@ function Start-MESTriage {
             [Parameter(Mandatory=$true)]
             [string]$TriageName,
             [string]$UserIds,
-            [ValidateSet("CSV", "JSON", "SOF-ELK")]
+            [ValidateSet("CSV", "JSON", "JSONL", "SOF-ELK")]
             [string]$Output = "CSV",
             [switch]$MergeOutput,
             [string]$OutputDir,
@@ -86,8 +88,20 @@ function Start-MESTriage {
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
     $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
 
+    $JSONLSupportedFunctions = @(
+        "Get-UAL",
+        "Get-UALGraph"
+    )
+
+    $SOFELKSupportedFunctions = @(
+        "Get-UAL",
+        "Get-UALGraph",
+        "Get-GraphEntraSignInLogs",
+        "Get-GraphEntraAuditLogs"
+    )
+
     $moduleRoot = (Get-Module Microsoft-Extractor-Suite).ModuleBase
-    $templatesDir = Join-Path $moduleRoot "TriageTemplates"
+    $templatesDir = Join-Path $moduleRoot "Templates"
     
     # Get all available templates
     $availableTemplates = @()
@@ -122,12 +136,6 @@ function Start-MESTriage {
         return
     }
 
-    $UserIdsArray = if ($UserIds -and $UserIds.Trim()) { 
-        @($UserIds -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }) 
-    } else { 
-        @() 
-    }
-
     $triageSummary = @{
         StartTime = Get-Date
         ProcessingTime = $null
@@ -139,7 +147,19 @@ function Start-MESTriage {
         TargetUsers = if ($UserIds) { $UserIds } else { "All users" }
         TemplateName = $Template
     }
-    
+
+    $UserIdsArray = if ($UserIds -and $UserIds.ToString().Trim()) { 
+        $userString = if ($UserIds -is [array]) { 
+            $UserIds -join ',' 
+        } else { 
+            $UserIds.ToString() 
+        }
+        
+        @($userString -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -and $_.Length -gt 0 }) 
+    } else { 
+        @() 
+    }
+
     Write-LogFile -Message "=== Starting Quick Triage ===" -Color "Cyan" -Level Minimal
     Write-LogFile -Message "Project: $TriageName" -Level Minimal
     Write-LogFile -Message "Template: $Template" -Level Minimal
@@ -147,12 +167,20 @@ function Start-MESTriage {
     if ($UserIdsArray.Count -eq 0) {
         Write-LogFile -Message "Target: All users" -Level Minimal 
     } elseif ($UserIdsArray.Count -eq 1) {
-        Write-LogFile -Message "Target User: $($UserIdsArray[0])" -Level Minimal 
+        Write-LogFile -Message "Target User: $($UserIdsArray)" -Level Minimal 
     } else {
         Write-LogFile -Message "Target Users:" -Level Minimal
         foreach ($user in $UserIdsArray) {
             Write-LogFile -Message "  - $user" -Level Minimal
         }
+    }
+
+    if ($Output -eq "JSONL") {
+        Write-LogFile -Message "Output Format: $Output (supported functions only, others will use JSON)" -Level Minimal
+    } elseif ($Output -eq "SOF-ELK") {
+        Write-LogFile -Message "Output Format: $Output (supported functions only, others will use JSON)" -Level Minimal
+    } else {
+        Write-LogFile -Message "Output Format: $Output" -Level Minimal
     }
 
     Write-LogFile -Message "Start Time: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -Level Minimal
@@ -189,7 +217,7 @@ function Start-MESTriage {
             }
             
             try {
-                $executed = Invoke-TriageTask -TaskName $task -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIdsArray -Output $Output -MergeOutput:$MergeOutput -StartDate $StartDate -EndDate $EndDate -Encoding $Encoding
+                $executed = Invoke-TriageTask -TaskName $task -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIdsArray -Output $Output -MergeOutput:$MergeOutput -StartDate $StartDate -EndDate $EndDate -Encoding $Encoding -JSONLSupportedFunctions $JSONLSupportedFunctions -SOFELKSupportedFunctions $SOFELKSupportedFunctions
                 
                 if ($executed -eq $true) {
                     $triageSummary.SuccessfulTasks++
@@ -219,7 +247,14 @@ function Start-MESTriage {
                 Write-TaskProgress -TaskName "UAL Operations" -Status 'InProgress'
                 try {
                     $userIdsString = if ($UserIdsArray.Count -gt 0) { $UserIdsArray -join ',' } else { $null }
-                    Get-QuickUALOperations -Operations $task.Operations -UserIds $userIdsString -OutputDir $OutputDir -LogLevel $LogLevel -Output $Output -StartDate $StartDate -EndDate $EndDate
+                    $ualOutput = $Output
+
+                    if ($Output -eq "JSONL" -and "Get-UAL" -in $JSONLSupportedFunctions) { 
+                        $ualOutput = "JSONL" 
+                    } elseif ($Output -eq "SOF-ELK" -and "Get-UAL" -in $SOFELKSupportedFunctions) { 
+                        $ualOutput = "SOF-ELK" 
+                    }
+                    Get-QuickUALOperations -Operations $task.Operations -UserIds $userIdsString -OutputDir $OutputDir -LogLevel $LogLevel -Output $ualOutput -StartDate $StartDate -EndDate $EndDate
                     
                     $triageSummary.SuccessfulTasks++
                     Write-TaskProgress -TaskName "UAL Operations" -Status 'Complete'
@@ -261,8 +296,30 @@ function Invoke-TriageTask {
         [bool]$MergeOutput,
         [string]$StartDate,
         [string]$EndDate,
-        [string]$Encoding 
+        [string]$Encoding,
+        [array]$JSONLSupportedFunctions,
+        [array]$SOFELKSupportedFunctions
     )
+
+    function Get-TaskOutputFormat {
+        param(
+            [string]$TaskName,
+            [string]$RequestedOutput,
+            [array]$JSONLSupportedFunctions,
+            [array]$SOFELKSupportedFunctions
+        )
+
+        if ($RequestedOutput -eq "JSONL" -and $TaskName -in $JSONLSupportedFunctions) {
+            return "JSONL"
+        } elseif ($RequestedOutput -eq "SOF-ELK" -and $TaskName -in $SOFELKSupportedFunctions) {
+            return "SOF-ELK"
+        } elseif ($RequestedOutput -eq "JSONL" -or $RequestedOutput -eq "SOF-ELK") {
+            # If JSONL or SOF-ELK was requested but not supported, fall back to JSON
+            return "JSON"
+        } else {
+            return $RequestedOutput
+        }
+    }
 
     switch ($TaskName) {
         "Get-RiskyUsers" {
@@ -305,24 +362,9 @@ function Invoke-TriageTask {
             }
             return $true
         }
-        "Get-EntraAuditLogs" {
-            if ($UserIds.Count -gt 0) {
-                Get-EntraAuditLogs -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds -Encoding $Encoding -MergeOutput -StartDate $StartDate -EndDate $EndDate
-            } else {
-                Get-EntraAuditLogs -OutputDir $OutputDir -LogLevel $LogLevel -Encoding $Encoding -MergeOutput -StartDate $StartDate -EndDate $EndDate
-            }
-            return $true
-        }
-        "Get-EntraSignInLogs" {
-            if ($UserIds.Count -gt 0) {
-                Get-EntraSignInLogs -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds -Encoding $Encoding -MergeOutput -StartDate $StartDate -EndDate $EndDate
-            } else {
-                Get-EntraSignInLogs -OutputDir $OutputDir -LogLevel $LogLevel -Encoding $Encoding -MergeOutput -StartDate $StartDate -EndDate $EndDate
-            }
-            return $true
-        }
         "Get-GraphEntraSignInLogs" {
-            $finalOutput = if ($Output -eq 'CSV') { 'JSON' } else { $Output }            
+            $taskOutput = Get-TaskOutputFormat -TaskName $TaskName -RequestedOutput $Output -JSONLSupportedFunctions $JSONLSupportedFunctions -SOFELKSupportedFunctions $SOFELKSupportedFunctions
+            $finalOutput = if ($taskOutput -eq 'CSV') { 'JSON' } else { $taskOutput }            
             if ($UserIds.Count -gt 0) {
                 Get-GraphEntraSignInLogs -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds -Output $finalOutput -MergeOutput -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate
             } else {
@@ -331,23 +373,48 @@ function Invoke-TriageTask {
             return $true
         }
         "Get-GraphEntraAuditLogs" {
-            $finalOutput = if ($Output -eq 'CSV') { 'JSON' } else { $Output }   
+            $taskOutput = Get-TaskOutputFormat -TaskName $TaskName -RequestedOutput $Output -JSONLSupportedFunctions $JSONLSupportedFunctions -SOFELKSupportedFunctions $SOFELKSupportedFunctions
+            $finalOutput = if ($taskOutput -eq 'CSV') { 'JSON' } else { $taskOutput }   
             $OutputDirAudit = "$OutputDir\Audit logs"
             New-Item -ItemType Directory -Force -Path $OutputDirAudit > $null       
-            if ($UserIds.Count -gt 0) {
-                Get-GraphEntraAuditLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $UserIds -Output $finalOutput -MergeOutput -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate
-            } else {
-                Get-GraphEntraAuditLogs -OutputDir $OutputDirAudit -LogLevel $LogLevel -Output $finalOutput -MergeOutput -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate
+
+            $useDateFilter = $true
+            if ($StartDate) {
+                $startDateTime = [DateTime]::Parse($StartDate)
+                $daysDifference = ((Get-Date) - $startDateTime).Days
+                if ($daysDifference -gt 30) {
+                    Write-LogFile -Message "[WARNING] Audit logs: Start date is beyond 30-day retention, removing date filter to avoid crash. It will still collect the full 30 days." -Color "Yellow" -Level Minimal
+                    $useDateFilter = $false
+                }
             }
+            
+            $params = @{
+                OutputDir = $OutputDirAudit
+                LogLevel = $LogLevel
+                Output = $finalOutput
+                Encoding = $Encoding
+            }
+            
+            if ($UserIds.Count -gt 0) {
+                $params.UserIds = $UserIds
+            }
+            
+            if ($useDateFilter) {
+                $params.StartDate = $StartDate
+                $params.EndDate = $EndDate
+            }
+            
+            Get-GraphEntraAuditLogs @params -MergeOutput 
             return $true
         }
         "Get-UAL" {
+            $OutputDirAudit = "$OutputDir\Unified Audit Logs"
+            $taskOutput = Get-TaskOutputFormat -TaskName $TaskName -RequestedOutput $Output -JSONLSupportedFunctions $JSONLSupportedFunctions -SOFELKSupportedFunctions $SOFELKSupportedFunctions
             if ($UserIds.Count -gt 0) {
                 $userIdsString = $UserIds -join ',' 
-                 $OutputDirAudit = "$OutputDir\Unified Audit Logs"
-                Get-UAL -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $userIdsString -Output $Output -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate -MergeOutput
+                Get-UAL -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $userIdsString -Output $taskOutput -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate -MergeOutput
             } else {
-                Get-UAL -OutputDir $OutputDirAudit -LogLevel $LogLevel -Output $Output -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate -MergeOutput
+                Get-UAL -OutputDir $OutputDirAudit -LogLevel $LogLevel -Output $taskOutput -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate -MergeOutput
             }
             return $true
         }
@@ -362,7 +429,8 @@ function Invoke-TriageTask {
         }
         "Get-MailboxAuditLog" {
             if ($UserIds.Count -gt 0) {
-                Get-MailboxAuditLog -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate
+                $userIdsString = $UserIds -join ',' 
+                Get-MailboxAuditLog -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $userIdsString -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate
             } else {
                 Get-MailboxAuditLog -OutputDir $OutputDir -LogLevel $LogLevel -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate
             }
@@ -435,10 +503,11 @@ function Invoke-TriageTask {
             return $true
         }
         "Get-UALGraph" {
+            $taskOutput = Get-TaskOutputFormat -TaskName $TaskName -RequestedOutput $Output -JSONLSupportedFunctions $JSONLSupportedFunctions -SOFELKSupportedFunctions $SOFELKSupportedFunctions
             if ($UserIds.Count -gt 0) {
-                Get-UALGraph -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds -Output $Output -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate
+                Get-UALGraph -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds -Output $taskOutput -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate
             } else {
-                Get-UALGraph -OutputDir $OutputDir -LogLevel $LogLevel -Output $Output -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate
+                Get-UALGraph -OutputDir $OutputDir -LogLevel $LogLevel -Output $taskOutput -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate
             }
             return $true
         }

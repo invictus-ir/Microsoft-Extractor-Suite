@@ -8,7 +8,7 @@
 	CompanyName = 'Invictus-IR'
 	
 	# Version number of this module.
-	ModuleVersion = '3.0.4' 
+	ModuleVersion = '4.0.0' 
 	
 	# ID used to uniquely identify this module
 	GUID = '4376306b-0078-4b4d-b565-e22804e3be01'
@@ -27,11 +27,10 @@
 		".\Scripts\Get-Rules.ps1"
 		".\Scripts\Get-MailboxAuditLog.ps1"
 		".\Scripts\Get-MessageTraceLog.ps1"
-		".\Scripts\Get-AzureADLogs.ps1"
 		".\Scripts\Get-OAuthPermissions.ps1"
 		".\Scripts\Get-AdminAuditLog.ps1"
 		".\Scripts\Get-AzureActivityLogs.ps1"
-		".\Scripts\Get-AzureADGraphLogs.ps1"
+		".\Scripts\Get-AzureEntraGraphLogs.ps1"
 		".\Scripts\Get-UsersInfo.ps1"
 		".\Scripts\Get-MFAStatus.ps1"
 		".\Scripts\Get-RiskyEvents.ps1"
@@ -84,10 +83,6 @@
 		
 		# Get-MessageTraceLog.ps1
 		"Get-MessageTraceLog"
-		
-		# Get-AzureADLogs
-		"Get-EntraAuditLogs"
-		"Get-EntraSignInLogs"
 	
 		# Get-OAuthPermissions.ps1
 		"Get-OAuthPermissions"
@@ -102,7 +97,7 @@
 		# Get-AzureDirectoryActivityLogs.ps1
 		"Get-DirectoryActivityLogs"
 	
-		# Get-AzureADGraphLogs.ps1
+		# Get-AzureEntraGraphLogs.ps1
 		"Get-GraphEntraSignInLogs"
 		"Get-GraphEntraAuditLogs"
 	

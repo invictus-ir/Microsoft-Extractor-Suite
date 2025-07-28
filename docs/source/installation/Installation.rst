@@ -21,11 +21,6 @@ Install the Powershell module Az for the Azure Activity log functionality:
 
    Install-Module -Name Az
 
-Install the Powershell module AzureADPreview for the Entra ID functionalities:
-::
-
-   Install-Module -Name AzureADPreview
-
 .. note::
 
    If you receive an error message indicating that the specified commands already exist on your system, you can resolve the issue by including the "-AllowClobber" parameter in the "Install-Module" command. This parameter will allow the installation process to overwrite any existing versions of the module and replace them with the newer version.
@@ -76,14 +71,6 @@ For simple scenarios where you only need to access resources the signed-in user 
    
    # Or alternatively
    Connect-ExchangeOnline
-
-**Connect to Azure AD**:
-::
-
-   Connect-Azure
-   
-   # Or alternatively
-   Connect-AzureAD
 
 **Connect to Azure Resource Manager**:
 ::

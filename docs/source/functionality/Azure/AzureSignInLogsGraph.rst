@@ -10,15 +10,15 @@ Running the script without any parameters will gather the Entra ID sign-in log f
 
    Get-GraphEntraSignInLogs
 
-Get the Entra ID Audit Log before 2024-04-12:
+Get the Entra ID Audit Log before 2025-04-12:
 ::
 
-   Get-GraphEntraSignInLogs -endDate 2024-04-12
+   Get-GraphEntraSignInLogs -endDate 2025-04-12
 
-Get the Entra ID Audit Log after 2024-04-12:
+Get the Entra ID Audit Log after 2025-04-12:
 ::
 
-   Get-GraphEntraSignInLogs -startDate 2024-04-12
+   Get-GraphEntraSignInLogs -startDate 2025-04-12
 
 Get the Azure Entra ID SignIn Log in a sof-elk format and merge all data into a single file:
 ::

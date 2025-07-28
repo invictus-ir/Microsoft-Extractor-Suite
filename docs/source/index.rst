@@ -50,11 +50,12 @@ Retrieve other relevant information
   License Information                   Variety of functions designed to gather information about licenses.
   Role Activity                         Retrieves all directory role memberships with last login information for users.
   PIM Assignments                       Generates a report of all Privileged Identity Management (PIM) role assignments in Entra ID.
+  Security Alerts                       Retrieves security alerts, providing information about security incidents and threats.
 ===================================== =========================================================================================================================================================================== 
 
 Getting Started
 -------
-To get started with the Microsoft-Extractor-Suite tool, make sure the requirements are met. If you do not have the **Connect-ExchangeOnline** or/and **Connect-AzureAD** installed check
+To get started with the Microsoft-Extractor-Suite tool, make sure the requirements are met. If you do not have the **Connect-ExchangeOnline** or/and **connect-mggraph** installed check
 the installation page.
 
 Install the Microsoft Extractor Suite:
@@ -76,7 +77,7 @@ Additionally, you must sign-in to Microsoft 365 or Azure depending on your usage
 ::
 
    Connect-M365 or Connect-ExchangeOnline
-   Connect-Azure or Connect-AzureAD
+   connect-mggraph
    Connect-AzureAZ or Connect-AzAccount
 
 Getting Help
@@ -114,8 +115,6 @@ Have a bug report or feature request? Open an issue on the Github repository.
    :hidden:
    :caption: Azure & Entra ID functionalities
 
-   functionality/Azure/AzureActiveDirectorysign-inlogs
-   functionality/Azure/AzureActiveDirectoryAuditLog
    functionality/Azure/AzureActivityLogs
    functionality/Azure/AzureDirectoryActivityLogs
    functionality/Azure/AzureSignInLogsGraph
@@ -126,7 +125,8 @@ Have a bug report or feature request? Open an issue on the Github repository.
    functionality/Azure/GetUserInfo
    functionality/Azure/GetGroups
    functionality/Azure/ProductLicenses
-   functionality/Azure/Roles.rst
+   functionality/Azure/Roles
+   functionality/Azure/SecurityAlerts
 
 .. toctree::
    :maxdepth: 2
@@ -134,6 +134,7 @@ Have a bug report or feature request? Open an issue on the Github repository.
    :caption: Additional Tools
 
    functionality/Tools/EvidenceCollection
+   functionality/Tools/Mes-Triage
 
 .. toctree::
    :maxdepth: 2

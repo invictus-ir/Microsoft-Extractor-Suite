@@ -213,7 +213,7 @@ function Get-PIMAssignments {
 #Inspired by: https://github.com/nathanmcnulty/nathanmcnulty/blob/master/Entra/FindSyncedPrivilegedUsers-NoPIM.ps1 & https://github.com/nathanmcnulty/nathanmcnulty/blob/master/Entra/FindSyncedPrivilegedUsers-PIM.ps1    
 <#
     .SYNOPSIS
-    Generates a report of all Entra ID PIM role assignments.
+    Generates an overview of all Entra ID PIM role assignments.
 
     .DESCRIPTION
     Retrieves all Privileged Identity Management (PIM) role assignments in Entra ID. It includes both active and eligible assignments and expands group memberships to show individual users.

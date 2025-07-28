@@ -13,15 +13,15 @@ Running the script without any parameters will gather the Azure Directory Activi
 
    Get-DirectoryActivityLogs
 
-Get all the Directory Activity Logs before 2024-03-05:
+Get all the Directory Activity Logs before 2025-03-05:
 ::
 
-   Get-DirectoryActivityLogs -EndDate 2024-06-05
+   Get-DirectoryActivityLogs -EndDate 2025-06-05
 
-Get all the Directory Activity Logs after 2024-06-05:
+Get all the Directory Activity Logs after 2025-06-05:
 ::
 
-   Get-DirectoryActivityLogs -StartDate 2024-06-05
+   Get-DirectoryActivityLogs -StartDate 2025-06-05
 
 
 Parameters

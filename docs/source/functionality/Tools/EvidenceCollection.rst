@@ -13,7 +13,7 @@ Usage
 """"""""""""""""""""""""""
 Running the script in interactive mode for all platforms with a specific project name:
 ::
-    Start-EvidenceCollection -ProjectName "Investigation2024" -Interactive
+    Start-EvidenceCollection -ProjectName "Investigation2025" -Interactive
 
 Collecting specific platform data for a particular user with standard logging:
 ::
@@ -28,7 +28,7 @@ Parameters
 -ProjectName (mandatory)
     - Specifies the name of the investigation/project.
     - Used to create the output directory structure.
-    - Example: "Case123", "Investigation2024"
+    - Example: "Case123", "Investigation2025"
 
 -Platform (optional)
     - Specifies which platform to collect from.

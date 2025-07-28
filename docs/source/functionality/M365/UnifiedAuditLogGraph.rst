@@ -27,15 +27,15 @@ Gets all the unified audit log entries for the user Test@invictus-ir.com:
 
    Get-UALGraph -SearchName Test -UserIds Test@invictus-ir.com
 
-Retrieves audit log data for the specified time range March 10, 2024 to March 20, 2024 and filters the results to include only events related to the Exchange service:
+Retrieves audit log data for the specified time range March 10, 2025 to March 20, 2025 and filters the results to include only events related to the Exchange service:
 ::
 
-   Get-UALGraph -SearchName Scan1GraphAPI -startDate "2024-03-10T09:28:56Z" -endDate "2024-03-20T09:28:56Z" -Service Exchange
+   Get-UALGraph -SearchName Scan1GraphAPI -startDate "2025-03-10T09:28:56Z" -endDate "2025-03-20T09:28:56Z" -Service Exchange
   
-Retrieve audit log data for the specified time range March 1, 2024 to March 10, 2024 and filter the results to include only entries associated with the IP address 182.74.242.26:
+Retrieve audit log data for the specified time range March 1, 2025 to March 10, 2025 and filter the results to include only entries associated with the IP address 182.74.242.26:
 ::
 
-   Get-UALGraph -searchName scan1 -startDate "2024-03-01" -endDate "2024-03-10" -IPAddress 182.74.242.26
+   Get-UALGraph -searchName scan1 -startDate "2025-03-01" -endDate "2025-03-10" -IPAddress 182.74.242.26
 
 Parameters
 """"""""""""""""""""""""""
@@ -71,7 +71,7 @@ Parameters
     - The RecordType parameter filters the log entries by record type.
     - Options are: ExchangeItem, ExchangeAdmin, etc. A total of 353 RecordTypes are supported.
 
--ObjecIDs (optional)
+-ObjectIDs (optional)
     - Exact data returned depends on the service in the current `@odatatype.microsoft.graph.security.auditLogQuery` record.
     - For Exchange admin audit logging, the name of the object modified by the cmdlet. 
     - For SharePoint activity, the full URL path name of the file or folder accessed by a user. 
@@ -104,8 +104,8 @@ Parameters
 Permissions
 """"""""""""""""""""""""""
 - When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
-- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2024-01-01 08:15:00 will be converted to 2024-01-01 06:15:00 in UTC.
-- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2024-01-01T08:15:00Z). This format will retrieve data from January 1st, 2024, starting from a quarter past 8 in the morning until the specified end date.
+- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2025-01-01 08:15:00 will be converted to 2025-01-01 06:15:00 in UTC.
+- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2025-01-01T08:15:00Z). This format will retrieve data from January 1st, 2025, starting from a quarter past 8 in the morning until the specified end date.
 
 Output
 """"""""""""""""""""""""""

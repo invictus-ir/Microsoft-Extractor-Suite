@@ -9,15 +9,15 @@ Running the script without any parameters will gather the Entra ID Audit Log for
 
    Get-GraphEntraAuditLogs
 
-Get the Entra ID Audit Log before 2024-04-12:
+Get the Entra ID Audit Log before 2025-04-12:
 ::
 
-   Get-GraphEntraAuditLogs -startDate 2024-04-12
+   Get-GraphEntraAuditLogs -startDate 2025-04-12
 
-Get the Entra ID Audit Log after 2024-04-12:
+Get the Entra ID Audit Log after 2025-04-12:
 ::
 
-   Get-GraphEntraAuditLogs -endDate 2024-04-12
+   Get-GraphEntraAuditLogs -endDate 2025-04-12
 
 Get sign-in logs for 'user@example.com', including both userPrincipalName and targetResources in the filter:
 ::

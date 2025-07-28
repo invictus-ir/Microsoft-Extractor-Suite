@@ -8,15 +8,15 @@ Find SessionID(s) in the Unified Audit Log. You can filter based on IP address o
 
 Usage
 """"""""""""""""""""""""""
-Collects all sessions for all users between 2024-04-01  and 2024-04-05.
+Collects all sessions for all users between 2025-04-01  and 2025-04-05.
 ::
 
-   Get-Sessions -StartDate 2024-04-01 -EndDate 2024-04-05
+   Get-Sessions -StartDate 2025-04-01 -EndDate 2025-04-05
 
 Collects all sessions for the user HR@invictus-ir.com.
 ::
 
-   Get-Sessions -StartDate 2024-04-01 -EndDate 2024-04-05 -UserIds HR@invictus-ir.com
+   Get-Sessions -StartDate 2025-04-01 -EndDate 2025-04-05 -UserIds HR@invictus-ir.com
 
 Parameters
 """"""""""""""""""""""""""
@@ -61,15 +61,15 @@ Find the InternetMessageID(s). You can filter on SessionID(s) or IP addresses. A
 
 Usage
 """"""""""""""""""""""""""
-Collects all sessions for all users between 2024-04-01 and 2025-04-05.
+Collects all sessions for all users between 2025-04-01 and 2025-04-05.
 ::
 
-   Get-MessageIDs -StartDate 2024-04-01 -EndDate 2025-04-05
+   Get-MessageIDs -StartDate 2025-04-01 -EndDate 2025-04-05
 
 Collects all sessions for the IP address 1.1.1.1.
 ::
 
-   Get-MessageIDs -StartDate 2024-04-01 -EndDate 2025-04-05 -IP 1.1.1.1
+   Get-MessageIDs -StartDate 2025-04-01 -EndDate 2025-04-05 -IP 1.1.1.1
 
 Parameters
 """"""""""""""""""""""""""

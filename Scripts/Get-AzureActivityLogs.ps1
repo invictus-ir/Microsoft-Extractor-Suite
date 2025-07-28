@@ -40,12 +40,12 @@ function Get-ActivityLogs {
 	Get all the activity logs for all subscriptions connected to the logged-in user account for the last 89 days.
 
 	.EXAMPLE
-    Get-ActivityLogs -EndDate 2024-04-12
-	Get all the activity logs before 2024-04-12.
+    Get-ActivityLogs -EndDate 2025-04-12
+	Get all the activity logs before 2025-04-12.
 
 	.EXAMPLE
-    Get-ActivityLogs -StartDate 2024-04-12
-	Get all the activity logs after 2024-04-12.
+    Get-ActivityLogs -StartDate 2025-04-12
+	Get all the activity logs after 2025-04-12.
 	
 	.EXAMPLE
     Get-ActivityLogs -SubscriptionID "4947f939-cf12-4329-960d-4dg68a3eb66f"

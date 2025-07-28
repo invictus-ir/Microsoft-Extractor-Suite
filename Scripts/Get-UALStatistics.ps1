@@ -34,8 +34,8 @@ function Get-UALStatistics
 	Displays the total number of logs within the unified audit log.
 
 	.EXAMPLE
-	Get-UALStatistics -UserIds Test@invictus-ir.com -StartDate 1/4/2024 -EndDate 5/4/2024
-	Displays the total number of logs within the unified audit log between 1/4/2024 and 5/4/2024 for the user Test@invictus-ir.com.
+	Get-UALStatistics -UserIds Test@invictus-ir.com -StartDate 1/4/2025 -EndDate 5/4/2025
+	Displays the total number of logs within the unified audit log between 1/4/2025 and 5/4/2025 for the user Test@invictus-ir.com.
 #>
 	[CmdletBinding()]
 	param(

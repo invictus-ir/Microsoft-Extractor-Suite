@@ -28,10 +28,10 @@ Displays the total number of logs within the unified audit log:
 
    Get-UALStatistics
 
-Displays the total number of logs within the unified audit log between 1/4/2024 and 5/4/2024 for the user test[@]invictus-ir.com:
+Displays the total number of logs within the unified audit log between 1/4/2025 and 5/4/2025 for the user test[@]invictus-ir.com:
 ::
 
-   Get-UALStatistics -UserIds test[@]invictus-ir.com -StartDate 1/4/2024 -EndDate 5/4/2024
+   Get-UALStatistics -UserIds test[@]invictus-ir.com -StartDate 1/4/2025 -EndDate 5/4/2025
 
 Parameters
 """"""""""""""""""""""""""
@@ -59,8 +59,8 @@ Parameters
   **Important note** regarding the StartDate and EndDate variables. 
 
 - When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
-- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2024-01-01 08:15:00 will be converted to 2024-01-01 06:15:00 in UTC.
-- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2024-01-01T08:15:00Z). This format will retrieve data from January 1st, 2024, starting from a quarter past 8 in the morning until the specified end date.
+- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2025-01-01 08:15:00 will be converted to 2025-01-01 06:15:00 in UTC.
+- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2025-01-01T08:15:00Z). This format will retrieve data from January 1st, 2025, starting from a quarter past 8 in the morning until the specified end date.
 
 Output
 """"""""""""""""""""""""""
@@ -100,7 +100,7 @@ Filter logs for specific users:
 Get logs for a specific date range:
 ::
     
-    Get-UAL -StartDate 1/4/2024 -EndDate 5/4/2024 -Group Azure
+    Get-UAL -StartDate 1/4/2025 -EndDate 5/4/2025 -Group Azure
 
 Get logs in JSON format:
 ::
@@ -139,7 +139,7 @@ Parameters
     - Encoding is the parameter specifying the encoding of the CSV/JSON output file.
     - Default: UTF8
 
--ObjecIDs (optional)
+-ObjectIDs (optional)
     - The ObjectIds parameter filters the log entries by object ID. The object ID is the target object that was acted upon, and depends on the RecordType and Operations values of the event.
 	- You can enter multiple values separated by commas.
 
@@ -170,8 +170,8 @@ Parameters
   **Important note** regarding the StartDate and EndDate variables. 
 
 - When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
-- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2024-01-01 08:15:00 will be converted to 2024-01-01 06:15:00 in UTC.
-- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2024-01-01T08:15:00Z). This format will retrieve data from January 1st, 2024, starting from a quarter past 8 in the morning until the specified end date.
+- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2025-01-01 08:15:00 will be converted to 2025-01-01 06:15:00 in UTC.
+- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2025-01-01T08:15:00Z). This format will retrieve data from January 1st, 2025, starting from a quarter past 8 in the morning until the specified end date.
 
 Output
 """"""""""""""""""""""""""

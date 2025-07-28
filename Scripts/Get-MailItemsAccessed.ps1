@@ -40,11 +40,11 @@ Function Get-Sessions {
     Default: Yes
 
     .EXAMPLE
-    Get-Sessions -StartDate 1/4/2024 -EndDate 5/4/2024
-    Collects all sessions for all users between 1/4/2024 and 5/4/2024.
+    Get-Sessions -StartDate 1/4/2025 -EndDate 5/4/2025
+    Collects all sessions for all users between 1/4/2025 and 5/4/2025.
     
     .EXAMPLE
-    Get-Sessions -StartDate 1/4/2024 -EndDate 5/4/2024 -UserIds HR@invictus-ir.com
+    Get-Sessions -StartDate 1/4/2025 -EndDate 5/4/2025 -UserIds HR@invictus-ir.com
     Collects all sessions for the user HR@invictus-ir.com.
 #>
     [CmdletBinding()]
@@ -455,15 +455,15 @@ function Get-MessageIDs {
     To specifiy whether the messages and their attachments should be saved.
 
     .EXAMPLE
-    Get-MessageIDs -StartDate 1/4/2024 -EndDate 5/4/2024
-    Collects all sessions for all users between 1/4/2024 and 5/4/2024.
+    Get-MessageIDs -StartDate 1/4/2025 -EndDate 5/4/2025
+    Collects all sessions for all users between 1/4/2025 and 5/4/2025.
     
     .EXAMPLE
-    Get-MessageIDs -StartDate 1/4/2024 -EndDate 5/4/2024 -IP 1.1.1.1
+    Get-MessageIDs -StartDate 1/4/2025 -EndDate 5/4/2025 -IP 1.1.1.1
     Collects all sessions for the IP address 1.1.1.1.
 
     .EXAMPLE
-    Get-MessageIDs -StartDate 1/4/2024 -EndDate 5/4/2024 -IP 1.1.1.1 -Download
+    Get-MessageIDs -StartDate 1/4/2025 -EndDate 5/4/2025 -IP 1.1.1.1 -Download
     Collects all sessions for the IP address 1.1.1.1 and downloads the e-mails and attachments.
 #>
     [CmdletBinding()]

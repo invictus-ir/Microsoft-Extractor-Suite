@@ -13,7 +13,7 @@ Frequently Asked Questions
     - The audit logs are recorded in UTC and will be exported in the same time zone.
 
 5. What is the retention period?
-    - Audit (Standard) - Logs generated before October 17, 2024 are retained for 90 days. Audit (Standard) logs generated on or after October 17, 2024 follow the new default retention of 180 days.
+    - Audit (Standard) - Logs generated before October 17, 2025 are retained for 90 days. Audit (Standard) logs generated on or after October 17, 2025 follow the new default retention of 180 days.
     - OAudit (Premium) - Audit records are retained for 365 days (one year). That means you can search the audit log for activities that were performed within the last year. To retain audit logs for 10 years, the user who generates the audit log must also be assigned a 10-year audit log retention add-on license in addition to an E5 license.
 
 6. What if I have E5 or other license that has more than 90 days?

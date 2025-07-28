@@ -1,6 +1,0 @@
-﻿"UserName","UserId","Role","DisplayName","Department","JobTitle","AccountEnabled","CreatedDateTime","LastInteractiveSignIn","LastNonInteractiveSignIn","DaysSinceLastSignIn"
-"FortunaHodan@bonacu.onmicrosoft.com","7f96006a-f58e-4e01-9379-02964d0d0a87","Global Administrator","Administrator",,,"True","8/10/2021 2:16:57 PM","4/18/2025 12:26:34 PM","4/29/2025 12:55:02 PM","11"
-"Joey@bonacu.onmicrosoft.com","a701a182-a694-4afe-8027-1acbad3f8cb0","Global Administrator","Joey","OnDemand-students",,"True","9/20/2023 12:04:04 PM","4/29/2025 2:23:13 PM","4/30/2025 12:04:42 AM","0"
-"Korstiaan@bonacu.onmicrosoft.com","c7855e7c-897e-4ced-b66f-f8b981641bf3","Global Administrator","Korstiaan",,,"True","9/20/2023 12:02:36 PM","4/25/2025 10:26:26 AM","4/30/2025 12:32:24 AM","5"
-"charles.taylor@bonacu.onmicrosoft.com","234e5214-55f2-477a-acf7-8e23bcb85a07","Global Administrator","Charles Taylor","IT","IT Intern","True","4/15/2025 6:47:28 AM","4/18/2025 11:18:06 AM","4/18/2025 11:18:07 AM","11"
-"davism@bonacu.onmicrosoft.com","1c49dbe0-ade6-4c02-b1bd-162c3e00dbd2","Global Administrator","Mary Davis","Development","Development Designer","True","4/15/2025 6:47:29 AM","4/18/2025 8:22:24 AM","4/18/2025 8:22:25 AM","12"

@@ -73,44 +73,6 @@ Function Connect-M365
     Connect-ExchangeOnline @PSBoundParameters > $null;
 }
 
-Function Connect-Azure
-{
-    PARAM(
-        [ValidateSet('AzureChinaCloud', 'AzureCloud', 'AzureGermanyCloud', 'AzurePPE', 'AzureUSGovernment', 'AzureUSGovernment2', 'AzureUSGovernment3')]
-        [string]
-        $AzureEnvironmentName,
-        [string]
-        $TenantId,
-        [pscredential]
-        $Credential,
-        [string]
-        $CertificateThumbprint,
-        [string]
-        $ApplicationId,
-        [string]
-        $AadAccessToken,
-        [string]
-        $MsAccessToken,
-        [string]
-        $AccountId,
-        [ValidateSet('Error', 'Info', 'None', 'Warning')]
-        [string]
-        $LogLevel,
-        [string]
-        $LogFilePath,
-        [switch]
-        $WhatIf,
-        [switch]
-        $Confirm,
-        [Switch]
-        $Verbose,
-        [switch]
-        $Debug
-    )
-    versionCheck
-    Connect-AzureAD @PSBoundParameters > $null;
-}
-
 Function Connect-AzureAZ
 {
     PARAM(

@@ -16,8 +16,6 @@ Required PowerShell Modules
 
 - **ExchangeOnlineManagement** - Required for Microsoft 365 functionalities.  
 
-- **AzureADPreview** - Required for Entra ID functionalities.  
-
 - **Microsoft.Graph** - Required for Graph API functionalities.  
 
 - **Az** - Required for Azure functionalities.  
@@ -146,6 +144,9 @@ Each functionality requires one of the following permissions:
 |                           +-----------------------------------------+
 |                           | Group.Read.All                          |
 +---------------------------+-----------------------------------------+
+| Security Alerts           | SecurityEvents.Read.All                 |
++---------------------------+-----------------------------------------+
+
 
 Authentication Methods
 """"""""""""""""""""""""""
@@ -237,6 +238,9 @@ During our investigations we often ask for a Global Reader account with Audit Lo
    |                           | Alternatively, emails can be acquired by other      |
    |                           | means.                                              |
    +---------------------------+-----------------------------------------------------+
+   | SecurityEvents.Read.All   | Read security events and alerts                     |
+   +---------------------------+-----------------------------------------------------+
+   
 
 .. note::
 

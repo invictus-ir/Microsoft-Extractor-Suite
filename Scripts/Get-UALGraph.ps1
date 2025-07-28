@@ -30,6 +30,12 @@ Function Get-UALGraph {
     Output is the parameter specifying the CSV, JSON, JSONL or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
     Default: JSON
 
+    .PARAMETER Output
+    Output is the parameter specifying the CSV, JSON, JSONL, or SOF-ELK output type. 
+    Note: JSONL format is only supported by specific functions (Get-AdminAuditLog, Get-AllEvidence, Get-AzureDirectoryActivityLogs, Get-UAL, Get-UALGraph).
+    Other tasks automatically use JSON format regardless of this setting.
+    Default: JSON
+
     .PARAMETER LogLevel
     Specifies the level of logging:
     None: No logging
@@ -68,7 +74,7 @@ Function Get-UALGraph {
     When set to True, splits output into multiple files based on MaxEventsPerFile.
     Default: If not specified, outputs to a single file.
 
-    .PARAMETER ObjecIDs 
+    .PARAMETER ObjectIDs 
     Exact data returned depends on the service in the current `@odatatype.microsoft.graph.security.auditLogQuery` record.
     For Exchange admin audit logging, the name of the object modified by the cmdlet.
     For SharePoint activity, the full URL path name of the file or folder accessed by a user. 
@@ -83,12 +89,12 @@ Function Get-UALGraph {
     Gets all the unified audit log entries for the user Test@invictus-ir.com.
     
     .EXAMPLE
-    Get-UALGraph -searchName Test -startDate "2024-03-10T09:28:56Z" -endDate "2024-03-20T09:28:56Z" -Service Exchange
-    Retrieves audit log data for the specified time range March 10, 2024 to March 20, 2024 and filters the results to include only events related to the Exchange service.
+    Get-UALGraph -searchName Test -startDate "2025-03-10T09:28:56Z" -endDate "2025-03-20T09:28:56Z" -Service Exchange
+    Retrieves audit log data for the specified time range March 10, 2025 to March 20, 2025 and filters the results to include only events related to the Exchange service.
     
     .EXAMPLE
-    Get-UALGraph -searchName Test -startDate "2024-03-01" -endDate "2024-03-10" -IPAddress 182.74.242.26
-    Retrieve audit log data for the specified time range March 1, 2024 to March 10, 2024 and filter the results to include only entries associated with the IP address 182.74.242.26.
+    Get-UALGraph -searchName Test -startDate "2025-03-01" -endDate "2025-03-10" -IPAddress 182.74.242.26
+    Retrieve audit log data for the specified time range March 1, 2025 to March 10, 2025 and filter the results to include only entries associated with the IP address 182.74.242.26.
 
     .EXAMPLE
     Get-UALGraph -searchName Test -MaxEventsPerFile 500000 -SplitFiles
@@ -108,7 +114,7 @@ Function Get-UALGraph {
         [string[]]$Operations = @(),
         [string[]]$UserIds = @(),
         [string[]]$IPAddress = @(),
-        [string[]]$ObjecIDs = @(),
+        [string[]]$ObjectIDs = @(),
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
         [double]$MaxEventsPerFile = 250000,
@@ -134,7 +140,7 @@ Function Get-UALGraph {
         Write-LogFile -Message "[DEBUG]   Operations: '$($Operations -join ', ')'" -Level Debug
         Write-LogFile -Message "[DEBUG]   UserIds: '$($UserIds -join ', ')'" -Level Debug
         Write-LogFile -Message "[DEBUG]   IPAddress: '$($IPAddress -join ', ')'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   ObjecIDs: '$($ObjecIDs -join ', ')'" -Level Debug
+        Write-LogFile -Message "[DEBUG]   ObjectIDs: '$($ObjectIDs -join ', ')'" -Level Debug
         Write-LogFile -Message "[DEBUG]   MaxEventsPerFile: $MaxEventsPerFile" -Level Debug
         Write-LogFile -Message "[DEBUG]   Output: '$Output'" -Level Debug
         Write-LogFile -Message "[DEBUG]   SplitFiles: $SplitFiles" -Level Debug
@@ -207,7 +213,7 @@ Function Get-UALGraph {
         operationFilters = $Operations
         userPrincipalNameFilters = $UserIds
         ipAddressFilters = $IPAddress
-        objectIdFilters = $ObjecIDs
+        objectIdFilters = $ObjectIDs
         administrativeUnitIdFilters = @()
         status = ""
     } | ConvertTo-Json
