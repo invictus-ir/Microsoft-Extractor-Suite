@@ -68,7 +68,7 @@ function EndDate {
         }
     }
     else {
-        $script:endDate = [datetime]::Parse($startDate).ToUniversalTime()
+        $script:endDate = [datetime]::Parse($endDate).ToUniversalTime()
         if (!$endDate -and -not $Quiet) { 
             Write-LogFile -Message "[WARNING] Not A valid end date and time, make sure to use YYYY-MM-DD" -Color "Red"
         } 
