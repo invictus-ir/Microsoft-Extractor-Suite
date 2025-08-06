@@ -52,7 +52,7 @@ function Get-Devices {
 #>
     [CmdletBinding()]
     param (
-        [string]$outputDir = "Output\Device Information",
+        [string]$outputDir,
         [string]$Encoding = "UTF8",
         [ValidateSet("CSV", "JSON")]
         [string]$Output = "CSV",
@@ -61,79 +61,36 @@ function Get-Devices {
         [string]$UserIds
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-    $date = Get-Date -Format "yyyyMMddHHmm"
-    $summary = @{
-        TotalDevices = 0
-        AzureADJoined = 0
-        WorkplaceJoined = 0
-        HybridJoined = 0
-        ActiveDevices30Days = 0
-        InactiveDevices90Days = 0
-        CompliantDevices = 0
-        ManagedDevices = 0
-        Windows = 0
-        MacOS = 0
-        iOS = 0
-        Android = 0
-        Other = 0
-        StartTime = Get-Date
-        ProcessingTime = $null
-    }
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Output: $Output" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
-        
-        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModule) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModule) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
-
+    Init-Logging
     Write-LogFile -Message "=== Starting Device Collection ===" -Color "Cyan" -Level Standard
+    Init-OutputDir -Component "Device Information" -FilePostfix "Devices"
+	$requiredScopes = @("Application.Read.All")
+    Check-GraphContext -RequiredScopes $requiredScopes
 
-    if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    }
-    else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal -Color "Red"
+
+    $date = Get-Date -Format "yyyyMMddHHmm"
+    $summary = [ordered]@{
+        DeviceCounts = [ordered]@{
+            TotalDevices = 0
+            AzureADJoined = 0
+            WorkplaceJoined = 0
+            HybridJoined = 0
+        }
+        DeviceStatus = [ordered]@{
+            CompliantDevices = 0
+            ManagedDevices = 0
+            ActiveDevices30Days = 0
+            InactiveDevices90Days = 0
+        }
+        OperatingSystem = [ordered]@{
+            Windows = 0
+            MacOS = 0
+            iOS = 0
+            Android = 0
+            Other = 0
         }
     }
 
-    $outputFile = "$($date)-Devices.$($Output.ToLower())"
-    $outputDirectory = Join-Path $outputDir $outputFile
-
-    $requiredScopes = @("Device.Read.All", "Directory.Read.All")
-    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication completed" -Level Debug
-        try {
-            $context = Get-MgContext
-            if ($context) {
-                Write-LogFile -Message "[DEBUG] Graph context information:" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Account: $($context.Account)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Environment: $($context.Environment)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   TenantId: $($context.TenantId)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Scopes: $($context.Scopes -join ', ')" -Level Debug
-            }
-        } catch {
-            Write-LogFile -Message "[DEBUG] Could not retrieve Graph context details" -Level Debug
-        }
-    }
 
     try {
         write-logFile -Message "[INFO] Collecting device information..." -Level Standard
@@ -178,7 +135,7 @@ function Get-Devices {
 
         $results = @()
         $totalDevices = $devices.Count
-        $summary.TotalDevices = $totalDevices
+        $summary.DeviceCounts.TotalDevices = $totalDevices
         $current = 0
 
         Write-LogFile -Message "[INFO] Processing $totalDevices devices..." -Level Standard
@@ -203,27 +160,27 @@ function Get-Devices {
             } else { $null }
 
             switch ($device.TrustType) {
-                "AzureAd" { $summary.AzureADJoined++ }
-                "Workplace" { $summary.WorkplaceJoined++ }
-                "ServerAd" { $summary.HybridJoined++ }
+                "AzureAd" { $summary.DeviceCounts.AzureADJoined++ }
+                "Workplace" { $summary.DeviceCounts.WorkplaceJoined++ }
+                "ServerAd" { $summary.DeviceCounts.HybridJoined++ }
             }
 
-            if ($device.IsCompliant) { $summary.CompliantDevices++ }
-            if ($device.IsManaged) { $summary.ManagedDevices++ }
+            if ($device.IsCompliant) { $summary.DeviceStatus.CompliantDevices++ }
+            if ($device.IsManaged) { $summary.DeviceStatus.ManagedDevices++ }
 
             if ($lastSignInDate -gt (Get-Date).AddDays(-30)) {
-                $summary.ActiveDevices30Days++
+                $summary.DeviceStatus.ActiveDevices30Days++
             }
             if ($lastSignInDate -lt (Get-Date).AddDays(-90)) {
-                $summary.InactiveDevices90Days++
+                $summary.DeviceStatus.InactiveDevices90Days++
             }
 
             switch -Wildcard ($device.OperatingSystem) {
-                "Windows*" { $summary.Windows++ }
-                "Mac*" { $summary.MacOS++ }
-                "iOS*" { $summary.iOS++ }
-                "Android*" { $summary.Android++ }
-                default { $summary.Other++ }
+                "Windows*" { $summary.OperatingSystem.Windows++ }
+                "Mac*" { $summary.OperatingSystem.MacOS++ }
+                "iOS*" { $summary.OperatingSystem.iOS++ }
+                "Android*" { $summary.OperatingSystem.Android++ }
+                default { $summary.OperatingSystem.Other++ }
             }
 
             $deviceEntry = [PSCustomObject]@{
@@ -259,37 +216,12 @@ function Get-Devices {
         }
 
         if ($Output -eq "CSV") {
-            $results | Export-Csv -Path $outputDirectory -NoTypeInformation -Encoding $Encoding
+            $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
         } else {
             $results | ConvertTo-Json -Depth 100 | Out-File $outputDirectory -Encoding $Encoding
         }
 
-        $summary.ProcessingTime = (Get-Date) - $summary.StartTime
-
-        Write-LogFile -Message "`n=== Device Analysis Summary ===" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "Device Counts:" -Level Standard
-        Write-LogFile -Message "  Total Devices: $($summary.TotalDevices)" -Level Standard
-        Write-LogFile -Message "  Entra ID Joined: $($summary.AzureADJoined)" -Level Standard
-        Write-LogFile -Message "  Workplace Joined: $($summary.WorkplaceJoined)" -Level Standard
-        Write-LogFile -Message "  Hybrid Joined: $($summary.HybridJoined)" -Level Standard
-
-        Write-LogFile -Message "`nDevice Status:" -Level Standard
-        Write-LogFile -Message "  Compliant Devices: $($summary.CompliantDevices)" -Level Standard
-        Write-LogFile -Message "  Managed Devices: $($summary.ManagedDevices)" -Level Standard
-        Write-LogFile -Message "  Active (Last 30 Days): $($summary.ActiveDevices30Days)" -Level Standard
-        Write-LogFile -Message "  Inactive (>90 Days): $($summary.InactiveDevices90Days)" -Level Standard
-
-        Write-LogFile -Message "`nOperating Systems:" -Level Standard
-        Write-LogFile -Message "  Windows: $($summary.Windows)" -Level Standard
-        Write-LogFile -Message "  macOS: $($summary.MacOS)" -Level Standard
-        Write-LogFile -Message "  iOS: $($summary.iOS)" -Level Standard
-        Write-LogFile -Message "  Android: $($summary.Android)" -Level Standard
-        Write-LogFile -Message "  Other: $($summary.Other)" -Level Standard
-
-        Write-LogFile -Message "`nExport Details:" -Level Standard
-        Write-LogFile -Message "  Output File: $outputDirectory" -Level Standard
-        Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
-        Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+        Write-Summary -Summary $summary
     }
     catch {
         write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"

@@ -36,6 +36,7 @@
 		".\Scripts\Get-RiskyEvents.ps1"
 		".\Scripts\Get-ConditionalAccessPolicy.ps1"
 		".\Scripts\Get-Emails.ps1"
+		".\Scripts\Get-EntraApplications.ps1"
 		".\Scripts\Get-MailItemsAccessed.ps1"
 		".\Scripts\Get-UALGraph.ps1"
 		".\Scripts\Get-AzureDirectoryActivityLogs.ps1"
@@ -119,6 +120,9 @@
 		"Get-Email"
 		"Get-Attachment"
 		"Show-Email"
+
+		# Get-EntraApplications.ps1
+		"Get-EntraApplications"
 	
 		# Get-MailItemsAccessed.ps1
 		"Get-Sessions"

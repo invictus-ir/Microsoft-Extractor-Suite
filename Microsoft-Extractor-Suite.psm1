@@ -244,6 +244,119 @@ function Get-GraphAuthType {
     }
 }
 
+function Init-Logging {
+    Set-LogLevel -Level ([LogLevel]::$LogLevel)
+	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+	$script:scriptStartedAt = Get-Date
+
+	if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        foreach ($param in $PSBoundParameters.GetEnumerator()) {
+            Write-LogFile -Message "[DEBUG]   $($param.Key): $($param.Value)" -Level Debug
+        }
+
+        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModule) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModule) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+}
+
+function Check-GraphContext {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [object]$RequiredScopes
+    )
+
+    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication completed" -Level Debug
+        try {
+            $context = Get-MgContext
+            if ($context) {
+                Write-LogFile -Message "[DEBUG] Graph context information:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Account: $($context.Account)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Environment: $($context.Environment)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   TenantId: $($context.TenantId)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Scopes: $($context.Scopes -join ', ')" -Level Debug
+            }
+        } catch {
+            Write-LogFile -Message "[DEBUG] Could not retrieve Graph context details" -Level Debug
+        }
+    }
+}
+
+function Init-OutputDir {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Component,
+        [string]$SubComponent = "",
+        [Parameter(Mandatory=$true)]
+        [string]$FilePostfix
+    )
+
+	$date = [datetime]::Now.ToString('yyyyMMdd')
+	if ($OutputDir -eq "" ){
+		$OutputDir = "Output\$Component\$($date)"
+		if ($SubComponent -ne "") {
+            $OutputDir += "-$SubComponent"
+        }
+		if (!(test-path $OutputDir)) {
+		    Write-LogFile -Message "[DEBUG] Creating output directory: $OutputDir" -Level Debug
+			New-Item -ItemType Directory -Force -path $OutputDir > $null
+		}
+	}
+	else {
+        if (!(Test-Path -Path $OutputDir)) {
+            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal -Color "Red"
+            return
+        }
+    }
+
+    Write-LogFile -Message "[DEBUG] Using output directory: $OutputDir" -Level Debug
+    $filename = "$($date)-$FilePostfix.csv"
+	$script:outputFile = Join-Path $OutputDir $filename
+}
+
+function Write-Summary {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [object]$Summary
+    )
+
+    Write-LogFile -Message "`n=== Summary ===" -Color "Cyan" -Level Standard
+    foreach ($param in $Summary.GetEnumerator()) {
+        if ($param.value -is [hashtable] -or $param.value -is [System.Collections.Specialized.OrderedDictionary]) {
+            Write-LogFile -Message "$($param.key):" -Level Standard
+            foreach($subitem in $param.value.GetEnumerator()) {
+                Write-LogFile -Message "  $($subitem.key): $($subitem.value)" -Level Standard
+            }
+            Write-LogFile -Message " " -Level Standard
+        } else {
+            Write-LogFile -Message "$($param.key): $($param.value)" -Level Standard
+        }
+    }
+
+    $ProcessingTime = (Get-Date) - $script:ScriptStartedAt
+    Write-LogFile -Message "`nExport Details:" -Level Standard
+    Write-LogFile -Message "  Output File: $script:outputFile" -Level Standard
+    Write-LogFile -Message "  Processing Time: $($ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
+    Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+
+
+}
+
 function Merge-OutputFiles {
     param (
         [Parameter(Mandatory)][string]$OutputDir,
