@@ -405,21 +405,15 @@ function Get-UAL {
 
 		if (!$PSBoundParameters.ContainsKey('Interval')) {
 			$totalMinutes = ($script:EndDate - $script:StartDate).TotalMinutes
-		
-			if ($null -ne $totalResults -And $totalResults -gt 0) {
-				$estimatedIntervals = [math]::Ceiling($totalResults / $MaxItemsPerInterval)
-				
-				if ($estimatedIntervals -lt 2) {
-					$Interval = $totalMinutes
-				} else {
-					$Interval = [math]::Max(1, [math]::Floor(($totalMinutes / $estimatedIntervals) / 1.2))					
-				}
-				
-				Write-LogFile -Message "[INFO] Using interval of $Interval minutes based on estimated $totalResults records" -Level Standard -Color "Green"
-			} 
-			else { 
-				$Interval = $totalMinutes
-			}
+            $estimatedIntervals = [math]::Ceiling($totalResults / $MaxItemsPerInterval)
+
+            if ($estimatedIntervals -lt 2) {
+                $Interval = $totalMinutes
+            } else {
+                $Interval = [math]::Max(1, [math]::Floor(($totalMinutes / $estimatedIntervals) / 1.2))
+            }
+
+            Write-LogFile -Message "[INFO] Using interval of $Interval minutes based on estimated $totalResults records" -Level Standard -Color "Green"
 		}
 
 		$resetInterval = $Interval
