@@ -406,7 +406,7 @@ function Get-UAL {
 		if (!$PSBoundParameters.ContainsKey('Interval')) {
 			$totalMinutes = ($script:EndDate - $script:StartDate).TotalMinutes
 		
-			if ($null -ne $totalResults -And $totalResults -gt 1) {
+			if ($null -ne $totalResults -And $totalResults -gt 0) {
 				$estimatedIntervals = [math]::Ceiling($totalResults / $MaxItemsPerInterval)
 				
 				if ($estimatedIntervals -lt 2) {
@@ -418,7 +418,7 @@ function Get-UAL {
 				Write-LogFile -Message "[INFO] Using interval of $Interval minutes based on estimated $totalResults records" -Level Standard -Color "Green"
 			} 
 			else { 
-				$Interval = 60
+				$Interval = $totalMinutes
 			}
 		}
 
