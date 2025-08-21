@@ -319,7 +319,7 @@ function Init-OutputDir {
 	else {
         if (!(Test-Path -Path $OutputDir)) {
             Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal -Color "Red"
-            return
+            throw
         }
     }
 

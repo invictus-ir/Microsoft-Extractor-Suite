@@ -394,78 +394,25 @@ function Get-OAuthPermissionsGraph {
 	param(
 		[switch] $DelegatedPermissions,
 		[switch] $ApplicationPermissions,
-		[string] $OutputDir = "Output\OAuthPermissions",
+		[string] $OutputDir,
 		[string] $Encoding = "UTF8",
 		[ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
 		[string]$LogLevel = 'Standard'
 	)
 
-	Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+    Init-Logging
+	Write-LogFile -Message "=== Starting OAuth Permissions Collection ===" -Color "Cyan" -Level Standard
+    Init-OutputDir -Component "OAuthPermissions" -FilePostfix "OAuthPermissions"
+	$requiredScopes = @("Application.Read.All")
+    Check-GraphContext -RequiredScopes $requiredScopes
 
-	if ($isDebugEnabled) {
-		Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-		Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-		Write-LogFile -Message "[DEBUG]   DelegatedPermissions: $DelegatedPermissions" -Level Debug
-		Write-LogFile -Message "[DEBUG]   ApplicationPermissions: $ApplicationPermissions" -Level Debug
-		Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-		
-		$graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-		if ($graphModules) {
-			Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-			foreach ($module in $graphModules) {
-				Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-			}
-		} else {
-			Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-		}
-	}
-
-	$date = Get-Date -Format "ddMMyyyyHHmmss"
-	$summary = @{
+	$summary = [ordered]@{
+		ServicePrincipalsProcessed = 0
+		DelegatedGrantsProcessed = 0
 		TotalPermissions = 0
 		DelegatedCount = 0
 		ApplicationCount = 0
-		ServicePrincipalsProcessed = 0
-		DelegatedGrantsProcessed = 0
-		StartTime = Get-Date
-		ProcessingTime = $null
-	}
 
-	$requiredScopes = @("Directory.Read.All", "Application.Read.All")
-	$graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-
-	if ($isDebugEnabled) {
-		Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
-		if ($graphAuth.MissingScopes.Count -gt 0) {
-			Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
-		} else {
-			Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
-		}
-	}
-
-	Write-LogFile -Message "=== Starting OAuth Permissions Collection ===" -Color "Cyan" -Level Standard
-
-	if (!(Test-Path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Path $OutputDir > $null
-		if ($isDebugEnabled) {
-			Write-LogFile -Message "[DEBUG] Created output directory: $OutputDir" -Level Debug
-		}
-	}
-	else {
-		if (!(Test-Path -Path $OutputDir)) {
-			Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-			Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-		} else {
-			if ($isDebugEnabled) {
-				Write-LogFile -Message "[DEBUG] Using existing output directory: $OutputDir" -Level Debug
-			}
-		}
 	}
 
 	$script:ObjectCache = @{}
@@ -802,35 +749,17 @@ function Get-OAuthPermissionsGraph {
 	}
 
 	# Export results
-	$summary.TotalPermissions = $summary.DelegatedCount + $summary.ApplicationCount
-	$summary.ProcessingTime = (Get-Date) - $summary.StartTime
-
 	Write-LogFile -Message "[INFO] Exporting results to CSV..." -Level Standard
-	if ($isDebugEnabled) {
-		Write-LogFile -Message "[DEBUG] Exporting results to CSV..." -Level Debug
-		Write-LogFile -Message "[DEBUG]   Total records to export: $($report.Count)" -Level Debug
-	}
+	$report | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
-	$outputPath = Join-Path $OutputDir "$($date)-OAuthPermissions.csv"
-	$report | Export-CSV -NoTypeInformation -Path $outputPath -Encoding $Encoding
+	Write-LogFile -Message "[INFO] Exporting service principals to CSV..." -Level Standard
+	Init-OutputDir -Component "EntraID" -SubComponent "ServicePrincipals" -FilePostfix "ServicePrincipals"
+	$allServicePrincipals | Select-Object AppId, AppDisplayName, AppDescription, AccountEnabled, AppOwnerOrganizationId | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
-	Write-LogFile -Message "[INFO] Export completed successfully" -Level Standard -Color "Green"
-	if ($isDebugEnabled) {
-		Write-LogFile -Message "[DEBUG] Export completed successfully" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Output file: $outputPath" -Level Debug
-		Write-LogFile -Message "[DEBUG]   File size: $(if (Test-Path $outputPath) { (Get-Item $outputPath).Length } else { 'File not found' }) bytes" -Level Debug
-		Write-LogFile -Message "[DEBUG] Performance metrics:" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Processing time: $($summary.ProcessingTime.ToString('mm\:ss\.fff'))" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Records per second: $([math]::Round($summary.TotalPermissions / $summary.ProcessingTime.TotalSeconds, 2))" -Level Debug
-	}
+	Write-LogFile -Message "[INFO] Exporting App Registrations to CSV..." -Level Standard
+	Init-OutputDir -Component "EntraID" -SubComponent "AppRegistrations" -FilePostfix "AppRegistrations"
+ 	Get-MgApplication -All | Select-Object Id, DisplayName, AppId, CreatedDateTime | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
-	Write-LogFile -Message "`n=== OAuth Permissions Analysis Summary ===" -Color "Cyan" -Level Standard
-	Write-LogFile -Message "Service Principals Processed: $($summary.ServicePrincipalsProcessed)" -Level Standard
-	Write-LogFile -Message "Delegated Grants Processed: $($summary.DelegatedGrantsProcessed)" -Level Standard
-	Write-LogFile -Message "Total Permissions Found: $($summary.TotalPermissions)" -Level Standard
-	Write-LogFile -Message "  - Delegated Permissions: $($summary.DelegatedCount)" -Level Standard
-	Write-LogFile -Message "  - Application Permissions: $($summary.ApplicationCount)" -Level Standard
-	Write-LogFile -Message "`nOutput File: $outputPath" -Level Standard
-	Write-LogFile -Message "Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
-	Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+	$summary.TotalPermissions = $summary.DelegatedCount + $summary.ApplicationCount
+	Write-Summary -Summary $summary
 }
