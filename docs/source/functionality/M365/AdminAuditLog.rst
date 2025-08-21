@@ -16,10 +16,10 @@ Running the script without any parameters will gather the Admin Audit log for th
 
    Get-AdminAuditLog
 
-Get the admin audit log between 1/4/2025 and 5/4/2025:
+Get the admin audit log between 2025-04-01 and 2025-04-05:
 ::
 
-   Get-AdminAuditLog -StartDate 1/4/2025 -EndDate 5/4/2025
+   Get-AdminAuditLog -StartDate 2025-04-01 -EndDate 2025-04-05
 
 Parameters
 """"""""""""""""""""""""""

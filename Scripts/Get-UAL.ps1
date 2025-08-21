@@ -84,8 +84,8 @@ function Get-UAL {
 	Gets all the unified audit log entries for the users Test@invictus-ir.com and HR@invictus-ir.com.
 	
 	.EXAMPLE
-	Get-UAL -UserIds Test@invictus-ir.com -StartDate 1/4/2024 -EndDate 5/4/2024
-	Gets all the unified audit log entries between 1/4/2024 and 5/4/2024 for the user Test@invictus-ir.com.
+	Get-UAL -UserIds Test@invictus-ir.com -StartDate 2025-04-01 -EndDate 2025-04-05
+	Gets all the unified audit log entries between 2025-04-01 and 2025-04-05 for the user Test@invictus-ir.com.
 	
 	.EXAMPLE
 	Get-UAL -UserIds -Interval 720
