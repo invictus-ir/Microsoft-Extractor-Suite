@@ -402,7 +402,7 @@ function Get-OAuthPermissionsGraph {
 
     Init-Logging
 	Write-LogFile -Message "=== Starting OAuth Permissions Collection ===" -Color "Cyan" -Level Standard
-    Init-OutputDir -Component "OAuthPermissions" -FilePostfix "OAuthPermissions"
+    Init-OutputDir -Component "EntraID" -SubComponent "OAuthPermissions" -FilePostfix "OAuthPermissions"
 	$requiredScopes = @("Application.Read.All")
     Check-GraphContext -RequiredScopes $requiredScopes
 
