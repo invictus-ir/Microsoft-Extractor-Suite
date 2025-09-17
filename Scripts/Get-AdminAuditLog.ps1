@@ -46,8 +46,8 @@ function Get-AdminAuditLog {
     Displays the total number of logs within the admin audit log.
 
     .EXAMPLE
-    Get-AdminAuditLog -StartDate 1/4/2024 -EndDate 5/4/2024
-    Collects the admin audit log between 1/4/2024 and 5/4/2024
+    Get-AdminAuditLog -StartDate 2025-04-01 -EndDate 2025-04-05
+    Collects the admin audit log between 2025-04-01 and 2025-04-05
 #>
     [CmdletBinding()]
     param(

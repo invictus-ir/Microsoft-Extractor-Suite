@@ -28,10 +28,10 @@ Displays the total number of logs within the unified audit log:
 
    Get-UALStatistics
 
-Displays the total number of logs within the unified audit log between 1/4/2025 and 5/4/2025 for the user test[@]invictus-ir.com:
+Displays the total number of logs within the unified audit log between 2025-04-01 and 2025-04-05 for the user test[@]invictus-ir.com:
 ::
 
-   Get-UALStatistics -UserIds test[@]invictus-ir.com -StartDate 1/4/2025 -EndDate 5/4/2025
+   Get-UALStatistics -UserIds test[@]invictus-ir.com -StartDate 2025-04-01 -EndDate 2025-04-05
 
 Parameters
 """"""""""""""""""""""""""

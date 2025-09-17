@@ -247,7 +247,7 @@ Function Get-Sessions {
                     OperationCount = $AuditData.OperationCount
                 }
                     
-                f($AuditData.ClientIPAddress -eq $IP){
+                if($AuditData.ClientIPAddress -eq $IP){
                     $summary.TotalEvents++
                     
                     if ($AuditData.SessionId) {

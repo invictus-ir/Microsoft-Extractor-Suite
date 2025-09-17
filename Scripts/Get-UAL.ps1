@@ -21,7 +21,7 @@ function Get-UAL {
 	Default: Now
 
 	.PARAMETER Output
-    Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
+    Output is the parameter specifying the CSV, JSON, JSONL or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
 	Default: CSV
 
 	.PARAMETER OutputDir
@@ -29,7 +29,7 @@ function Get-UAL {
 	Default: Output\UnifiedAuditLog
 
  	.PARAMETER MergeOutput
-    MergeOutput is the parameter specifying if you wish to merge CSV/JSON/SOF-ELK outputs to a single file.
+    MergeOutput is the parameter specifying if you wish to merge CSV/JSON/JSONL/SOF-ELK outputs to a single file.
 
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.
@@ -54,8 +54,8 @@ function Get-UAL {
     The RecordType parameter filters the log entries by record type.
 	Options are: ExchangeItem, ExchangeAdmin, etc. A total of 353 RecordTypes are supported.
 
- 	.PARAMETER Operation
-    The Operation parameter filters the log entries by operation or activity type.
+ 	.PARAMETER Operations
+    The Operations parameter filters the log entries by operations or activity type.
 	Options are: New-MailboxRule, MailItemsAccessed, etc.
 
 	.PARAMETER LogLevel
@@ -84,8 +84,8 @@ function Get-UAL {
 	Gets all the unified audit log entries for the users Test@invictus-ir.com and HR@invictus-ir.com.
 	
 	.EXAMPLE
-	Get-UAL -UserIds Test@invictus-ir.com -StartDate 1/4/2024 -EndDate 5/4/2024
-	Gets all the unified audit log entries between 1/4/2024 and 5/4/2024 for the user Test@invictus-ir.com.
+	Get-UAL -UserIds Test@invictus-ir.com -StartDate 2025-04-01 -EndDate 2025-04-05
+	Gets all the unified audit log entries between 2025-04-01 and 2025-04-05 for the user Test@invictus-ir.com.
 	
 	.EXAMPLE
 	Get-UAL -UserIds -Interval 720
@@ -112,7 +112,7 @@ function Get-UAL {
 	Gets the ExchangeItem and all Azure related logging from the unified audit log.
 
 	.EXAMPLE
-	Get-UAL -Operation New-InboxRule
+	Get-UAL -Operations New-InboxRule
 	Gets the New-InboxRule logging from the unified audit log.
 
 	.EXAMPLE
@@ -129,8 +129,8 @@ function Get-UAL {
 			[ValidateSet("Exchange", "Azure", "Sharepoint", "Skype", "Defender")]
 			[string]$Group = $null,
 			[array]$RecordType = $null,
-			[array]$Operation = $null,
-			[ValidateSet("CSV", "JSON", "SOF-ELK")]
+			[array]$Operations = $null,
+			[ValidateSet("CSV", "JSON", "SOF-ELK", "JSONL")]
 			[string]$Output = "CSV",
 			[switch]$MergeOutput,
 			[string]$OutputDir,
@@ -217,8 +217,8 @@ function Get-UAL {
         $baseSearchQuery.ObjectIds = $ObjectIds
     }
 
-	if ($Operation) {
-		$baseSearchQuery.Operations = $Operation
+	if ($Operations) {
+		$baseSearchQuery.Operations = $Operations
 	}
 
 	$totalResults = 0
@@ -297,9 +297,9 @@ function Get-UAL {
 			Write-LogFile -Message "  - $record" -Level Standard
 		}
 	}
-	if ($Operation) {
+	if ($Operations) {
 		Write-LogFile -Message "`nThe following Operation(s) are configured to be extracted:" -Level Standard
-		foreach ($activity in $Operation) {
+		foreach ($activity in $Operations) {
 			Write-LogFile -Message "- $activity" -Level Standard
 		}
 	}
@@ -405,21 +405,15 @@ function Get-UAL {
 
 		if (!$PSBoundParameters.ContainsKey('Interval')) {
 			$totalMinutes = ($script:EndDate - $script:StartDate).TotalMinutes
-		
-			if ($null -ne $totalResults -And $totalResults -gt 1) {
-				$estimatedIntervals = [math]::Ceiling($totalResults / $MaxItemsPerInterval)
-				
-				if ($estimatedIntervals -lt 2) {
-					$Interval = $totalMinutes
-				} else {
-					$Interval = [math]::Max(1, [math]::Floor(($totalMinutes / $estimatedIntervals) / 1.2))					
-				}
-				
-				Write-LogFile -Message "[INFO] Using interval of $Interval minutes based on estimated $totalResults records" -Level Standard -Color "Green"
-			} 
-			else { 
-				$Interval = 60
-			}
+            $estimatedIntervals = [math]::Ceiling($totalResults / $MaxItemsPerInterval)
+
+            if ($estimatedIntervals -lt 2) {
+                $Interval = $totalMinutes
+            } else {
+                $Interval = [math]::Max(1, [math]::Floor(($totalMinutes / $estimatedIntervals) / 1.2))
+            }
+
+            Write-LogFile -Message "[INFO] Using interval of $Interval minutes based on estimated $totalResults records" -Level Standard -Color "Green"
 		}
 
 		$resetInterval = $Interval
@@ -709,6 +703,12 @@ function Get-UAL {
 											}
 											Add-Content "$OutputDir/UAL-$sessionID.json" "`n"
 										}
+										elseif ($Output -eq "JSONL") {
+											$stats.FilesCreated++
+											$allResults | ForEach-Object {
+												$_ | ConvertTo-Json -Compress -Depth 100 | Out-File -Append "$outputPath.jsonl" -Encoding $Encoding
+											}
+										}
 										elseif ($Output -eq "CSV") {
 											$stats.FilesCreated++
 											$allResults | export-CSV "$outputPath.csv" -NoTypeInformation -Append -Encoding $Encoding
@@ -772,6 +772,7 @@ function Get-UAL {
         switch ($Output) {
             "CSV" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "CSV" -MergedFileName "UAL-Combined.csv" }
             "JSON" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "UAL-Combined.json" }
+			"JSONL" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSONL" -MergedFileName "UAL-Combined.jsonl" }
             "SOF-ELK" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "SOF-ELK" -MergedFileName "UAL-Combined.json" }
         }
     }

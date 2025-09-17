@@ -160,8 +160,8 @@ function Get-GraphEntraSignInLogs {
 	StartDateAz -Quiet
     EndDate -Quiet
 
-	$StartDate = $script:StartDate.ToString('yyyy-MM-ddTHH:mm:ssZ')
-    $EndDate = $script:EndDate.ToString('yyyy-MM-ddTHH:mm:ssZ')
+	$StartDate = $script:StartDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'", [System.Globalization.CultureInfo]::InvariantCulture)
+	$EndDate = $script:EndDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'", [System.Globalization.CultureInfo]::InvariantCulture)
 
 	Write-LogFile -Message "Start Date: $StartDate" -Level Standard
     Write-LogFile -Message "End Date: $EndDate" -Level Standard
@@ -526,8 +526,8 @@ function Get-GraphEntraAuditLogs {
 	StartDateAz -Quiet
     EndDate -Quiet
 
-	$StartDate = $script:StartDate.ToString('yyyy-MM-ddTHH:mm:ssZ')
-	$EndDate = $script:EndDate.ToString('yyyy-MM-ddTHH:mm:ssZ')
+	$StartDate = $script:StartDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'", [System.Globalization.CultureInfo]::InvariantCulture)
+	$EndDate = $script:EndDate.ToString("yyyy-MM-ddTHH:mm:ss'Z'", [System.Globalization.CultureInfo]::InvariantCulture)
 
 	Write-LogFile -Message "Start Date: $StartDate" -Level Standard
     Write-LogFile -Message "End Date: $EndDate" -Level Standard

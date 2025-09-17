@@ -29,16 +29,17 @@ if (!(test-path $outputDir)) {
 $retryCount = 0 
 	
 Function StartDate {
-    param([switch]$Quiet)
-    
+    param([switch]$Quiet,
+          [int]$DefaultOffset = -90)
+
     if (($startDate -eq "") -Or ($null -eq $startDate)) {
-        $script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-90)
+        $script:StartDate = [datetime]::Now.ToUniversalTime().AddDays($DefaultOffset)
         if (-not $Quiet) {
             Write-LogFile -Message "[INFO] No start date provided by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
         }
     }
     else {
-        $script:startDate = $startDate -as [datetime]
+        $script:startDate = [datetime]::Parse($startDate).ToUniversalTime()
         if (!$script:startDate -and -not $Quiet) { 
             Write-LogFile -Message "[WARNING] Not A valid start date and time, make sure to use YYYY-MM-DD" -Color "Red"
         } 
@@ -47,36 +48,14 @@ Function StartDate {
 
 Function StartDateUAL {
     param([switch]$Quiet)
-    
-    if (($startDate -eq "") -Or ($null -eq $startDate)) {
-        $script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-180)
-        if (-not $Quiet) {
-            Write-LogFile -Message "[INFO] No start date provided by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
-        }
-    }
-    else {
-        $script:startDate = $startDate -as [datetime]
-        if (!$script:startDate -and -not $Quiet) { 
-            Write-LogFile -Message "[WARNING] Not A valid start date and time, make sure to use YYYY-MM-DD" -Color "Red"
-        } 
-    }
+
+    StartDate -Quiet:$Quiet -DefaultOffset:-180
 }
 
 Function StartDateAz {
     param([switch]$Quiet)
     
-    if (($startDate -eq "") -Or ($null -eq $startDate)) {
-        $script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-30)
-        if (-not $Quiet) {
-            Write-LogFile -Message "[INFO] No start date provided by user setting the start date to: $($script:StartDate.ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow"
-        }
-    }
-    else {
-        $script:startDate = $startDate -as [datetime]
-        if (!$script:startDate -and -not $Quiet) { 
-            Write-LogFile -Message "[WARNING] Not A valid start date and time, make sure to use YYYY-MM-DD" -Color "Red"
-        } 
-    }
+    StartDate -Quiet:$Quiet -DefaultOffset:-30
 }
 
 function EndDate {
@@ -89,7 +68,7 @@ function EndDate {
         }
     }
     else {
-        $script:endDate = $endDate -as [datetime]
+        $script:endDate = [datetime]::Parse($endDate).ToUniversalTime()
         if (!$endDate -and -not $Quiet) { 
             Write-LogFile -Message "[WARNING] Not A valid end date and time, make sure to use YYYY-MM-DD" -Color "Red"
         } 
