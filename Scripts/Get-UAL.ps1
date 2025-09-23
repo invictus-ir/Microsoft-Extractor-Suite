@@ -586,6 +586,7 @@ function Get-UAL {
                                                 Write-LogFile -Message "[DEBUG]   Using result size: $resultSize" -Level Debug
                                             }
 
+											$emptyRetryCount = 0;
 											while ($totalProcessed -lt $amountResults) {
                                                 
                                                 if ($isDebugEnabled) {
@@ -622,7 +623,12 @@ function Get-UAL {
 													if ($isDebugEnabled) {
                                                         Write-LogFile -Message "[DEBUG]   WARNING: Empty dataset returned" -Level Debug
                                                     }
+													if($emptyRetryCount -ge 3) {
+														Write-LogFile -Message "[WARNING] Received multiple empty datasets, restarting batch." -Color "Yellow" -Level Standard
+														break
+													}
 												}
+												$emptyRetryCount++;
 											}
 
 											if ($totalProcessed -ne $amountResults) {
