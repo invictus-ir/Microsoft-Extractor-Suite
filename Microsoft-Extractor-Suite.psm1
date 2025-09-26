@@ -358,7 +358,17 @@ function Merge-OutputFiles {
             Write-LogFile -Message "[INFO] CSV files merged into $mergedPath"
         }
         'SOF-ELK' {
-			Get-ChildItem $OutputDir -Filter *.json | Select-Object -ExpandProperty FullName | ForEach-Object { Get-Content -Path $_ | Where-Object { $_.Trim() -ne "" } } | Out-File -Append $mergedPath -Encoding UTF8 
+
+            $jsonFiles = Get-ChildItem $OutputDir -Filter *.json | Sort-Object Name
+            foreach ($file in $jsonFiles) {
+                Write-LogFile -Message "[DEBUG] Processing file: $($file.Name)" -Level Debug
+                $content = Get-Content -Path $file.FullName -Encoding UTF8
+                
+                # Filter out empty lines and add each line to merged file
+                $content | Where-Object { $_.Trim() -ne "" } | ForEach-Object {
+                    Add-Content -Path $mergedPath -Value $_ -Encoding UTF8
+                }
+            }
             Write-LogFile -Message "[INFO] SOF-ELK files merged into $mergedPath"
         }
         'JSON' {           

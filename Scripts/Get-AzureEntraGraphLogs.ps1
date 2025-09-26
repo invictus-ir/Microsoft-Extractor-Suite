@@ -183,7 +183,7 @@ function Get-GraphEntraSignInLogs {
 			filename = 'nonInteractiveUser'
 			filterQuery = "(signInEventTypes/any(t: t eq 'nonInteractiveUser'))"
 		}
-		'combinedUser' = @{
+		'interactiveUserAndNonInteractiveUser' = @{
 			displayName = 'interactiveUser & nonInteractiveUser'
 			filename = 'interactiveUser-nonInteractiveUser'
 			filterQuery = "(signInEventTypes/any(t: t eq 'interactiveUser' or t eq 'nonInteractiveUser'))"
@@ -203,14 +203,14 @@ function Get-GraphEntraSignInLogs {
 	$eventTypesToProcess = @()
 if ($EventTypes -contains 'All') {
     if ($UserIds -and $UserIds.Count -gt 0) {
-        $eventTypesToProcess = @('combinedUser')
+        $eventTypesToProcess = @('interactiveUserAndNonInteractiveUser')
         Write-LogFile -Message "[INFO] Filtering by users - skipping servicePrincipal and managedIdentity (will be empty)" -Level Standard -Color "Yellow"
     } else {
-        $eventTypesToProcess = @('combinedUser', 'servicePrincipal', 'managedIdentity')
+        $eventTypesToProcess = @('interactiveUserAndNonInteractiveUser', 'servicePrincipal', 'managedIdentity')
     }
 } elseif ($EventTypes -contains 'interactiveUser' -and $EventTypes -contains 'nonInteractiveUser') {
     $remainingTypes = $EventTypes | Where-Object { $_ -ne 'interactiveUser' -and $_ -ne 'nonInteractiveUser' }
-    $eventTypesToProcess = @('combinedUser') + $remainingTypes
+    $eventTypesToProcess = @('interactiveUserAndNonInteractiveUser') + $remainingTypes
 }
 else {
     $eventTypesToProcess = $EventTypes
@@ -352,8 +352,7 @@ else {
 					Merge-OutputFiles -OutputDir $eventTypeDir -OutputType "JSON" -MergedFileName "SignInLogs-$($currentEventType.filename)-Combined.json"
 				}
 				elseif ($Output -eq "SOF-ELK") {
-					Merge-OutputFiles -OutputDir $eventTypeDir -OutputType "SOF-ELK" -MergedFileName "SignInLogs-$eventType-Combined.json"
-				}
+				Merge-OutputFiles -OutputDir $eventTypeDir -OutputType "SOF-ELK" -MergedFileName "SignInLogs-$($currentEventType.filename)-Combined.json"				}
 			}
 
 			Write-LogFile -Message "`nSummary for $($currentEventType.displayName):" -Color "Cyan" -Level Standard
@@ -639,7 +638,7 @@ function Get-GraphEntraAuditLogs {
 		}
 
 		$summary.ProcessingTime = (Get-Date) - $summary.StartTime
-        Write-LogFile -Message "`nCollection Summary:" -Color "Cyan" -Level Standard
+        Write-LogFile -Message "Collection Summary:" -Color "Cyan" -Level Standard
         Write-LogFile -Message "  Total Records: $($summary.TotalRecords)" -Level Standard
         Write-LogFile -Message "  Files Created: $($summary.TotalFiles)" -Level Standard
         Write-LogFile -Message "  Output Directory: $OutputDir" -Level Standard

@@ -67,7 +67,6 @@ function Get-Devices {
 	$requiredScopes = @("Application.Read.All")
     Check-GraphContext -RequiredScopes $requiredScopes
 
-
     $date = Get-Date -Format "yyyyMMddHHmm"
     $summary = [ordered]@{
         DeviceCounts = [ordered]@{
@@ -90,7 +89,6 @@ function Get-Devices {
             Other = 0
         }
     }
-
 
     try {
         write-logFile -Message "[INFO] Collecting device information..." -Level Standard
