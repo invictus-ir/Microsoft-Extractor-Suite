@@ -64,13 +64,6 @@ function Get-EntraApplicationsForSpecificUsers {
     $requiredScopes = @("Application.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
-    }
-
     if (!(Test-Path $OutputDir)) {
         New-Item -ItemType Directory -Force -Path $OutputDir > $null
         Write-LogFile -Message "[INFO] Created output directory: $OutputDir" -Level Standard

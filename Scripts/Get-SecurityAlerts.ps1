@@ -52,7 +52,7 @@ Function Get-SecurityAlerts {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\SecurityAlerts",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [string]$AlertId,
         [int]$DaysBack = 90,
@@ -61,33 +61,22 @@ Function Get-SecurityAlerts {
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $date = Get-Date -Format "yyyyMMddHHmm"
+    Init-Logging
+    Init-OutputDir -Component "SecurityAlerts" -FilePostfix "SecurityAlerts"
 
     Write-LogFile -Message "=== Starting Security Alerts Collection ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("SecurityEvents.Read.All")
-    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-        
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    } 
-    else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }
-
+    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes       
     Write-LogFile -Message "[INFO] Analyzing security alerts..." -Level Standard
 
     try {
         # Choose the appropriate cmdlet based on auth type
         if ($graphAuth.Type -eq "Application") {
-            Write-LogFile -Message "[INFO] Using application authentication - selecting Get-MgSecurityAlertV2" -Level Standard
+            #Write-LogFile -Message "[INFO] Using application authentication - selecting Get-MgSecurityAlertV2" -Level Standard
             $cmdlet = "Get-MgSecurityAlertV2"
         } else {
-            Write-LogFile -Message "[INFO] Using delegated authentication - selecting Get-MgSecurityAlert" -Level Standard
+            #Write-LogFile -Message "[INFO] Using delegated authentication - selecting Get-MgSecurityAlert" -Level Standard
             $cmdlet = "Get-MgSecurityAlert"
         }
 
@@ -251,8 +240,7 @@ Function Get-SecurityAlerts {
             }
         }
 
-        $filePath = "$OutputDir\$($date)-SecurityAlerts.csv"
-        $formattedAlerts | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+        $formattedAlerts | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
         Write-LogFile -Message "`nSecurity Alert Analysis Results:" -Color "Cyan" -Level Standard
         Write-LogFile -Message "Total Alerts: $($alertSummary.TotalAlerts)" -Level Standard
@@ -270,7 +258,7 @@ Function Get-SecurityAlerts {
         Write-LogFile -Message "  - Unknown: $($alertSummary.StatusUnknown)" -Level Standard
 
         Write-LogFile -Message "`nExported File:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "  - File: $filePath" -Level Standard
+        Write-LogFile -Message "  - File: $script:outputFile" -Level Standard
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal

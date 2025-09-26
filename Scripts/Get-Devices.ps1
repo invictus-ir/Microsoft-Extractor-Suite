@@ -62,8 +62,9 @@ function Get-Devices {
     )
 
     Init-Logging
-    Write-LogFile -Message "=== Starting Device Collection ===" -Color "Cyan" -Level Standard
     Init-OutputDir -Component "Device Information" -FilePostfix "Devices"
+    Write-LogFile -Message "=== Starting Device Collection ===" -Color "Cyan" -Level Standard
+    
 	$requiredScopes = @("Application.Read.All")
     Check-GraphContext -RequiredScopes $requiredScopes
 
@@ -216,7 +217,7 @@ function Get-Devices {
         if ($Output -eq "CSV") {
             $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
         } else {
-            $results | ConvertTo-Json -Depth 100 | Out-File $outputDirectory -Encoding $Encoding
+            $results | ConvertTo-Json -Depth 100 | Out-File $script:outputFile -Encoding $Encoding
         }
 
         Write-Summary -Summary $summary

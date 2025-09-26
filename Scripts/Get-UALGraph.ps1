@@ -104,7 +104,7 @@ Function Get-UALGraph {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]$searchName,
-        [string]$OutputDir = "Output\UnifiedAuditLog\",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [string]$startDate,
         [string]$endDate,
@@ -123,41 +123,9 @@ Function Get-UALGraph {
         [switch]$SplitFiles
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+    Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix $searchName
+    Init-Logging
 
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   SearchName: '$searchName'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   StartDate: '$startDate'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   EndDate: '$endDate'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   RecordType: '$($RecordType -join ', ')'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Keyword: '$Keyword'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Service: '$Service'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Operations: '$($Operations -join ', ')'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: '$($UserIds -join ', ')'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   IPAddress: '$($IPAddress -join ', ')'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   ObjectIDs: '$($ObjectIDs -join ', ')'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   MaxEventsPerFile: $MaxEventsPerFile" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Output: '$Output'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   SplitFiles: $SplitFiles" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-        
-        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModules) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModules) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
-
-    $date = Get-Date -Format "yyyyMMddHHmm"
     $summary = @{
         TotalRecords = 0
         ProcessedRecords = 0
@@ -169,38 +137,18 @@ Function Get-UALGraph {
 
     $requiredScopes = @("AuditLogsQuery.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
-        if ($graphAuth.MissingScopes.Count -gt 0) {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
-        }
-    }
+    $outputDirPath = Split-Path $script:outputFile -Parent
 
     Write-LogFile -Message "=== Starting Microsoft Graph Audit Log Retrieval ===" -Color "Cyan" -Level Standard
     
     StartDate -Quiet
     EndDate -Quiet
+
     $dateRange = "$($script:StartDate.ToString('yyyy-MM-dd HH:mm:ss')) to $($script:EndDate.ToString('yyyy-MM-dd HH:mm:ss'))"
     Write-LogFile -Message "Analysis Period: $dateRange" -Level Standard
-    Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
+    Write-LogFile -Message "Output Directory: $outputDirPath" -Level Standard
     Write-LogFile -Message "Output format: $Output" -Level Standard
     Write-LogFile -Message "----------------------------------------`n" -Level Standard
-
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    } 
-    else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }
 
     $body = @{
         "@odata.type" = "#microsoft.graph.security.auditLogQuery"
@@ -293,45 +241,45 @@ Function Get-UALGraph {
         if ($SplitFiles) {
             if ($Output -eq "JSON") {
                 $outputFilePath = "$outputFileBase-part$fileCounter.json"
-                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
                 "[" | Out-File -FilePath $filePath -Encoding $Encoding
                 $firstRecordInFile = $true
             } 
             elseif ($Output -eq "CSV") {
                 $outputFilePath = "$outputFileBase-part$fileCounter.csv"
-                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
                 $csvCollection = @()
             }
             elseif ($Output -eq "JSONL") {
                 $outputFilePath = "$outputFileBase-part$fileCounter.jsonl"
-                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
                 $firstRecordInFile = $true
             }
             elseif ($Output -eq "SOF-ELK") {
                 $outputFilePath = "$outputFileBase-part$fileCounter.json"
-                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
             }
         } 
         else {
             if ($Output -eq "JSON") {
                 $outputFilePath = "$outputFileBase.json"
-                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
                 "[" | Out-File -FilePath $filePath -Encoding $Encoding
                 $firstRecordInFile = $true
             }
             elseif ($Output -eq "CSV") {
                 $outputFilePath = "$outputFileBase.csv"
-                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
                 $csvCollection = @()
             }
             elseif ($Output -eq "JSONL") {
                 $outputFilePath = "$outputFileBase.jsonl"
-                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
                 $firstRecordInFile = $true
             }
             elseif ($Output -eq "SOF-ELK") {
                 $outputFilePath = "$outputFileBase.json"
-                $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
             }
         }
 
@@ -417,7 +365,7 @@ Function Get-UALGraph {
                             $currentFileEvents = 0
                             
                             $outputFilePath = "$outputFileBase-part$fileCounter.json"
-                            $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                            $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
                             "[" | Out-File -FilePath $filePath -Encoding $Encoding
                             $firstRecordInFile = $true
                         }
@@ -463,7 +411,7 @@ Function Get-UALGraph {
                             $currentFileEvents = 0
 
                             $outputFilePath = "$outputFileBase-part$fileCounter.jsonl"
-                            $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                            $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
                         }
                         if ($record.auditData) {
                             $record.auditData | ConvertTo-Json -Compress -Depth 100 | 
@@ -484,7 +432,7 @@ Function Get-UALGraph {
                             $currentFileEvents = 0
 
                             $outputFilePath = "$outputFileBase-part$fileCounter.json"
-                            $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                            $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
                         }
                         if ($record.auditData) {
                             $record.auditData | ConvertTo-Json -Compress -Depth 100 | 
@@ -536,7 +484,7 @@ Function Get-UALGraph {
             Write-LogFile -Message "No results matched your search criteria." -Color "Yellow" -Level Standard
         }
         Write-LogFile -Message "Files Created: $($summary.ExportedFiles)" -Level Minimal
-        Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
+        Write-LogFile -Message "Output Directory: $outputDirPath" -Level Standard
         Write-LogFile -Message "Processing Time: $($summary.ProcessingTime.ToString('hh\:mm\:ss'))"  -Color "Green" -Level Standard
         Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard      
     }

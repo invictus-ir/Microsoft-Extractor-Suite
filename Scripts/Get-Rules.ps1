@@ -58,50 +58,16 @@ function Get-TransportRules
 
 	[CmdletBinding()]
 	param (
-		[string]$OutputDir = "Output\Rules"	,
+		[string]$OutputDir,
 		[string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 
-	Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
+	Init-Logging
+    Init-OutputDir -Component "Rules" -FilePostfix "TransportRules"
     Write-LogFile -Message "=== Starting Transport Rules Collection ===" -Color "Cyan" -Level Standard
 
-	if ($isDebugEnabled) {
-		Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-		Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-		Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-		
-		$exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-		if ($exchangeModule) {
-			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
-		} else {
-			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
-		}
-	
-		$connectionInfo = Get-ConnectionInformation -ErrorAction SilentlyContinue
-		if ($connectionInfo) {
-			Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
-			Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug
-		}
-	}
-
-	if (!(test-path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Path $OutputDir > $null
-	}
-	else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }
-    
-	$filename = "$($date)-TransportRules.csv"
-	$outputDirectory = Join-Path $OutputDir $filename		
 	if ($isDebugEnabled) {
 		Write-LogFile -Message "[DEBUG] Retrieving transport rules from Exchange Online..." -Level Debug
 		$performance = Measure-Command {
@@ -150,7 +116,7 @@ function Get-TransportRules
 		DisabledRules = $disabledCount
 	}
 
-	$transportRules | Export-Csv -Path $outputDirectory -NoTypeInformation -Encoding $Encoding
+	$transportRules | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
 	Write-LogFile -Message "`nTransport Rules Summary:" -Color "Cyan" -Level Standard
     Write-LogFile -Message "Total Rules: $($summary.TotalRules)" -Level Standard
@@ -158,7 +124,7 @@ function Get-TransportRules
     Write-LogFile -Message "  - Disabled: $($summary.DisabledRules)" -Level Standard
     
     Write-LogFile -Message "`nExported File:" -Level Standard
-    Write-LogFile -Message "  - $outputDirectory" -Level Standard
+    Write-LogFile -Message "  - $script:outputFile" -Level Standard
 }
 
 function Show-MailboxRules
@@ -304,51 +270,15 @@ function Get-MailboxRules
 	[CmdletBinding()]
 	param(
 		[string[]]$UserIds,
-		[string]$OutputDir = "Output\Rules",
+		[string]$OutputDir,
 		[string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 
-	Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
+	Init-Logging
+    Init-OutputDir -Component "Rules" -FilePostfix "MailboxRules"
     Write-LogFile -Message "=== Starting Mailbox Rules Collection ===" -Color "Cyan" -Level Standard
-
-	if ($isDebugEnabled) {
-		Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-		Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-		Write-LogFile -Message "[DEBUG]   UserIds: '$UserIds'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-		
-		$exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-		if ($exchangeModule) {
-			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
-		} else {
-			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
-		}
-	
-		$connectionInfo = Get-ConnectionInformation -ErrorAction SilentlyContinue
-		if ($connectionInfo) {
-			Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
-			Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug
-		}
-	}
-	
-	if (!(test-path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Path $OutputDir > $null
-	}
-	else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }
-    
-	$date = [datetime]::Now.ToString('yyyyMMddHHmmss')
-    $outputPath = Join-Path $OutputDir "$($date)-MailboxRules.csv"
 
 	$summary = @{
 		TotalUsers = 0
@@ -430,7 +360,7 @@ function Get-MailboxRules
                         Description = $rule.Description
                         InError = $rule.InError
                         ErrorType = $rule.ErrorType
-					} | Export-Csv -Path $outputPath -Append -NoTypeInformation -Encoding $Encoding
+					} | Export-Csv -Path $script:outputFile -Append -NoTypeInformation -Encoding $Encoding
 				}
 			}
 		}
@@ -504,7 +434,7 @@ function Get-MailboxRules
                         Description = $rule.Description
                         InError = $rule.InError
                         ErrorType = $rule.ErrorType
-					} | Export-Csv -Path $outputPath -Append -NoTypeInformation -Encoding $Encoding
+					} | Export-Csv -Path $script:outputFile -Append -NoTypeInformation -Encoding $Encoding
 				}
 			}
 		}
@@ -545,5 +475,5 @@ function Get-MailboxRules
         Write-LogFile -Message "  - High Importance Rules: $($summary.HighImportanceRules)" -Level Standard
     }
     Write-LogFile -Message "`nExported File:" -Level Standard
-    Write-LogFile -Message "  - $outputPath" -Level Standard
+    Write-LogFile -Message "  - $script:outputFile" -Level Standard
 }

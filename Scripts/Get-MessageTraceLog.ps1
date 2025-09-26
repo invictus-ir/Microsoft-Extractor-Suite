@@ -96,44 +96,32 @@ function Get-MessageTraceLog
 		[string[]]$UserIds,
 		[string]$StartDate,
 		[string]$EndDate,
-		[string]$OutputDir = "Output\MessageTrace",
+		[string]$OutputDir,
 		[string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 	
+	Init-Logging
 	Write-LogFile -Message "=== Starting Message Trace Log Collection ===" -Color "Cyan" -Level Standard
-
 	StartDateMTL -Quiet
 	EndDateMTL -Quiet
-	
-	Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
 
-    $date = Get-Date -Format "yyyyMMddHHmm"
+	$filePostfix = "MessageTrace"
+	if ($UserIds) {
+		$userString = ($UserIds -join ",").Replace("*@","").Replace("@","-")
+		$filePostfix = "MessageTrace-$userString"
+	}
+
+	Init-OutputDir -Component "MessageTrace" -FilePostfix $filePostfix
+	$OutputDir = Split-Path $script:outputFile -Parent	
+	
     $summary = @{
         StartTime = Get-Date
         ProcessingTime = $null
     }
 
-	if ($isDebugEnabled) {
-		Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-		Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-		Write-LogFile -Message "[DEBUG]   UserIds: '$UserIds'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   StartDate input: '$StartDate'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   EndDate input: '$EndDate'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-		
-		$exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-		if ($exchangeModule) {
-			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
-		} else {
-			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
-		}
-	}
-
+	
 	if ($isDebugEnabled) {
 		Write-LogFile -Message "[DEBUG] Date processing complete:" -Level Debug
 		Write-LogFile -Message "[DEBUG]   Processed StartDate: $($script:StartDate)" -Level Debug
@@ -141,18 +129,9 @@ function Get-MessageTraceLog
 		Write-LogFile -Message "[DEBUG]   Date range span: $(($script:EndDate - $script:StartDate).TotalDays) days" -Level Debug
 	}	
 
-	if (!(test-path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Path $outputDir > $null
-	} else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal
-        }
-    }
-
 	if (($null -eq $UserIds) -Or ($UserIds -eq "")) {
         Write-LogFile -Message "[INFO] No users provided. Getting the Message Trace Log for all users between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow" -Level Standard
-        Retrieve-MessageTrace -StartDate $script:StartDate -endDate $script:EndDate -OutputFile "$OutputDir\$($date)-AllUsers-MTL.csv"
+        Retrieve-MessageTrace -StartDate $script:StartDate -endDate $script:EndDate -OutputFile $script:outputFile 
     } else {
         if($UserIds -match "\*"){
             Write-LogFile -Message "[INFO] An entire domain has been provided, retrieving all messages between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow" -Level Standard

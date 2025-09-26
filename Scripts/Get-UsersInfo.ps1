@@ -41,60 +41,18 @@ function Get-Users {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\Users",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [string]$UserIds,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: '$UserIds'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-        
-        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModules) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModules) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
-
+    Init-Logging
+    Init-OutputDir -Component "Users" -FilePostfix "Users"
+    
     $requiredScopes = @("User.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
-        if ($graphAuth.MissingScopes.Count -gt 0) {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
-        }
-    }
-
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    } 
-    else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }    
-
     Write-LogFile -Message "=== Starting Users Collection ===" -Color "Cyan" -Level Standard
 
     try {
@@ -174,9 +132,7 @@ function Get-Users {
         }
 
         Get-MgUser | Get-Member > $null
-        $date = Get-Date -Format "yyyyMMddHHmm"
-        $filePath = "$OutputDir\$($date)-Users.csv"
-        $formattedUsers  | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+        $formattedUsers  | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
         $userSummary = [PSCustomObject]@{
             TotalUsers = $mgUsers.Count
@@ -206,7 +162,7 @@ function Get-Users {
         Write-LogFile -Message "  - Last 1 year $($userSummary.OneYear)" -Level Standard
 
         Write-LogFile -Message "`nExported File:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "  - File: $filePath" -Level Standard
+        Write-LogFile -Message "  - File: $script:outputFile" -Level Standard
     }
     catch {
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
@@ -259,34 +215,15 @@ Function Get-AdminUsers {
 
     [CmdletBinding()]
     param(
-        [string]$outputDir = "Output\Admins",
+        [string]$outputDir,
         [string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+    Init-Logging
+    Init-OutputDir -Component "Admins" -FilePostfix "AdminUsers"
 
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: '$outputDir'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-        
-        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModules) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModules) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
-
-    $date = Get-Date -Format "yyyyMMddHHmm"
     Write-LogFile -Message "=== Starting Admin Users Collection ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("User.Read.All", "Directory.Read.All")
@@ -303,19 +240,8 @@ Function Get-AdminUsers {
             Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
         }
     }
-        
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    } 
-    else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }    
 
     Write-LogFile -Message "[INFO] Analyzing administrator roles..." -Level Standard
-
     $rolesWithUsers = @()
     $rolesWithoutUsers = @()
     $exportedFiles = @()
@@ -420,7 +346,7 @@ Function Get-AdminUsers {
                         } else {
                             $userObject | Add-Member -MemberType NoteProperty -Name "DaysSinceLastSignIn" -Value "No sign-in data"
                             $inactiveAdminCount++
-                            $inactiveAd                       
+                            $inactiveAdmins += "$($getUserName.DisplayName) ($userName) - No sign-in data"                 
                         }
                         $results += $userObject
                     }
@@ -433,9 +359,13 @@ Function Get-AdminUsers {
                     $totalAdminCount += $results.Count
                     $rolesWithUsers += "$roleName ($($results.Count) users)"
                     
-                    $filePath = "$OutputDir\$($date)-$($roleName.Replace(' ','_')).csv"
-                    $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
-                    $exportedFiles += $filePath
+                    $date = [datetime]::Now.ToString('yyyyMMdd')
+                    $safeRoleName = $roleName -replace '[^\w\-_\.]', '_'
+                    $rolePath = Split-Path $script:outputFile -Parent
+                    $roleFilePath = Join-Path $rolePath "$date-$safeRoleName.csv"
+
+                    $results | Export-Csv -Path $roleFilePath -NoTypeInformation -Encoding $Encoding
+                    $exportedFiles += $roleFilePath
                 }
                 else {
                     $rolesWithoutUsers += $roleName
@@ -443,16 +373,23 @@ Function Get-AdminUsers {
             }
         }
 
-        $outputDirMerged = "$OutputDir\Merged\"
-        If (!(test-path $outputDirMerged)) {
+        # Create merged file
+        $outputDirPath = Split-Path $script:outputFile -Parent
+        $outputDirMerged = Join-Path $outputDirPath "Merged"
+        if (!(Test-Path $outputDirMerged)) {
             New-Item -ItemType Directory -Force -Path $outputDirMerged > $null
         }
 
-        $mergedFile = "$outputDirMerged$($date)-All-Administrators.csv"
-        Get-ChildItem $OutputDir -Filter "*Administrator.csv" | 
-            Select-Object -ExpandProperty FullName | 
-            Import-Csv | 
-            Export-Csv $mergedFile -NoTypeInformation -Append
+        $date = [datetime]::Now.ToString('yyyyMMdd')
+        $mergedFile = Join-Path $outputDirMerged "$date-All-Administrators.csv"
+
+        # Get all individual admin role files and merge them
+        $adminFiles = Get-ChildItem $outputDirPath -Filter "*Admin*.csv" -ErrorAction SilentlyContinue
+        if ($adminFiles.Count -gt 0) {
+            $adminFiles | 
+                ForEach-Object { Import-Csv $_.FullName } | 
+                Export-Csv $mergedFile -NoTypeInformation -Encoding $Encoding
+        }
 
         Write-LogFile -Message "`nRoles with users:" -Color "Green" -Level Standard
         foreach ($role in $rolesWithUsers) {
@@ -464,7 +401,7 @@ Function Get-AdminUsers {
             Write-LogFile -Message "  - $role" -Level Standard
         }
 
-        if ($IncludeSignInActivity -and $inactiveAdmins.Count -gt 0) {
+        if ($inactiveAdmins.Count -gt 0) {
             Write-LogFile -Message "`nInactive administrators (30+ days):" -Color "Yellow" -Level Standard
             foreach ($admin in $inactiveAdmins) {
                 Write-LogFile -Message "  ! $admin" -Level Standard
@@ -481,7 +418,7 @@ Function Get-AdminUsers {
         }
 
         Write-LogFile -Message "`nExported files:" -Level Standard -Color "Cyan"
-        Write-LogFile -Message "  Individual role files: $OutputDir" -Level Standard
+        Write-LogFile -Message "  Individual role files: $outputDirPath" -Level Standard
         Write-LogFile -Message "  Merged file: $mergedFile" -Level Standard
     }
     catch {

@@ -51,7 +51,7 @@ Function Get-Sessions {
     param(
         [Parameter(Mandatory=$true)]$StartDate,
         [Parameter(Mandatory=$true)]$EndDate,
-        [string]$OutputDir = "Output\MailItemsAccessed",
+        [string]$OutputDir,
         [string]$UserIds,
         [string]$IP,
         [string]$Encoding = "UTF8",
@@ -61,8 +61,19 @@ Function Get-Sessions {
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+    Init-Logging
+
+    $filePostfix = "Sessions"
+    if ($UserIds -and $IP) {
+        $filePostfix = "Sessions-$UserIds-$IP"
+    } elseif ($UserIds) {
+        $filePostfix = "Sessions-$UserIds"  
+    } elseif ($IP) {
+        $filePostfix = "Sessions-$IP"
+    }
+
+    Init-OutputDir -Component "MailItemsAccessed" -FilePostfix $filePostfix
+    $OutputDir = Split-Path $script:outputFile -Parent
 
     $summary = @{
         TotalEvents = 0
@@ -71,49 +82,6 @@ Function Get-Sessions {
         StartTime = Get-Date
         ProcessingTime = $null
         QueryType = "All Events"
-    }
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   StartDate: $StartDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   EndDate: $EndDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
-        Write-LogFile -Message "[DEBUG]   IP: $IP" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Output: $Output" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
-        
-        $exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-        if ($exchangeModule) {
-            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
-        }
-
-        try {
-            $connectionInfo = Get-ConnectionInformation -ErrorAction SilentlyContinue
-            if ($connectionInfo) {
-                Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
-                Write-LogFile -Message "[DEBUG] Connection Type: $($connectionInfo.TokenStatus)" -Level Debug
-                Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug
-            } else {
-                Write-LogFile -Message "[DEBUG] No active Exchange Online connection found" -Level Debug
-            }
-        } catch {
-            Write-LogFile -Message "[DEBUG] Unable to retrieve connection information" -Level Debug
-        }
-    }
-
-    if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Name $OutputDir > $null
-        write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-    } else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal
-        }
     }
 
     if ($UserIds -and $IP) {
@@ -215,10 +183,9 @@ Function Get-Sessions {
          }
 
         if (($Output -eq "Yes") -and $results.Count -gt 0) {
-            $filePath = "$OutputDir\Sessions-$UserIds.csv"
-            $Results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
-            Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green" -Level Standard
-        }  
+            $Results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+            Write-logFile -Message "[INFO] Output written to $script:outputFile" -Color "Green" -Level Standard
+        }
     }
 
     elseif($IP -And !$UserIds){
@@ -329,11 +296,10 @@ Function Get-Sessions {
                 
             $Results | Sort SessionId, TimeStamp | Format-Table Timestamp, User, Action, SessionId, ClientIP, OperationCount -AutoSize
         }
-        if (($Output -eq "Yes") -and $results.Count -gt 0) {
-            $filePath = "$OutputDir\Sessions-$UserIds-$IP.csv"
-            $Results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
-            Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green" -Level Standard
-        }   
+       if (($Output -eq "Yes") -and $results.Count -gt 0) {
+            $Results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+            Write-logFile -Message "[INFO] Output written to $script:outputFile" -Color "Green" -Level Standard
+        } 
     }
 
     else{
@@ -385,15 +351,15 @@ Function Get-Sessions {
             $Results | Sort SessionId, TimeStamp | Format-Table Timestamp, User, Action, SessionId, ClientIP, OperationCount -AutoSize
         }
         if (($Output -eq "Yes") -and $results.Count -gt 0) {
-            $filePath = "$OutputDir\Sessions.csv"
-            $Results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
-        }   
+            $Results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+            Write-logFile -Message "[INFO] Output written to $script:outputFile" -Color "Green" -Level Standard
+        }
     }
 
     $summary.ProcessingTime = (Get-Date) - $summary.StartTime
 
     if ($Results.Count -gt 0) {
-        Write-LogFile -Message "`n=== Session Analysis Summary ===" -Color "Cyan" -Level Standard
+        Write-LogFile -Message "=== Session Analysis Summary ===" -Color "Cyan" -Level Standard
         Write-LogFile -Message "Query Information:" -Level Standard
         Write-LogFile -Message "  Filter: $($summary.QueryType)" -Level Standard
         Write-LogFile -Message "  Time Range: $StartDate to $EndDate" -Level Standard
@@ -470,7 +436,7 @@ function Get-MessageIDs {
     param(
         [Parameter(Mandatory=$true)]$StartDate,
         [Parameter(Mandatory=$true)]$EndDate,
-        [string]$OutputDir = "Output\MailItemsAccessed",
+        [string]$OutputDir,
         [string]$IP,
         [string]$Encoding = "UTF8",
         [string]$Sessions,
@@ -481,8 +447,19 @@ function Get-MessageIDs {
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+    Init-Logging
+    $filePostfix = "MessageIDs"
+    if ($IP -and $Sessions) {
+        $filePostfix = "MessageIDs-$Sessions-$IP"
+    } elseif ($Sessions) {
+        $filePostfix = "MessageIDs-$Sessions"  
+    } elseif ($IP) {
+        $filePostfix = "MessageIDs-$IP"
+    }
+
+    Init-OutputDir -Component "MailItemsAccessed" -FilePostfix $filePostfix
+    Write-LogFile -Message "=== Starting Message IDs Collection ===" -Color "Cyan" -Level Standard
+    $OutputDir = Split-Path $script:outputFile -Parent
 
     $summary = @{
         TotalEvents = 0
@@ -490,49 +467,6 @@ function Get-MessageIDs {
         ProcessingTime = $null
         QueryType = "All Events"
     }
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   StartDate: $StartDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   EndDate: $EndDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
-        Write-LogFile -Message "[DEBUG]   IP: $IP" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Sessions: $Sessions" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Output: $Output" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Download: $($Download.IsPresent)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
-        
-        $exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-        if ($exchangeModule) {
-            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
-        }
-
-        if ($Download.IsPresent) {
-            $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-            if ($graphModule) {
-                Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-                foreach ($module in $graphModule) {
-                    Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-                }
-            } else {
-                Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-            }
-        }
-    }
-
-    if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Name $OutputDir > $null
-    } else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal
-        }
-    }
-    
-    Write-LogFile -Message "=== Starting Message IDs Collection ===" -Color "Cyan" -Level Standard
 
     if ($Download.IsPresent) {
         $requiredScopes = @("Mail.ReadWrite")
@@ -617,10 +551,7 @@ function Get-MessageIDs {
         $results | Sort TimeStamp | Format-Table Timestamp, User, IPaddress, SessionID, InternetMessageId, SizeInBytes -AutoSize
         
         if (($Output -eq "Yes") -and $results.Count -gt 0) {
-            $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-            $filePath = "$OutputDir\$date-MessageIDs.csv"
-            $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
-            Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green" -Level Standard
+            $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
         } 
     }
 
@@ -711,10 +642,7 @@ function Get-MessageIDs {
         $results | Sort TimeStamp | Format-Table Timestamp, User, IPaddress, SessionID, InternetMessageId, SizeInBytes -AutoSize
 
         if (($Output -eq "Yes") -and $results.Count -gt 0) {
-            $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-            $filePath = "$OutputDir\$date-MessageIDs.csv"
-            $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
-            Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green" -Level Standard
+            $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
         }
     }
 
@@ -801,9 +729,8 @@ function Get-MessageIDs {
         $results | Sort TimeStamp | Format-Table Timestamp, User, IPaddress, SessionID, InternetMessageId, SizeInBytes  
 
         if (($Output -eq "Yes") -and $results.Count -gt 0) {
-            $filePath = "$OutputDir\MessageIDs-$Sessions.csv"
-            $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
-            Write-logFile -Message "[INFO] Output written to $filePath" -Color "Green" -Level Standard
+            $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+            Write-logFile -Message "[INFO] Output written to $script:outputFile" -Color "Green" -Level Standard
         }
     }
         

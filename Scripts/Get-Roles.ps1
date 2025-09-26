@@ -45,31 +45,19 @@ Function Get-AllRoleActivity {
 
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\Roles",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [switch]$IncludeEmptyRoles = $false,
         [ValidateSet('None', 'Minimal', 'Standard')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $date = Get-Date -Format "yyyyMMddHHmm"
-
+    Init-Logging
+    Init-OutputDir -Component "Roles" -FilePostfix "AllRoles"
     Write-LogFile -Message "=== Starting Directory Role Membership Export ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("User.Read.All", "Directory.Read.All", "AuditLog.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-        
-    if (!(Test-Path $OutputDir)) {
-        try {
-            New-Item -ItemType Directory -Force -Path $OutputDir > $null
-        }
-        catch {
-            Write-LogFile -Message "[Error] Could not create output directory: $OutputDir" -Level Minimal
-            return
-        }
-    }
-
     Write-LogFile -Message "[INFO] Retrieving directory roles and memberships..." -Level Standard
     
     $processedRoles = 0
@@ -182,7 +170,7 @@ Function Get-AllRoleActivity {
         }
 
         $outputFile = "$OutputDir\$($date)-All-Roles.csv"
-        $allRoleMembers | Export-Csv -Path $outputFile -NoTypeInformation -Encoding $Encoding
+        $allRoleMembers | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
         Write-LogFile -Message "`nRoles with users:" -Color "Green" -Level Standard
         foreach ($role in $rolesWithUsers) {
@@ -201,7 +189,7 @@ Function Get-AllRoleActivity {
         Write-LogFile -Message "  - Total role user assignments: $totalMembers" -Level Standard
         
         Write-LogFile -Message "`nExported file:" -Level Standard -Color "Cyan"
-        Write-LogFile -Message "  - File: $outputFile" -Level Standard
+        Write-LogFile -Message "  - File: $script:outputFile" -Level Standard
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
@@ -248,30 +236,19 @@ function Get-PIMAssignments {
 
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\Roles",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $date = Get-Date -Format "yyyyMMddHHmm"
-
+    Init-Logging
+    Init-OutputDir -Component "Roles" -FilePostfix "PIM-Assignments"
     Write-LogFile -Message "=== Starting PIM Role Assignment Export ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("RoleAssignmentSchedule.Read.Directory", "RoleEligibilitySchedule.Read.Directory", "User.Read.All", "Group.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-        
-    if (!(Test-Path $OutputDir)) {
-        try {
-            New-Item -ItemType Directory -Force -Path $OutputDir > $null
-        }
-        catch {
-            Write-LogFile -Message "[Error] Could not create output directory: $OutputDir" -Level Minimal
-            return
-        }
-    }
-
+    
     Write-LogFile -Message "[INFO] Retrieving PIM role assignments..." -Level Standard
     $allAssignments = @()
     $processedActiveAssignments = 0
@@ -490,8 +467,7 @@ function Get-PIMAssignments {
             }
         }
         
-        $outputFile = "$OutputDir\$($date)-PIM-Assignments.csv"
-        $allAssignments | Export-Csv -Path $outputFile -NoTypeInformation -Encoding $Encoding
+        $allAssignments | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
         
         $totalAssignments = $allAssignments.Count
         $pimActiveCount = ($allAssignments | Where-Object { $_.AssignmentStatus -eq "Active" }).Count
@@ -517,7 +493,7 @@ function Get-PIMAssignments {
         }
         
         Write-LogFile -Message "`nExported file:" -Level Standard -Color "Cyan"
-        Write-LogFile -Message " - File: $outputFile" -Level Standard
+        Write-LogFile -Message " - File: $script:outputFile" -Level Standard
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal

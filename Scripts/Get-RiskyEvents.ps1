@@ -44,61 +44,25 @@ function Get-RiskyUsers {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\RiskyEvents",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [string[]]$UserIds,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
+    Init-Logging
     Write-LogFile -Message "=== Starting Risky Users Collection ===" -Color "Cyan" -Level Standard
 
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: '$($UserIds -join ', ')'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds count: $($UserIds.Count)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-        
-        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModules) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModules) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
+    $filePostfix = "RiskyUsers"
+    if ($UserIds) {
+        $userString = ($UserIds -join "-").Substring(0, [Math]::Min(50, ($UserIds -join "-").Length))
+        $filePostfix = "RiskyUsers-$userString"
     }
 
+    Init-OutputDir -Component "RiskyEvents" -FilePostfix $filePostfix
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
-        if ($graphAuth.MissingScopes.Count -gt 0) {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
-        }
-    }
-    if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    }
-    else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }
 
     $results = @()
     $count = 0
@@ -267,11 +231,8 @@ function Get-RiskyUsers {
         throw
     }
 
-    $date = Get-Date -Format "yyyyMMddHHmm"
-    $filePath = "$OutputDir\$($date)-RiskyUsers.csv"
-
     if ($results.Count -gt 0) {
-        $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+        $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
         Write-LogFile -Message "[INFO] A total of $count Risky Users found" -Level Standard
         
         Write-LogFile -Message "`nSummary of Risky Users:" -Color "Cyan" -Level Standard 
@@ -288,7 +249,7 @@ function Get-RiskyUsers {
         Write-LogFile -Message "  - Dismissed: $($riskSummary.Dismissed)" -Level Standard
 
         Write-LogFile -Message "`nExported Files:" -Level Standard
-        Write-LogFile -Message "  - $filePath" -Level Standard
+        Write-LogFile -Message "  - $script:outputFile" -Level Standard
         } else {
         Write-LogFile -Message "[INFO] No Risky Users found" -Color "Yellow" -Level Standard
     }
@@ -340,62 +301,25 @@ function Get-RiskyDetections {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir= "Output\RiskyEvents",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [string[]]$UserIds,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: '$($UserIds -join ', ')'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds count: $($UserIds.Count)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-        
-        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModules) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModules) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
+    Init-Logging
+    $filePostfix = "RiskyEvents"
+    if ($UserIds) {
+        $userString = ($UserIds -join "-").Substring(0, [Math]::Min(50, ($UserIds -join "-").Length))
+        $filePostfix = "RiskyEvents-$userString"
     }
 
+    Init-OutputDir -Component "RiskyEvents" -FilePostfix $filePostfix
     Write-LogFile -Message "=== Starting Risky Detections Collection ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
-        if ($graphAuth.MissingScopes.Count -gt 0) {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
-        }
-    }
-
-    if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    }
-    else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }
 
     $results = @()
     $count = 0
@@ -584,11 +508,9 @@ function Get-RiskyDetections {
         throw
     }
 
-    $date = Get-Date -Format "yyyyMMddHHmm"
-    $filePath = "$OutputDir\$($date)-RiskyDetections.csv"
 
     if ($results.Count -gt 0) {
-        $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+        $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
         Write-LogFile -Message "`nSummary of Risky Detections:" -Color "Cyan" -Level Standard 
         Write-LogFile -Message "----------------------------------------" -Level Standard
@@ -608,7 +530,7 @@ function Get-RiskyDetections {
         Write-LogFile -Message "  - Unique Countries: $($riskSummary.UniqueCountries.Count)" -Level Standard
 
         Write-LogFile -Message "`nExported Files:" -Level Standard
-        Write-LogFile -Message "  - $filePath" -Level Standard
+        Write-LogFile -Message "  - $script:outputFile" -Level Standard
     } else {
         Write-LogFile -Message "[INFO] No Risky Detections found" -Color "Yellow" -Level Standard
     }

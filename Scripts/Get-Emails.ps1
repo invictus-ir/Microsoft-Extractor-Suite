@@ -53,15 +53,17 @@ Function Get-Email {
         [string]$internetMessageId,
         [ValidateSet("eml", "txt")]
         [string]$Output = "eml",
-        [string]$outputDir = "Output\EmailExport",
+        [string]$outputDir,
         [switch]$attachment,
         [string]$inputFile,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     ) 
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+    Init-Logging
+    Init-OutputDir -Component "Email Export" -FilePostfix "EmailExport"
+    $outputDir = Split-Path $script:outputFile -Parent
+
     $summary = @{
         TotalProcessed = 0
         SuccessfulDownloads = 0
@@ -73,53 +75,10 @@ Function Get-Email {
         Errors = @()
     }
 
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: $userIds" -Level Debug
-        Write-LogFile -Message "[DEBUG]   InternetMessageId: $internetMessageId" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Output: $Output" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: $outputDir" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Attachment: $($attachment.IsPresent)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   InputFile: $inputFile" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
-        
-        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModule) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModule) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
-
     Write-LogFile -Message "=== Starting Email Export ===" -Color "Cyan" -Level Standard
-
     $requiredScopes = @("Mail.Readwrite")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication completed" -Level Debug
-        try {
-            $context = Get-MgContext
-            if ($context) {
-                Write-LogFile -Message "[DEBUG] Graph context information:" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Account: $($context.Account)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Environment: $($context.Environment)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   TenantId: $($context.TenantId)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Scopes: $($context.Scopes -join ', ')" -Level Debug
-            }
-        } catch {
-            Write-LogFile -Message "[DEBUG] Could not retrieve Graph context details" -Level Debug
-        }
-    }
-
-    if (!(Test-Path -Path $outputDir)) {
-        New-Item -ItemType Directory -Path $outputDir -Force > $null
-    }
-
+    
     $fileCounter = 1 
     $processedMessages = @{}
     $duplicateMessages = @()
@@ -425,14 +384,14 @@ Function Get-Attachment {
     param(
         [Parameter(Mandatory=$true)]$userIds,
         [Parameter(Mandatory=$true)]$internetMessageId,
-        [string]$outputDir = "Output\EmailExport",
+        [string]$outputDir,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
-    if (!(Test-Path -Path $outputDir)) {
-        New-Item -ItemType Directory -Path $outputDir -Force > $null
-    }
+   Init-Logging
+   Init-OutputDir -Component "Email Export" -SubComponent "Attachments" -FilePostfix "Attachments"
+   $outputDir = Split-Path $script:outputFile -Parent
 
     try {
         $getMessage = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages?filter=internetMessageId eq '$internetMessageId'" -ErrorAction stop
@@ -513,6 +472,8 @@ Function Show-Email {
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
+
+    Init-Logging
 
     $requiredScopes = @("Mail.Readwrite")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes

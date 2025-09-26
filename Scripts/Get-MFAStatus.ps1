@@ -52,7 +52,7 @@ function Get-MFA {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\MFA",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [string[]]$UserIds,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
@@ -60,45 +60,13 @@ function Get-MFA {
         [switch]$IncludePhoneNumbers
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: '$($UserIds -join ', ')'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds count: $($UserIds.Count)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-        
-        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModules) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModules) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
-
+    Init-Logging
+    Init-OutputDir -Component "MFA" -FilePostfix "AuthenticationMethods"
     Write-LogFile -Message "=== Starting MFA Status Collection ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("UserAuthenticationMethod.Read.All","User.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
-        if ($graphAuth.MissingScopes.Count -gt 0) {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
-        }
-    }
     $summary = @{
         TotalUsers = 0
         MFAEnabled = 0
@@ -115,16 +83,6 @@ function Get-MFA {
         }
         StartTime = Get-Date
         ProcessingTime = $null
-    }
-
-    if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    }
-    else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal
-        }
     }
   
     Write-LogFile -Message "[INFO] Identifying authentication methods..." -Level Standard     
@@ -358,13 +316,11 @@ function Get-MFA {
     }
 
     $summary.ProcessingTime = (Get-Date) - $summary.StartTime
-    $date = Get-Date -Format "yyyyMMddHHmm"
-    $authMethodsPath  = "$OutputDir\$($date)-MFA-AuthenticationMethods.csv"
-    $results | Export-Csv -Path $authMethodsPath  -NoTypeInformation -Encoding $Encoding
+    $results | Export-Csv -Path $script:outputFile  -NoTypeInformation -Encoding $Encoding
 
     Write-LogFile -Message "[INFO] Retrieving user registration details..." -Level Standard
     $results = @()
-    $registrationResults  = "$OutputDir\$($date)-MFA-UserRegistrationDetails.csv"
+    $registrationResults  = "$script:outputFile"
     $nextLink = "https://graph.microsoft.com/v1.0/reports/authenticationMethods/userRegistrationDetails"
 
     do {
@@ -414,7 +370,9 @@ function Get-MFA {
         }
     } while ($nextLink)
 
-    $results | Export-Csv -Path $registrationResults  -NoTypeInformation -Encoding $Encoding
+    Init-OutputDir -Component "MFA" -FilePostfix "UserRegistrationDetails"
+    $authMethodsPath  = "$script:outputFile"
+    $results | Export-Csv -Path $script:outputFile  -NoTypeInformation -Encoding $Encoding
     Write-LogFile -Message "`n=== MFA Status Analysis Summary ===" -Color "Cyan" -Level Standard
     Write-LogFile -Message "`nMFA Status:" -Level Standard
     Write-LogFile -Message "  Total Users: $($summary.TotalUsers)" -Level Standard

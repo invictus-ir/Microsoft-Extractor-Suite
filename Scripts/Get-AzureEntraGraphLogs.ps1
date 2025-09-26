@@ -94,8 +94,9 @@ function Get-GraphEntraSignInLogs {
 		[string[]]$EventTypes = @('All')
 	)
 
-	Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+	Init-Logging
+    Init-OutputDir -Component "EntraID" -SubComponent "SignInLogs" -FilePostfix "SignInLogs"
+
     $summary = @{
         TotalRecords = 0
         StartTime = Get-Date
@@ -130,32 +131,7 @@ function Get-GraphEntraSignInLogs {
 	Write-LogFile -Message "=== Starting Sign-in Log Collection ===" -Color "Cyan" -Level Standard
 	$requiredScopes = @("AuditLog.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-
-	if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
-        if ($graphAuth.MissingScopes.Count -gt 0) {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
-        }
-    }
-
-	$date = [datetime]::Now.ToString('yyyyMMdd') 
-	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\EntraID\$($date)-SignInLogs"
-		if (!(test-path $OutputDir)) {
-			New-Item -ItemType Directory -Force -path $OutputDir > $null
-		}
-	}
-	else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal -Color "Red"
-            return
-        }
-    }
+	$OutputDir = Split-Path $script:outputFile -Parent
 
 	StartDateAz -Quiet
     EndDate -Quiet
@@ -166,7 +142,7 @@ function Get-GraphEntraSignInLogs {
 	Write-LogFile -Message "Start Date: $StartDate" -Level Standard
     Write-LogFile -Message "End Date: $EndDate" -Level Standard
     Write-LogFile -Message "Output Format: $Output" -Level Standard
-    Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
+
     if ($UserIds) {
         Write-LogFile -Message "Filtering for User: $UserIds" -Level Standard
     }
@@ -201,20 +177,20 @@ function Get-GraphEntraSignInLogs {
 	}
 
 	$eventTypesToProcess = @()
-if ($EventTypes -contains 'All') {
-    if ($UserIds -and $UserIds.Count -gt 0) {
-        $eventTypesToProcess = @('interactiveUserAndNonInteractiveUser')
-        Write-LogFile -Message "[INFO] Filtering by users - skipping servicePrincipal and managedIdentity (will be empty)" -Level Standard -Color "Yellow"
-    } else {
-        $eventTypesToProcess = @('interactiveUserAndNonInteractiveUser', 'servicePrincipal', 'managedIdentity')
-    }
-} elseif ($EventTypes -contains 'interactiveUser' -and $EventTypes -contains 'nonInteractiveUser') {
-    $remainingTypes = $EventTypes | Where-Object { $_ -ne 'interactiveUser' -and $_ -ne 'nonInteractiveUser' }
-    $eventTypesToProcess = @('interactiveUserAndNonInteractiveUser') + $remainingTypes
-}
-else {
-    $eventTypesToProcess = $EventTypes
-}
+	if ($EventTypes -contains 'All') {
+		if ($UserIds -and $UserIds.Count -gt 0) {
+			$eventTypesToProcess = @('interactiveUserAndNonInteractiveUser')
+			Write-LogFile -Message "[INFO] Filtering by users - skipping servicePrincipal and managedIdentity (will be empty)" -Level Standard -Color "Yellow"
+		} else {
+			$eventTypesToProcess = @('interactiveUserAndNonInteractiveUser', 'servicePrincipal', 'managedIdentity')
+		}
+	} elseif ($EventTypes -contains 'interactiveUser' -and $EventTypes -contains 'nonInteractiveUser') {
+		$remainingTypes = $EventTypes | Where-Object { $_ -ne 'interactiveUser' -and $_ -ne 'nonInteractiveUser' }
+		$eventTypesToProcess = @('interactiveUserAndNonInteractiveUser') + $remainingTypes
+	}
+	else {
+		$eventTypesToProcess = $EventTypes
+	}
 
 	foreach ($eventType in $eventTypesToProcess) {
 		$currentEventType = $eventTypeMapping[$eventType]
@@ -373,7 +349,7 @@ else {
 	}
 
 	$summary.ProcessingTime = (Get-Date) - $summary.StartTime
-    Write-LogFile -Message "`nOverall Collection Summary:" -Color "Cyan" -Level Standard
+    Write-LogFile -Message "Overall Collection Summary:" -Color "Cyan" -Level Standard
     Write-LogFile -Message "  Total Records: $($summary.TotalRecords)" -Level Standard
     Write-LogFile -Message "  Files Created: $($summary.TotalFiles)" -Level Standard
     Write-LogFile -Message "  Output Directory: $OutputDir" -Level Standard
@@ -458,8 +434,8 @@ function Get-GraphEntraAuditLogs {
         [string]$LogLevel = 'Standard'
 	)
 
-	Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+	Init-Logging
+   	Init-OutputDir -Component "EntraID" -SubComponent "AuditLogs" -FilePostfix "AuditLogs" 
     $summary = @{
         TotalRecords = 0
         StartTime = Get-Date
@@ -467,60 +443,10 @@ function Get-GraphEntraAuditLogs {
         TotalFiles = 0
     }
 
-	if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   StartDate: $startDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   EndDate: $endDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Output: $Output" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
-        Write-LogFile -Message "[DEBUG]   All: $($All.IsPresent)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   MergeOutput: $($MergeOutput.IsPresent)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
-        
-        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModule) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModule) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
-
     Write-LogFile -Message "=== Starting Audit Log Collection ===" -Color "Cyan" -Level Standard
     $requiredScopes = @("AuditLog.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-
-	if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
-        if ($graphAuth.MissingScopes.Count -gt 0) {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
-        }
-    }
-	
-	$date = [datetime]::Now.ToString('yyyyMMdd') 
-	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\EntraID\$($date)-Auditlogs"
-		if (!(test-path $OutputDir)) {
-			New-Item -ItemType Directory -Force -Path $OutputDir > $null
-			write-logFile -Message "[INFO] Creating the following directory: $OutputDir"
-		}
-	}
-	else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal -Color "Red"
-            return
-        }
-    }
+	$OutputDir = Split-Path $script:outputFile -Parent
 
 	StartDateAz -Quiet
     EndDate -Quiet
@@ -531,7 +457,6 @@ function Get-GraphEntraAuditLogs {
 	Write-LogFile -Message "Start Date: $StartDate" -Level Standard
     Write-LogFile -Message "End Date: $EndDate" -Level Standard
     Write-LogFile -Message "Output Format: $Output" -Level Standard
-    Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
     if ($UserIds) {
         Write-LogFile -Message "Filtering for User: $UserIds" -Level Standard
     }

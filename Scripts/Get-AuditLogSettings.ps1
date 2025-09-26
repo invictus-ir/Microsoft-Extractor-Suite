@@ -36,31 +36,12 @@ function Get-MailboxAuditStatus {
 #>
     [CmdletBinding()]
     param (
-        [string]$OutputDir = "Output\Audit Status",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
         [string[]]$UserIds
     )
-
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
-
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        $exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-        if ($exchangeModule) {
-            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
-        }
-    }
 
     $summary = @{
         TotalMailboxes = 0
@@ -76,28 +57,10 @@ function Get-MailboxAuditStatus {
         OrgWideAuditingEnabled = $false
     }
 
+    Init-Logging
+    Init-OutputDir -Component "Audit Status" -FilePostfix "MailboxAuditStatus"
+
     Write-LogFile -Message "=== Starting Mailbox Audit Status Collection ===" -Color "Cyan" -Level Standard
-
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    } else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-LogFile -Message "[ERROR] Custom directory invalid: $OutputDir" -Level Minimal -Color "Red"
-            return
-        }
-    }
-
-    $date = Get-Date -Format "yyyyMMddHHmm"
-    $outputFile = "$date-MailboxAuditStatus.csv"
-    $outputDirectory = Join-Path $OutputDir $outputFile
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Output file configuration:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Date stamp: $date" -Level Debug
-        Write-LogFile -Message "[DEBUG]   File name: $outputFile" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Full path: $outputDirectory" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
-    }
 
     try {
         $orgConfig = Get-OrganizationConfig | Select-Object -ExpandProperty AuditDisabled
@@ -304,7 +267,8 @@ function Get-MailboxAuditStatus {
         }
     }
 
-    $results | Export-Csv -Path $outputDirectory -NoTypeInformation -Encoding $Encoding
+    $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+
     $summary.ProcessingTime = (Get-Date) - $summary.StartTime
     
     Write-LogFile -Message "`nOrganization Configuration:" -Level Standard -Color "Cyan"
@@ -325,7 +289,7 @@ function Get-MailboxAuditStatus {
     Write-LogFile -Message "  Admin Actions: $($summary.AdminActionsConfigured)" -Level Standard
     
     Write-LogFile -Message "`nOutput Details:" -Level Standard -Color "Cyan"
-    Write-LogFile -Message "  Output File: $outputDirectory" -Level Standard
+    Write-LogFile -Message "  Output File: $script:outputFile" -Level Standard
     Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Level Standard
     Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
 }
