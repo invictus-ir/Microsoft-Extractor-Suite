@@ -52,14 +52,18 @@ function Get-DirectoryActivityLogs {
 		[string]$StartDate,
 		[string]$endDate,
 		[string]$output = "CSV",
-		[string]$outputDir,
+		[string]$OutputDir,
 		[string]$encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'	
 	)
 
     Init-Logging
-    Init-OutputDir -Component "Directory Activity Logs" -FilePostfix "DirectoryActivityLogs"
+    if ($OutputDir) {
+       Init-OutputDir -Component "Directory Activity Logs" -FilePostfix "DirectoryActivityLogs" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "Directory Activity Logs" -FilePostfix "DirectoryActivityLogs"
+    }
     Write-LogFile -Message "=== Starting Directory Activity Log Analysis ===" -Color "Cyan" -Level Standard
 
 	StartDate -Quiet

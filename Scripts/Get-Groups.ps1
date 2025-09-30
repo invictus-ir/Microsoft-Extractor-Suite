@@ -44,7 +44,11 @@ Function Get-Groups {
     )
 
     Init-Logging
-    Init-OutputDir -Component "Groups" -FilePostfix "Groups"
+    if ($OutputDir) {
+       Init-OutputDir -Component "Groups" -FilePostfix "Groups" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "Groups" -FilePostfix "Groups"
+    }
 
     $requiredScopes = @("Group.Read.All", "AuditLog.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $requiredScopes
@@ -168,7 +172,11 @@ Function Get-GroupMembers {
     )
 
     Init-Logging
-    Init-OutputDir -Component "Groups" -FilePostfix "GroupMembers"
+    if ($OutputDir) {
+       Init-OutputDir -Component "Groups" -FilePostfix "GroupMembers" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "Groups" -FilePostfix "GroupMembers"
+    }
 
     $requiredScopes = @("Group.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
@@ -280,7 +288,11 @@ Function Get-DynamicGroups {
     )
 
     Init-Logging
-    Init-OutputDir -Component "Groups" -FilePostfix "DynamicGroups"
+    if ($OutputDir) {
+       Init-OutputDir -Component "Groups" -FilePostfix "DynamicGroups" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "Groups" -FilePostfix "DynamicGroups"
+    }
 
     $requiredScopes = @("Group.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes

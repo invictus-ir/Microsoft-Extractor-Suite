@@ -36,7 +36,13 @@ function Get-OAuthPermissionsGraph {
 
     Init-Logging
 	Write-LogFile -Message "=== Starting OAuth Permissions Collection ===" -Color "Cyan" -Level Standard
-    Init-OutputDir -Component "EntraID" -SubComponent "OAuthPermissions" -FilePostfix "OAuthPermissions"
+    
+	if ($OutputDir) {
+       Init-OutputDir -Component "EntraID" -SubComponent "OAuthPermissions" -FilePostfix "OAuthPermissions" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "EntraID" -SubComponent "OAuthPermissions" -FilePostfix "OAuthPermissions"
+    }
+
 	$requiredScopes = @("Application.Read.All")
     Check-GraphContext -RequiredScopes $requiredScopes
 
@@ -387,11 +393,19 @@ function Get-OAuthPermissionsGraph {
 	$report | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
 	Write-LogFile -Message "[INFO] Exporting service principals to CSV..." -Level Standard
-	Init-OutputDir -Component "EntraID" -SubComponent "ServicePrincipals" -FilePostfix "ServicePrincipals"
+	if ($OutputDir) {
+       Init-OutputDir -Component "EntraID" -SubComponent "ServicePrincipals" -FilePostfix "ServicePrincipals" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "EntraID" -SubComponent "ServicePrincipals" -FilePostfix "ServicePrincipals"
+    }
 	$allServicePrincipals | Select-Object AppId, AppDisplayName, AppDescription, AccountEnabled, AppOwnerOrganizationId | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
 	Write-LogFile -Message "[INFO] Exporting App Registrations to CSV..." -Level Standard
-	Init-OutputDir -Component "EntraID" -SubComponent "AppRegistrations" -FilePostfix "AppRegistrations"
+	if ($OutputDir) {
+       Init-OutputDir -Component "EntraID" -SubComponent "AppRegistrations" -FilePostfix "AppRegistrations" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "EntraID" -SubComponent "AppRegistrations" -FilePostfix "AppRegistrations"
+    }
  	Get-MgApplication -All | Select-Object Id, DisplayName, AppId, CreatedDateTime | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
 	$summary.TotalPermissions = $summary.DelegatedCount + $summary.ApplicationCount

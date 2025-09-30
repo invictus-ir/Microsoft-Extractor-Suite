@@ -59,8 +59,12 @@ function Get-RiskyUsers {
         $userString = ($UserIds -join "-").Substring(0, [Math]::Min(50, ($UserIds -join "-").Length))
         $filePostfix = "RiskyUsers-$userString"
     }
-
-    Init-OutputDir -Component "RiskyEvents" -FilePostfix $filePostfix
+    
+    if ($OutputDir) {
+        Init-OutputDir -Component "RiskyEvents" -FilePostfix $filePostfix -CustomOutputDir $OutputDir
+    } else {
+        Init-OutputDir -Component "RiskyEvents" -FilePostfix $filePostfix
+    }
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
@@ -315,7 +319,11 @@ function Get-RiskyDetections {
         $filePostfix = "RiskyEvents-$userString"
     }
 
-    Init-OutputDir -Component "RiskyEvents" -FilePostfix $filePostfix
+    if ($OutputDir) {
+        Init-OutputDir -Component "RiskyEvents" -FilePostfix $filePostfix -CustomOutputDir $OutputDir
+    } else {
+        Init-OutputDir -Component "RiskyEvents" -FilePostfix $filePostfix
+    }
     Write-LogFile -Message "=== Starting Risky Detections Collection ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")

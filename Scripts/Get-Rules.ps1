@@ -65,7 +65,11 @@ function Get-TransportRules
 	)
 
 	Init-Logging
-    Init-OutputDir -Component "Rules" -FilePostfix "TransportRules"
+	if ($OutputDir) {
+        Init-OutputDir -Component "Rules" -FilePostfix "TransportRules" -CustomOutputDir $OutputDir
+    } else {
+        Init-OutputDir -Component "Rules" -FilePostfix "TransportRules"
+    }
     Write-LogFile -Message "=== Starting Transport Rules Collection ===" -Color "Cyan" -Level Standard
 
 	if ($isDebugEnabled) {
@@ -277,7 +281,11 @@ function Get-MailboxRules
 	)
 
 	Init-Logging
-    Init-OutputDir -Component "Rules" -FilePostfix "MailboxRules"
+	if ($OutputDir) {
+        Init-OutputDir -Component "Rules" -FilePostfix "MailboxRules" -CustomOutputDir $OutputDir
+    } else {
+        Init-OutputDir -Component "Rules" -FilePostfix "MailboxRules"
+    }
     Write-LogFile -Message "=== Starting Mailbox Rules Collection ===" -Color "Cyan" -Level Standard
 
 	$summary = @{

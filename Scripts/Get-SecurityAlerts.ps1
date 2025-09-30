@@ -62,7 +62,11 @@ Function Get-SecurityAlerts {
     )
 
     Init-Logging
-    Init-OutputDir -Component "SecurityAlerts" -FilePostfix "SecurityAlerts"
+    if ($OutputDir) {
+        Init-OutputDir -Component "SecurityAlerts" -FilePostfix "SecurityAlerts" -CustomOutputDir $OutputDir
+    } else {
+        Init-OutputDir -Component "SecurityAlerts" -FilePostfix "SecurityAlerts"
+    }
 
     Write-LogFile -Message "=== Starting Security Alerts Collection ===" -Color "Cyan" -Level Standard
 

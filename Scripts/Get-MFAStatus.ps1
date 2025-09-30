@@ -61,7 +61,11 @@ function Get-MFA {
     )
 
     Init-Logging
-    Init-OutputDir -Component "MFA" -FilePostfix "AuthenticationMethods"
+    if ($OutputDir) {
+       Init-OutputDir -Component "MFA" -FilePostfix "AuthenticationMethods" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "MFA" -FilePostfix "AuthenticationMethods"
+    }
     Write-LogFile -Message "=== Starting MFA Status Collection ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("UserAuthenticationMethod.Read.All","User.Read.All")
@@ -370,7 +374,12 @@ function Get-MFA {
         }
     } while ($nextLink)
 
-    Init-OutputDir -Component "MFA" -FilePostfix "UserRegistrationDetails"
+    if ($OutputDir) {
+       Init-OutputDir -Component "MFA" -FilePostfix "UserRegistrationDetails" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "MFA" -FilePostfix "UserRegistrationDetails"
+    }
+    
     $authMethodsPath  = "$script:outputFile"
     $results | Export-Csv -Path $script:outputFile  -NoTypeInformation -Encoding $Encoding
     Write-LogFile -Message "`n=== MFA Status Analysis Summary ===" -Color "Cyan" -Level Standard

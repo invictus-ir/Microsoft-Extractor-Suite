@@ -71,7 +71,11 @@ function Get-MailboxAuditLog
     )
 
     Init-Logging
-    Init-OutputDir -Component "Mailbox Audit Log" -FilePostfix "MailboxAuditLog"
+    if ($OutputDir) {
+       Init-OutputDir -Component "Mailbox Audit Log" -FilePostfix "MailboxAuditLog" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "Mailbox Audit Log" -FilePostfix "MailboxAuditLog"
+    }
     $OutputDir = Split-Path $script:outputFile -Parent
 
     Write-LogFile -Message "== Starting the Mailbox Audit Log Collection (utilizing Get-UAL) ==" -Level Standard
@@ -167,7 +171,11 @@ function Get-MailboxAuditLogLegacy
 	)
 
     Init-Logging
-    Init-OutputDir -Component "Mailbox Audit Log" -SubComponent "Legacy" -FilePostfix "MailboxAuditLogLegacy"
+    if ($OutputDir) {
+       Init-OutputDir -Component "Mailbox Audit Log" -SubComponent "Legacy" -FilePostfix "MailboxAuditLogLegacy" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "Mailbox Audit Log" -SubComponent "Legacy" -FilePostfix "MailboxAuditLogLegacy"
+    }
     $OutputDir = Split-Path $script:outputFile -Parent
 
 	try {

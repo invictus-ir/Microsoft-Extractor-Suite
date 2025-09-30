@@ -143,9 +143,15 @@ function Get-UAL {
 			[int]$MaxItemsPerInterval = 50000
 		)
 
-	Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
+	Init-Logging
+	if ($OutputDir) {
+        Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix "UAL" -CustomOutputDir $OutputDir
+    } else {
+        Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix "UAL"
+    }
+	$OutputDir = Split-Path $script:outputFile -Parent
+	Write-LogFile -Message "=== Starting Unified Audit Log Collection ===" -Color "Cyan" -Level Standard
+	
 	$stats = @{
 		StartTime = Get-Date
 		ProcessingTime = $null
@@ -153,41 +159,6 @@ function Get-UAL {
 		FilesCreated = 0
 		IntervalAdjustments = 0
 	}
-
-	Write-LogFile -Message "=== Starting Unified Audit Log Collection ===" -Color "Cyan" -Level Standard
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        
-        $exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-        if ($exchangeModule) {
-            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
-        }
-
-		$orgUnit = Get-OrganizationalUnit | Where-Object { $_.Name -like "*onmicrosoft.com" } | Select-Object -First 1        
-		if ($orgUnit) {
-			Write-LogFile -Message "[DEBUG] Tenant Name: $($orgUnit.Name)" -Level Debug
-			Write-LogFile -Message "[DEBUG] Canonical Name: $($orgUnit.CanonicalName)" -Level Debug
-			Write-LogFile -Message "[DEBUG] Distinguished Name: $($orgUnit.DistinguishedName)" -Level Debug
-			Write-LogFile -Message "[DEBUG] Organization ID: $($orgUnit.OrganizationId)" -Level Debug
-			Write-LogFile -Message "[DEBUG] Exchange Object ID: $($orgUnit.ExchangeObjectId)" -Level Debug
-		}
-
-		$connectionInfo = Get-ConnectionInformation -ErrorAction Stop
-        Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Connection Type: $($connectionInfo.TokenStatus)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug	
-        
-        Write-LogFile -Message "[DEBUG] Script parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   StartDate: $StartDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   EndDate: $EndDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Group: $Group" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Output: $Output" -Level Debug
-        Write-LogFile -Message "[DEBUG]   MaxItemsPerInterval: $MaxItemsPerInterval" -Level Debug
-    }
 
 	try {
 		$areYouConnected = Search-UnifiedAuditLog -StartDate (Get-Date).AddDays(-1) -EndDate (Get-Date) -ResultSize 1 -ErrorAction Stop
@@ -223,19 +194,6 @@ function Get-UAL {
 
 	$totalResults = 0
 	$recordTypes = [System.Collections.ArrayList]::new()
-
-	$date = [datetime]::Now.ToString('yyyyMMddHHmmss')
-	if ($OutputDir -eq "") {
-		$OutputDir = "Output\UnifiedAuditLog\$date"
-		If (!(test-path $OutputDir)) {
-			New-Item -ItemType Directory -Force -Path $OutputDir > $null
-		}
-	} else {
-		if (!(Test-Path -Path $OutputDir)) {
-			Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-			Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-		}
-	}
 
 	$GroupRecordTypes = @{
         "Exchange" = @("ExchangeAdmin","ExchangeAggregatedOperation","ExchangeItem","ExchangeItemGroup",

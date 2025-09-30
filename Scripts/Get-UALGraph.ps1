@@ -123,7 +123,11 @@ Function Get-UALGraph {
         [switch]$SplitFiles
     )
 
-    Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix $searchName
+    if ($OutputDir) {
+        Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix $searchName -CustomOutputDir $OutputDir
+    } else {
+        Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix $searchName
+    }
     Init-Logging
 
     $summary = @{

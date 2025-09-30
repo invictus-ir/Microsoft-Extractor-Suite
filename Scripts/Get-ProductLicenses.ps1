@@ -30,7 +30,11 @@ Function Get-Licenses {
     )
 
     Init-Logging
-    Init-OutputDir -Component "Licenses" -FilePostfix "TenantLicenses"
+    if ($OutputDir) {
+        Init-OutputDir -Component "Licenses" -FilePostfix "TenantLicenses" -CustomOutputDir $OutputDir
+    } else {
+        Init-OutputDir -Component "Licenses" -FilePostfix "TenantLicenses"
+    }
     Write-LogFile -Message "=== Starting License Collection ===" -Color "Cyan" -Level Standard
 
     try {
@@ -266,7 +270,11 @@ Function Get-EntraSecurityDefaults {
     )
 
     Init-Logging
-    Init-OutputDir -Component "Licenses" -FilePostfix "EntraSecurityDefaults"
+    if ($OutputDir) {
+        Init-OutputDir -Component "Licenses" -FilePostfix "EntraSecurityDefaults" -CustomOutputDir $OutputDir
+    } else {
+        Init-OutputDir -Component "Licenses" -FilePostfix "EntraSecurityDefaults"
+    }
     Write-LogFile -Message "=== Starting Security Defaults Check ===" -Color "Cyan" -Level Standard
 
     try {
@@ -398,7 +406,11 @@ Function Get-LicensesByUser {
     )
 
     Init-Logging
-    Init-OutputDir -Component "Licenses" -FilePostfix "UserLicenses"
+    if ($OutputDir) {
+        Init-OutputDir -Component "Licenses" -FilePostfix "UserLicenses" -CustomOutputDir $OutputDir
+    } else {
+        Init-OutputDir -Component "Licenses" -FilePostfix "UserLicenses"
+    }
     Write-LogFile -Message "=== Starting User License Collection ===" -Color "Cyan" -Level Standard
 
     try {

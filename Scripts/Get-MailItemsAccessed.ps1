@@ -71,8 +71,13 @@ Function Get-Sessions {
     } elseif ($IP) {
         $filePostfix = "Sessions-$IP"
     }
+    
+    if ($OutputDir) {
+       Init-OutputDir -Component "MailItemsAccessed" -FilePostfix $filePostfix -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "MailItemsAccessed" -FilePostfix $filePostfix
+    }
 
-    Init-OutputDir -Component "MailItemsAccessed" -FilePostfix $filePostfix
     $OutputDir = Split-Path $script:outputFile -Parent
 
     $summary = @{
@@ -457,7 +462,11 @@ function Get-MessageIDs {
         $filePostfix = "MessageIDs-$IP"
     }
 
-    Init-OutputDir -Component "MailItemsAccessed" -FilePostfix $filePostfix
+    if ($OutputDir) {
+       Init-OutputDir -Component "MailItemsAccessed" -FilePostfix $filePostfix -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "MailItemsAccessed" -FilePostfix $filePostfix
+    }
     Write-LogFile -Message "=== Starting Message IDs Collection ===" -Color "Cyan" -Level Standard
     $OutputDir = Split-Path $script:outputFile -Parent
 

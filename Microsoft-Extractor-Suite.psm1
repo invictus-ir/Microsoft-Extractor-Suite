@@ -281,24 +281,43 @@ function Init-OutputDir {
         [string]$Component,
         [string]$SubComponent = "",
         [Parameter(Mandatory=$true)]
-        [string]$FilePostfix
+        [string]$FilePostfix,
+        [string]$CustomOutputDir = ""
     )
 
+    if ([string]::IsNullOrEmpty($CustomOutputDir) -and $script:CollectionOutputDir) {
+        $CustomOutputDir = $script:CollectionOutputDir
+    }
+
+
 	$date = [datetime]::Now.ToString('yyyyMMdd')
-	if ($OutputDir -eq "" ){
-		$OutputDir = "Output\$Component\$($date)"
-		if ($SubComponent -ne "") {
+
+    if ($CustomOutputDir) {
+        # Use custom directory but add component structure
+        $OutputDir = Join-Path $CustomOutputDir "$Component\$date"
+        if ($SubComponent -ne "") {
             $OutputDir += "-$SubComponent"
         }
-		if (!(test-path $OutputDir)) {
-		    Write-LogFile -Message "[DEBUG] Creating output directory: $OutputDir" -Level Debug
-			New-Item -ItemType Directory -Force -path $OutputDir > $null
-		}
-	}
-	else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal -Color "Red"
+        
+        if (!(Test-Path -Path $CustomOutputDir)) {
+            Write-LogFile -Message "[ERROR] Custom base directory invalid: $CustomOutputDir" -Level Minimal -Color "Red"
             throw
+        }
+        
+        if (!(Test-Path -Path $OutputDir)) {
+            Write-LogFile -Message "[DEBUG] Creating custom output directory: $OutputDir" -Level Debug
+            New-Item -ItemType Directory -Force -Path $OutputDir > $null
+        }
+    } else {
+        # Use default directory structure
+        $OutputDir = "Output\$Component\$($date)"
+        if ($SubComponent -ne "") {
+            $OutputDir += "-$SubComponent"
+        }
+        
+        if (!(Test-Path $OutputDir)) {
+            Write-LogFile -Message "[DEBUG] Creating output directory: $OutputDir" -Level Debug
+            New-Item -ItemType Directory -Force -Path $OutputDir > $null
         }
     }
 

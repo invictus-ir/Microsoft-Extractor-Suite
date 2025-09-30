@@ -53,7 +53,11 @@ Function Get-AllRoleActivity {
     )
 
     Init-Logging
-    Init-OutputDir -Component "Roles" -FilePostfix "AllRoles"
+    if ($OutputDir) {
+        Init-OutputDir -Component "Roles" -FilePostfix "AllRoles" -CustomOutputDir $OutputDir
+    } else {
+        Init-OutputDir -Component "Roles" -FilePostfix "AllRoles"
+    }
     Write-LogFile -Message "=== Starting Directory Role Membership Export ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("User.Read.All", "Directory.Read.All", "AuditLog.Read.All")
@@ -243,7 +247,11 @@ function Get-PIMAssignments {
     )
 
     Init-Logging
-    Init-OutputDir -Component "Roles" -FilePostfix "PIM-Assignments"
+    if ($OutputDir) {
+        Init-OutputDir -Component "Roles" -FilePostfix "PIM-Assignments" -CustomOutputDir $OutputDir
+    } else {
+        Init-OutputDir -Component "Roles" -FilePostfix "PIM-Assignments"
+    }
     Write-LogFile -Message "=== Starting PIM Role Assignment Export ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("RoleAssignmentSchedule.Read.Directory", "RoleEligibilitySchedule.Read.Directory", "User.Read.All", "Group.Read.All")

@@ -95,7 +95,11 @@ function Get-GraphEntraSignInLogs {
 	)
 
 	Init-Logging
-    Init-OutputDir -Component "EntraID" -SubComponent "SignInLogs" -FilePostfix "SignInLogs"
+	if ($OutputDir) {
+       Init-OutputDir -Component "EntraID" -SubComponent "SignInLogs" -FilePostfix "SignInLogs" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "EntraID" -SubComponent "SignInLogs" -FilePostfix "SignInLogs"
+    }
 
     $summary = @{
         TotalRecords = 0
@@ -435,7 +439,11 @@ function Get-GraphEntraAuditLogs {
 	)
 
 	Init-Logging
-   	Init-OutputDir -Component "EntraID" -SubComponent "AuditLogs" -FilePostfix "AuditLogs" 
+	if ($OutputDir) {
+       Init-OutputDir -Component "EntraID" -SubComponent "AuditLogs" -FilePostfix "AuditLogs" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "EntraID" -SubComponent "AuditLogs" -FilePostfix "AuditLogs" 
+    }
     $summary = @{
         TotalRecords = 0
         StartTime = Get-Date

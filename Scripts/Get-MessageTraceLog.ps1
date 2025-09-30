@@ -113,7 +113,11 @@ function Get-MessageTraceLog
 		$filePostfix = "MessageTrace-$userString"
 	}
 
-	Init-OutputDir -Component "MessageTrace" -FilePostfix $filePostfix
+	if ($OutputDir) {
+       Init-OutputDir -Component "MessageTrace" -FilePostfix $filePostfix -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "MessageTrace" -FilePostfix $filePostfix
+    }
 	$OutputDir = Split-Path $script:outputFile -Parent	
 	
     $summary = @{

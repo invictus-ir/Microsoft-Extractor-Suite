@@ -52,7 +52,7 @@ function Get-Devices {
 #>
     [CmdletBinding()]
     param (
-        [string]$outputDir,
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [ValidateSet("CSV", "JSON")]
         [string]$Output = "CSV",
@@ -62,7 +62,11 @@ function Get-Devices {
     )
 
     Init-Logging
-    Init-OutputDir -Component "Device Information" -FilePostfix "Devices"
+    if ($OutputDir) {
+        Init-OutputDir -Component "Device Information" -FilePostfix "Devices" -CustomOutputDir $OutputDir
+    } else {
+        Init-OutputDir -Component "Device Information" -FilePostfix "Devices"
+    }
     Write-LogFile -Message "=== Starting Device Collection ===" -Color "Cyan" -Level Standard
     
 	$requiredScopes = @("Application.Read.All")

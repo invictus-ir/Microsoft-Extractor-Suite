@@ -86,7 +86,11 @@ function Get-AdminAuditLog {
         $params['MergeOutput'] = $true
     }
 
-    Init-OutputDir -Component "AdminAuditLog" -FilePostfix "AdminAuditLog"
+    if ($OutputDir) {
+        Init-OutputDir -Component "AdminAuditLog" -FilePostfix "AdminAuditLog" -CustomOutputDir $OutputDir
+    } else {
+        Init-OutputDir -Component "AdminAuditLog" -FilePostfix "AdminAuditLog"
+    }
 
     Write-LogFile -Message "== Starting the Admin Audit Log Collection (utilizing Get-UAL) ==" -Level Minimal
 

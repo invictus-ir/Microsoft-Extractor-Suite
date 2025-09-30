@@ -53,7 +53,7 @@ Function Get-Email {
         [string]$internetMessageId,
         [ValidateSet("eml", "txt")]
         [string]$Output = "eml",
-        [string]$outputDir,
+        [string]$OutputDir,
         [switch]$attachment,
         [string]$inputFile,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
@@ -61,7 +61,11 @@ Function Get-Email {
     ) 
 
     Init-Logging
-    Init-OutputDir -Component "Email Export" -FilePostfix "EmailExport"
+    if ($OutputDir) {
+       Init-OutputDir -Component "Email Export" -FilePostfix "EmailExport" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "Email Export" -FilePostfix "EmailExport"
+    }
     $outputDir = Split-Path $script:outputFile -Parent
 
     $summary = @{
@@ -384,13 +388,17 @@ Function Get-Attachment {
     param(
         [Parameter(Mandatory=$true)]$userIds,
         [Parameter(Mandatory=$true)]$internetMessageId,
-        [string]$outputDir,
+        [string]$OutputDir,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
    Init-Logging
-   Init-OutputDir -Component "Email Export" -SubComponent "Attachments" -FilePostfix "Attachments"
+   if ($OutputDir) {
+       Init-OutputDir -Component "Email Export" -SubComponent "Attachments" -FilePostfix "Attachments" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "Email Export" -SubComponent "Attachments" -FilePostfix "Attachments"
+    }
    $outputDir = Split-Path $script:outputFile -Parent
 
     try {

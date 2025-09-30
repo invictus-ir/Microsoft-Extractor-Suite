@@ -40,7 +40,7 @@ function Get-MailboxPermissions {
 #>
     [CmdletBinding()]
     param (
-        [string]$outputDir,
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
@@ -48,7 +48,11 @@ function Get-MailboxPermissions {
         )
 
     Init-Logging
-    Init-OutputDir -Component "Mailbox Permissions" -FilePostfix "MailboxPermissions"
+    if ($OutputDir) {
+       Init-OutputDir -Component "Mailbox Permissions" -FilePostfix "MailboxPermissions" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "Mailbox Permissions" -FilePostfix "MailboxPermissions"
+    }
 
     $summary = @{
         TotalMailboxes = 0
