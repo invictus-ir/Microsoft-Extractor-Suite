@@ -317,15 +317,17 @@ Function Get-Email {
     }
 
     $summary.ProcessingTime = (Get-Date) - $summary.StartTime
+    $summaryData = [ordered]@{
+        "Processing Statistics" = [ordered]@{
+            "Total Messages Processed" = $summary.TotalProcessed
+            "Successfully Downloaded" = $summary.SuccessfulDownloads
+            "Failed Downloads" = $summary.FailedDownloads
+            "Duplicates Found" = $summary.DuplicatesFound
+        }
+    }
 
-    Write-LogFile -Message "`n=== Email Export Summary ===" -Color "Cyan" -Level Standard
-    Write-LogFile -Message "Processing Statistics:" -Level Standard
-    Write-LogFile -Message "  Total Messages Processed: $($summary.TotalProcessed)" -Level Standard
-    Write-LogFile -Message "  Successfully Downloaded: $($summary.SuccessfulDownloads)" -Level Standard
-    Write-LogFile -Message "  Failed Downloads: $($summary.FailedDownloads)" -Level Standard
-    Write-LogFile -Message "  Duplicates Found: $($summary.DuplicatesFound)" -Level Standard
     if ($attachment.IsPresent) {
-        Write-LogFile -Message "  Attachments Processed: $($summary.AttachmentsProcessed)" -Level Standard
+        $summaryData["Processing Statistics"]["Attachments Processed"] = $summary.AttachmentsProcessed
     }
 
     if ($duplicateMessages.Count -gt 0) {
@@ -344,10 +346,8 @@ Function Get-Email {
         }
     }
 
-    Write-LogFile -Message "`nOutput Statistics:" -Level Standard
-    Write-LogFile -Message "  Directory: $outputDir" -Level Standard
-    Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
-    Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+    Write-Summary -Summary $summaryData -Title "Email Export Summary"
+    Write-LogFile -Message "`nNote: Emails saved to: $outputDir" -Level Standard
 }
     
     

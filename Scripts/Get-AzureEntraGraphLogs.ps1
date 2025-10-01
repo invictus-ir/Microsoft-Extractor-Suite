@@ -353,11 +353,16 @@ function Get-GraphEntraSignInLogs {
 	}
 
 	$summary.ProcessingTime = (Get-Date) - $summary.StartTime
-    Write-LogFile -Message "Overall Collection Summary:" -Color "Cyan" -Level Standard
-    Write-LogFile -Message "  Total Records: $($summary.TotalRecords)" -Level Standard
-    Write-LogFile -Message "  Files Created: $($summary.TotalFiles)" -Level Standard
-    Write-LogFile -Message "  Output Directory: $OutputDir" -Level Standard
-    Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Level Standard -Color "Green"
+
+	$summaryData = [ordered]@{
+		"Collection Results" = [ordered]@{
+			"Total Records" = $summary.TotalRecords
+			"Files Created" = $summary.TotalFiles
+		}
+	}
+
+	Write-Summary -Summary $summaryData -Title "Sign-in Log Collection Summary"
+	Write-LogFile -Message "`nNote: Files organized by event type in: $OutputDir" -Level Standard
 }
 
 function Get-GraphEntraAuditLogs {
@@ -571,11 +576,16 @@ function Get-GraphEntraAuditLogs {
 		}
 
 		$summary.ProcessingTime = (Get-Date) - $summary.StartTime
-        Write-LogFile -Message "Collection Summary:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "  Total Records: $($summary.TotalRecords)" -Level Standard
-        Write-LogFile -Message "  Files Created: $($summary.TotalFiles)" -Level Standard
-        Write-LogFile -Message "  Output Directory: $OutputDir" -Level Standard
-        Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Level Standard -Color "Green"
+
+		$summaryData = [ordered]@{
+			"Collection Results" = [ordered]@{
+				"Total Records" = $summary.TotalRecords
+				"Files Created" = $summary.TotalFiles
+			}
+		}
+
+		Write-Summary -Summary $summaryData -Title "Audit Log Collection Summary"
+		Write-LogFile -Message "`nNote: Output files saved to: $OutputDir" -Level Standard
     }
 	catch {
 		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal

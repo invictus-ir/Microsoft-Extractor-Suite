@@ -109,15 +109,15 @@ Function Get-Groups {
         }
 
         $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
-        Write-LogFile -Message "`nGroup Analysis Results:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "Total Groups: $($results.Count)" -Level Standard
-        Write-LogFile -Message "  - Security Enabled: $(($results | Where-Object { $_.SecurityEnabled -eq $true }).Count)" -Level Standard
-        Write-LogFile -Message "  - Mail Enabled: $(($results | Where-Object { $_.MailEnabled -eq $true }).Count)" -Level Standard
-        Write-LogFile -Message "  - On-Premises Synced: $(($results | Where-Object { $_.OnPremisesSyncEnabled -eq $true }).Count)" -Level Standard
-
-        Write-LogFile -Message "`nExported File:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "  - File: $script:outputFile" -Level Standard
-
+        $summaryData = [ordered]@{
+            "Group Summary" = [ordered]@{
+                "Total Groups" = $results.Count
+                "Security Enabled" = ($results | Where-Object { $_.SecurityEnabled -eq $true }).Count
+                "Mail Enabled" = ($results | Where-Object { $_.MailEnabled -eq $true }).Count
+                "On-Premises Synced" = ($results | Where-Object { $_.OnPremisesSyncEnabled -eq $true }).Count
+            }
+        }
+        Write-Summary -Summary $summaryData -Title "Group Analysis Summary"
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
@@ -233,8 +233,14 @@ Function Get-GroupMembers {
         }
 
         $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
-        Write-LogFile -Message "`nExported File:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "  - File: $script:outputFile" -Level Standard
+        $summaryData = [ordered]@{
+            "Collection Results" = [ordered]@{
+                "Total Groups Processed" = $allGroups.Count
+                "Total Members Found" = $results.Count
+            }
+        }
+
+        Write-Summary -Summary $summaryData -Title "Group Members Summary"
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
@@ -361,19 +367,26 @@ Function Get-DynamicGroups {
         }
 
         $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
-        Write-LogFile -Message "`nDynamic Group Analysis Results:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "Total Dynamic Groups: $($results.Count)" -Level Standard
-        Write-LogFile -Message "  - Security Enabled: $(($results | Where-Object { $_.SecurityEnabled -eq $true }).Count)" -Level Standard
-        Write-LogFile -Message "  - Mail Enabled: $(($results | Where-Object { $_.MailEnabled -eq $true }).Count)" -Level Standard
-        
+        $totalCount = if ($results) { @($results).Count } else { 0 }
+        $securityEnabledCount = @($results | Where-Object { $_.SecurityEnabled -eq $true }).Count
+        $mailEnabledCount = @($results | Where-Object { $_.MailEnabled -eq $true }).Count
+
         $processingStates = $results | Group-Object -Property MembershipRuleProcessingState
-        Write-LogFile -Message "`nMembership Rule Processing States:" -Color "Cyan" -Level Standard
+        $statesHashtable = [ordered]@{}
         foreach ($state in $processingStates) {
-            Write-LogFile -Message "  - $($state.Name): $($state.Count)" -Level Standard
+            $statesHashtable[$state.Name] = $state.Count
         }
 
-        Write-LogFile -Message "`nExported File:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "  - File: $script:outputFile" -Level Standard
+        $summaryData = [ordered]@{
+            "Dynamic Group Summary" = [ordered]@{
+                "Total Dynamic Groups" = $totalCount
+                "Security Enabled" = $securityEnabledCount
+                "Mail Enabled" = $mailEnabledCount
+            }
+            "Membership Rule Processing States" = $statesHashtable
+        }
+
+        Write-Summary -Summary $summaryData -Title "Dynamic Group Analysis Summary"
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal

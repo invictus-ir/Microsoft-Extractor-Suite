@@ -172,12 +172,18 @@ Function Get-ConditionalAccessPolicies {
     }
 
     $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+    $reportOnlyCount = ($results | Where-Object { $_.State -eq 'enabledForReportingButNotEnforced' }).Count
+    if ($null -eq $reportOnlyCount) { $reportOnlyCount = 0 }
 
-    Write-LogFile -Message "`n=== Conditional Access Policy Summary ===" -Color "Cyan" -Level Standard
-    Write-LogFile -Message "Total Policies: $($results.Count)" -Level Standard
-    Write-LogFile -Message "Enabled Policies: $(($results | Where-Object { $_.State -eq 'enabled' }).Count)" -Level Standard
-    Write-LogFile -Message "Disabled Policies: $(($results | Where-Object { $_.State -eq 'disabled' }).Count)" -Level Standard
-    Write-LogFile -Message "Output: $script:outputFile" -Level Standard
-    Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+    $summaryData = [ordered]@{
+        "Policy Summary" = [ordered]@{
+            "Total Policies" = $results.Count
+            "Enabled Policies" = ($results | Where-Object { $_.State -eq 'enabled' }).Count
+            "Disabled Policies" = ($results | Where-Object { $_.State -eq 'disabled' }).Count
+            "Report Only" = $reportOnlyCount
+        }
+    }
+
+    Write-Summary -Summary $summaryData -Title "Conditional Access Policy Summary"
 }
         

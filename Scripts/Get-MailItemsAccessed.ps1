@@ -362,22 +362,20 @@ Function Get-Sessions {
     }
 
     $summary.ProcessingTime = (Get-Date) - $summary.StartTime
-
     if ($Results.Count -gt 0) {
-        Write-LogFile -Message "=== Session Analysis Summary ===" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "Query Information:" -Level Standard
-        Write-LogFile -Message "  Filter: $($summary.QueryType)" -Level Standard
-        Write-LogFile -Message "  Time Range: $StartDate to $EndDate" -Level Standard
+        $summaryData = [ordered]@{
+            "Query Information" = [ordered]@{
+                "Filter Type" = $summary.QueryType
+                "Time Range" = "$StartDate to $EndDate"
+            }
+            "Event Statistics" = [ordered]@{
+                "Total Events" = $summary.TotalEvents
+                "Unique Sessions" = $summary.UniqueSessions.Count
+                "Total Operations" = $summary.OperationCount
+            }
+        }
 
-        Write-LogFile -Message "`nEvent Statistics:" -Level Standard
-        Write-LogFile -Message "  Total Events: $($summary.TotalEvents)" -Level Standard
-        Write-LogFile -Message "  Unique Sessions: $($summary.UniqueSessions.Count)" -Level Standard
-        Write-LogFile -Message "  Total Operations: $($summary.OperationCount)" -Level Standard
-
-        Write-LogFile -Message "`nExported File:" -Level Standard
-        Write-LogFile -Message "  - $filePath" -Level Standard
-        Write-LogFile -Message "`nProcessing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
-        Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+        Write-Summary -Summary $summaryData -Title "Session Analysis Summary"
     }
 }
 
@@ -831,14 +829,20 @@ function Get-MessageIDs {
     }
     
     $summary.ProcessingTime = (Get-Date) - $summary.StartTime
-
     if ($Results.Count -gt 0) {
-        Write-LogFile -Message "`n=== Session Analysis Summary ===" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "Time Range: $StartDate to $EndDate" -Level Standard
-        Write-LogFile -Message "Total MailItemsAccessed Events processed: $($summary.TotalEvents)" -Level Standard
-        Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
-        Write-LogFile -Message "`nProcessing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
-        Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+        $summaryData = [ordered]@{
+            "Collection Results" = [ordered]@{
+                "Time Range" = "$StartDate to $EndDate"
+                "Total MailItemsAccessed Events" = $summary.TotalEvents
+                "Messages Collected" = $Results.Count
+            }
+        }
+
+        Write-Summary -Summary $summaryData -Title "Message IDs Collection Summary"
+        
+        if ($Download.IsPresent) {
+            Write-LogFile -Message "`nNote: Downloaded emails saved to: $outputDir\Emails" -Level Standard
+        }
     }
 }
 

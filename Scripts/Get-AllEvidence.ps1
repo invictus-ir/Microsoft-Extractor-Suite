@@ -770,16 +770,24 @@ function Start-EvidenceCollection {
     }    
 
     $summary.ProcessingTime = (Get-Date) - $summary.StartTime
-    Write-LogFile -Message "`n=== Collection Summary ===" -Color "Cyan" -Level Minimal
-    if ($UserIds) {
-        Write-LogFile -Message "Target User: $UserIds" -Level Minimal
+    $summaryData = [ordered]@{
+        "Collection Details" = [ordered]@{
+            "Project Name" = $ProjectName
+            "Platform" = if ($Platform -eq 'All') { 'Microsoft 365 and Azure/Entra ID' } else { $Platform }
+            "Target User(s)" = if ($UserIds) { $UserIds } else { "All Users" }
+        }
+        "Timing" = [ordered]@{
+            "Start Time" = $summary.StartTime.ToString('yyyy-MM-dd HH:mm:ss')
+            "End Time" = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')
+            "Duration" = $summary.ProcessingTime.ToString('hh\:mm\:ss')
+        }
+        "Task Status" = [ordered]@{
+            "Total Tasks" = $summary.TotalTasks
+            "Successful" = $summary.SuccessfulTasks
+            "Failed" = $summary.FailedTasks
+        }
     }
-    Write-LogFile -Message "Start Time: $($summary.StartTime.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Minimal
-    Write-LogFile -Message "End Time: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -Level Minimal
-    Write-LogFile -Message "Duration: $($summary.ProcessingTime.ToString('hh\:mm\:ss'))" -Level Minimal
-    Write-LogFile -Message "`nTask Status:" -Level Minimal
-    Write-LogFile -Message "  Successful: $($summary.SuccessfulTasks)" -Level Minimal -Color "Green"
-    Write-LogFile -Message "  Failed: $($summary.FailedTasks)" -Level Minimal -Color $(if ($summary.FailedTasks -gt 0) { "Red" } else { "Green" })
-    Write-LogFile -Message "`nOutput Location: $OutputDir" -Level Minimal
-    Write-LogFile -Message "===================================" -Color "Cyan" -Level Minimal
+
+    Write-Summary -Summary $summaryData -Title "Collection Summary"
+    Write-LogFile -Message "`nOutput Location: $OutputDir" -Level Minimal -Color "Cyan"
 }

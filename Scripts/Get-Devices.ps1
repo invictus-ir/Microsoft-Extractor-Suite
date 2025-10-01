@@ -74,24 +74,24 @@ function Get-Devices {
 
     $date = Get-Date -Format "yyyyMMddHHmm"
     $summary = [ordered]@{
-        DeviceCounts = [ordered]@{
-            TotalDevices = 0
-            AzureADJoined = 0
-            WorkplaceJoined = 0
-            HybridJoined = 0
+        "Device Counts" = [ordered]@{
+            "Total Devices" = 0
+            "Entra ID Joined" = 0
+            "Workplace Joined" = 0
+            "Hybrid Joined" = 0
         }
-        DeviceStatus = [ordered]@{
-            CompliantDevices = 0
-            ManagedDevices = 0
-            ActiveDevices30Days = 0
-            InactiveDevices90Days = 0
+        "Device Status" = [ordered]@{
+            "Compliant Devices" = 0
+            "Managed Devices" = 0
+            "Active (Last 30 Days)" = 0
+            "Inactive (>90 Days)" = 0
         }
-        OperatingSystem = [ordered]@{
-            Windows = 0
-            MacOS = 0
-            iOS = 0
-            Android = 0
-            Other = 0
+        "Operating Systems" = [ordered]@{
+            "Windows" = 0
+            "macOS" = 0
+            "iOS" = 0
+            "Android" = 0
+            "Other" = 0
         }
     }
 
@@ -138,7 +138,7 @@ function Get-Devices {
 
         $results = @()
         $totalDevices = $devices.Count
-        $summary.DeviceCounts.TotalDevices = $totalDevices
+        $summary["Device Counts"]["Total Devices"] = $totalDevices
         $current = 0
 
         Write-LogFile -Message "[INFO] Processing $totalDevices devices..." -Level Standard
@@ -163,27 +163,27 @@ function Get-Devices {
             } else { $null }
 
             switch ($device.TrustType) {
-                "AzureAd" { $summary.DeviceCounts.AzureADJoined++ }
-                "Workplace" { $summary.DeviceCounts.WorkplaceJoined++ }
-                "ServerAd" { $summary.DeviceCounts.HybridJoined++ }
+                "AzureAd" { $summary["Device Counts"]["Entra ID Joined"]++ }
+                "Workplace" { $summary["Device Counts"]["Workplace Joined"]++ }
+                "ServerAd" { $summary["Device Counts"]["Hybrid Joined"]++ }
             }
 
-            if ($device.IsCompliant) { $summary.DeviceStatus.CompliantDevices++ }
-            if ($device.IsManaged) { $summary.DeviceStatus.ManagedDevices++ }
+            if ($device.IsCompliant) { $summary["Device Status"]["Compliant Devices"]++ }
+            if ($device.IsManaged) { $summary["Device Status"]["Managed Devices"]++ }
 
             if ($lastSignInDate -gt (Get-Date).AddDays(-30)) {
-                $summary.DeviceStatus.ActiveDevices30Days++
+                $summary["Device Status"]["Active Devices (30 Days)"]++
             }
             if ($lastSignInDate -lt (Get-Date).AddDays(-90)) {
-                $summary.DeviceStatus.InactiveDevices90Days++
+                $summary["Device Status"]["Inactive Devices (90 Days)"]++
             }
 
             switch -Wildcard ($device.OperatingSystem) {
-                "Windows*" { $summary.OperatingSystem.Windows++ }
-                "Mac*" { $summary.OperatingSystem.MacOS++ }
-                "iOS*" { $summary.OperatingSystem.iOS++ }
-                "Android*" { $summary.OperatingSystem.Android++ }
-                default { $summary.OperatingSystem.Other++ }
+                "Windows*" { $summary["Operating Systems"]["Windows"]++ }
+                "Mac*" { $summary["Operating Systems"]["macOS"]++ }
+                "iOS*" { $summary["Operating Systems"]["iOS"]++ }
+                "Android*" { $summary["Operating Systems"]["Android"]++ }
+                default { $summary["Operating Systems"]["Other"]++ }
             }
 
             $deviceEntry = [PSCustomObject]@{
@@ -224,7 +224,8 @@ function Get-Devices {
             $results | ConvertTo-Json -Depth 100 | Out-File $script:outputFile -Encoding $Encoding
         }
 
-        Write-Summary -Summary $summary
+        Write-Progress -Activity "Processing devices" -Completed
+        Write-Summary -Summary $summary -Title "Device Analysis Summary"
     }
     catch {
         write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red"

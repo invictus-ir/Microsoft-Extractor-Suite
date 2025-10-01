@@ -330,17 +330,18 @@ function Write-Summary {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)]
-        [object]$Summary
+        [object]$Summary,
+        [string]$Title = "Summary"
     )
 
-    Write-LogFile -Message "`n=== Summary ===" -Color "Cyan" -Level Standard
+    Write-LogFile -Message "`n=== $Title ===" -Color "Cyan" -Level Standard
+
     foreach ($param in $Summary.GetEnumerator()) {
         if ($param.value -is [hashtable] -or $param.value -is [System.Collections.Specialized.OrderedDictionary]) {
-            Write-LogFile -Message "$($param.key):" -Level Standard
+            Write-LogFile -Message "`n$($param.key):" -Level Standard
             foreach($subitem in $param.value.GetEnumerator()) {
                 Write-LogFile -Message "  $($subitem.key): $($subitem.value)" -Level Standard
             }
-            Write-LogFile -Message " " -Level Standard
         } else {
             Write-LogFile -Message "$($param.key): $($param.value)" -Level Standard
         }

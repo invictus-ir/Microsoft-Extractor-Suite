@@ -307,23 +307,24 @@ function Get-MailboxPermissions {
     }
 
     $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+    Write-Progress -Activity "Checking delegated permissions" -Completed
 
     $summary.ProcessingTime = (Get-Date) - $summary.StartTime
 
-    Write-LogFile -Message "`n=== Mailbox Permissions Analysis Summary ===" -Color "Cyan" -Level Standard
-    Write-LogFile -Message "Processing Statistics:" -Level Standard
-    Write-LogFile -Message "  Total Mailboxes: $($summary.TotalMailboxes)" -Level Standard
-    Write-LogFile -Message "  Mailboxes Processed: $($summary.MailboxesProcessed)" -Level Standard
-    Write-LogFile -Message "  Mailboxes with Permissions: $($summary.MailboxesWithPermissions)" -Level Standard
+    $summaryData = [ordered]@{
+        "Processing Statistics" = [ordered]@{
+            "Total Mailboxes" = $summary.TotalMailboxes
+            "Mailboxes Processed" = $summary.MailboxesProcessed
+            "Mailboxes with Permissions" = $summary.MailboxesWithPermissions
+        }
+        "Permission Counts" = [ordered]@{
+            "Full Access" = $summary.PermissionStats.FullAccess
+            "Send As" = $summary.PermissionStats.SendAs
+            "Send on Behalf" = $summary.PermissionStats.SendOnBehalf
+            "Calendar" = $summary.PermissionStats.Calendar
+            "Inbox" = $summary.PermissionStats.Inbox
+        }
+    }
 
-    Write-LogFile -Message "`nPermission Counts:" -Level Standard
-    Write-LogFile -Message "  Full Access: $($summary.PermissionStats.FullAccess)" -Level Standard
-    Write-LogFile -Message "  Send As: $($summary.PermissionStats.SendAs)" -Level Standard
-    Write-LogFile -Message "  Send on Behalf: $($summary.PermissionStats.SendOnBehalf)" -Level Standard
-    Write-LogFile -Message "  Calendar: $($summary.PermissionStats.Calendar)" -Level Standard
-    Write-LogFile -Message "  Inbox: $($summary.PermissionStats.Inbox)" -Level Standard
-
-    Write-LogFile -Message "`nOutput:" -Level Standard
-    Write-LogFile -Message "  Output File: $script:outputFile" -Level Standard
-    Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
+    Write-Summary -Summary $summaryData -Title "Mailbox Permissions Analysis Summary"
 }

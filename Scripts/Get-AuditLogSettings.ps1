@@ -273,28 +273,30 @@ function Get-MailboxAuditStatus {
 
     $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
+    $summaryData = [ordered]@{
+        "Organization Configuration" = [ordered]@{
+            "Organization-wide Auditing" = if ($summary.OrgWideAuditingEnabled) { 'Enabled' } else { 'Disabled' }
+        }
+        "Mailbox Statistics" = [ordered]@{
+            "Total Mailboxes" = $summary.TotalMailboxes
+            "Audit Enabled" = $summary.AuditEnabled
+            "Audit Disabled" = $summary.AuditDisabled
+            "Audit Bypass Enabled" = $summary.AuditBypass
+        }
+        "Audit Actions Configured" = [ordered]@{
+            "Owner Actions" = $summary.OwnerActionsConfigured
+            "Delegate Actions" = $summary.DelegateActionsConfigured
+            "Admin Actions" = $summary.AdminActionsConfigured
+        }
+    }
+
     $summary.ProcessingTime = (Get-Date) - $summary.StartTime
     
-    Write-LogFile -Message "`nOrganization Configuration:" -Level Standard -Color "Cyan"
-    Write-LogFile -Message "  Organization-wide Auditing: $(if ($summary.OrgWideAuditingEnabled) { 'Enabled' } else { 'Disabled' })" -Level Standard
     if ($summary.OrgWideAuditingEnabled) {
         Write-LogFile -Message "  [!] Organization-wide auditing overrides individual mailbox settings" -Level Standard
         Write-LogFile -Message "  [!] Default actions are automatically logged for all non-bypassed mailboxes" -Level Standard
     }
-    Write-LogFile -Message "`nMailbox Statistics:" -Level Standard -Color "Cyan"
-    Write-LogFile -Message "  Total Mailboxes: $($summary.TotalMailboxes)" -Level Standard
-    Write-LogFile -Message "  Audit Enabled: $($summary.AuditEnabled)" -Level Standard
-    Write-LogFile -Message "  Audit Disabled: $($summary.AuditDisabled)" -Level Standard
-    Write-LogFile -Message "  Audit Bypass Enabled: $($summary.AuditBypass)" -Level Standard
-    
-    Write-LogFile -Message "`nAudit Actions Configured:" -Level Standard -Color "Cyan"
-    Write-LogFile -Message "  Owner Actions: $($summary.OwnerActionsConfigured)" -Level Standard
-    Write-LogFile -Message "  Delegate Actions: $($summary.DelegateActionsConfigured)" -Level Standard
-    Write-LogFile -Message "  Admin Actions: $($summary.AdminActionsConfigured)" -Level Standard
-    
-    Write-LogFile -Message "`nOutput Details:" -Level Standard -Color "Cyan"
-    Write-LogFile -Message "  Output File: $script:outputFile" -Level Standard
-    Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Level Standard
-    Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+
+    Write-Summary -Summary $summaryData -Title "Mailbox Audit Status Summary"
 }
     

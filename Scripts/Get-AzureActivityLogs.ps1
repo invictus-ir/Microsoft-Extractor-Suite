@@ -306,15 +306,18 @@ function Get-ActivityLogs {
 		}
 	}
 	$summary.ProcessingTime = (Get-Date) - $summary.StartTime
-    Write-LogFile -Message "`n=== Activity Log Collection Summary ===" -Color "Cyan" -Level Standard
-    Write-LogFile -Message "  Total Records: $($summary.TotalRecords)" -Level Standard
-    Write-LogFile -Message "  Files Created: $($summary.TotalFiles)" -Level Standard
-    Write-LogFile -Message "  Subscriptions:" -Level Standard
-    Write-LogFile -Message "    - Total Processed: $($summary.SubscriptionsProcessed)" -Level Standard
-    Write-LogFile -Message "    - With Data: $($summary.SubscriptionsWithData)" -Level Standard
-    Write-LogFile -Message "    - Empty: $($summary.EmptySubscriptions)" -Level Standard
-    Write-LogFile -Message "`nOutput Details:" -Level Standard
-    Write-LogFile -Message "  Directory: $(Split-Path $script:outputFile -Parent)" -Level Standard
-    Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
-    Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+    $summaryData = [ordered]@{
+        "Collection Results" = [ordered]@{
+            "Total Records" = $summary.TotalRecords
+            "Files Created" = $summary.TotalFiles
+        }
+        "Subscriptions" = [ordered]@{
+            "Total Processed" = $summary.SubscriptionsProcessed
+            "With Data" = $summary.SubscriptionsWithData
+            "Empty" = $summary.EmptySubscriptions
+        }
+    }
+
+    Write-Summary -Summary $summaryData -Title "Activity Log Collection Summary"
+    Write-LogFile -Message "`nNote: Output files saved to: $(Split-Path $script:outputFile -Parent)" -Level Standard
 }

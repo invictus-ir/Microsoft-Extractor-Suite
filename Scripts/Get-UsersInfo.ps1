@@ -79,6 +79,7 @@ function Get-Users {
             }
         } else {
             $mgUsers = Get-MgUser -All -Select $selectobjects
+            Write-LogFile -Message "[INFO] Found $($mgUsers.Count) users" -Level Standard
         }
 
         $formattedUsers = $mgUsers | ForEach-Object {
@@ -138,35 +139,24 @@ function Get-Users {
         Get-MgUser | Get-Member > $null
         $formattedUsers  | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
-        $userSummary = [PSCustomObject]@{
-            TotalUsers = $mgUsers.Count
-            EnabledUsers = ($mgUsers | Where-Object { $_.AccountEnabled }).Count
-            DisabledUsers = ($mgUsers | Where-Object { -not $_.AccountEnabled }).Count
-            SyncedUsers = ($mgUsers | Where-Object { $_.OnPremisesSyncEnabled }).Count
-            GuestUsers = ($mgUsers | Where-Object { $_.UserType -eq "Guest" }).Count
-            LastSevenDays = $oneweekold.Count
-            LastThirtyDays = $onemonthold.Count
-            LastNinetyDays = $threemonthold.Count
-            Onehundredeighty = $sixmonthold.Count
-            OneYear = $OneYear.Count
+        $summary = [ordered]@{
+            "User Counts" = [ordered]@{
+                "Total Users" = $mgUsers.Count
+                "Enabled Users" = ($mgUsers | Where-Object { $_.AccountEnabled }).Count
+                "Disabled Users" = ($mgUsers | Where-Object { -not $_.AccountEnabled }).Count
+                "Synced from On-Premises" = ($mgUsers | Where-Object { $_.OnPremisesSyncEnabled }).Count
+                "Guest Users" = ($mgUsers | Where-Object { $_.UserType -eq "Guest" }).Count
+            }
+            "Recent Account Creation" = [ordered]@{
+                "Last 7 days" = $oneweekold.Count
+                "Last 30 days" = $onemonthold.Count
+                "Last 90 days" = $threemonthold.Count
+                "Last 6 months" = $sixmonthold.Count
+                "Last 1 year" = $OneYear.Count
+            }
         }
 
-        Write-LogFile -Message "User Analysis Results:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "Total Users: $($userSummary.TotalUsers)" -Level Standard
-        Write-LogFile -Message "  - Enabled: $($userSummary.EnabledUsers)" -Level Standard
-        Write-LogFile -Message "  - Disabled: $($userSummary.DisabledUsers)" -Level Standard
-        Write-LogFile -Message "  - Synced from On-Premises: $($userSummary.SyncedUsers)" -Level Standard
-        Write-LogFile -Message "  - Guest Users: $($userSummary.GuestUsers)" -Level Standard
-
-        Write-LogFile -Message "`nRecent Account Creation:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "  - Last 7 days: $($userSummary.LastSevenDays)" -Level Standard
-        Write-LogFile -Message "  - Last 30 days: $($userSummary.LastThirtyDays)" -Level Standard
-        Write-LogFile -Message "  - Last 90 days: $($userSummary.LastNinetyDays)" -Level Standard
-        Write-LogFile -Message "  - Last 6 months: $($userSummary.Onehundredeighty)" -Level Standard
-        Write-LogFile -Message "  - Last 1 year $($userSummary.OneYear)" -Level Standard
-
-        Write-LogFile -Message "`nExported File:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "  - File: $script:outputFile" -Level Standard
+        Write-Summary -Summary $summary -Title "User Analysis Summary"
     }
     catch {
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
@@ -399,6 +389,17 @@ Function Get-AdminUsers {
                 Export-Csv $mergedFile -NoTypeInformation -Encoding $Encoding
         }
 
+        $summary = [ordered]@{
+            "Role Summary" = [ordered]@{
+                "Total admin roles" = ($rolesWithUsers.Count + $rolesWithoutUsers.Count)
+                "Roles with users" = $rolesWithUsers.Count
+                "Empty roles" = $rolesWithoutUsers.Count
+                "Total administrators" = $totalAdminCount
+                "Inactive administrators (30+ days)" = $inactiveAdminCount
+            }
+        }
+
+        # Keep the detailed lists before the summary
         Write-LogFile -Message "`nRoles with users:" -Color "Green" -Level Standard
         foreach ($role in $rolesWithUsers) {
             Write-LogFile -Message "  + $role" -Level Standard
@@ -416,18 +417,7 @@ Function Get-AdminUsers {
             }
         }
 
-        Write-LogFile -Message "`nSummary:" -Level Standard -Color "Cyan"
-        Write-LogFile -Message "  Total admin roles: $($rolesWithUsers.Count + $rolesWithoutUsers.Count)" -Level Standard
-        Write-LogFile -Message "  Roles with users: $($rolesWithUsers.Count)" -Level Standard
-        Write-LogFile -Message "  Empty roles: $($rolesWithoutUsers.Count)" -Level Standard
-        Write-LogFile -Message "  Total administrators: $totalAdminCount" -Level Standard
-        if ($IncludeSignInActivity) {
-            Write-LogFile -Message "  Inactive administrators: $inactiveAdminCount" -Level Standard
-        }
-
-        Write-LogFile -Message "`nExported files:" -Level Standard -Color "Cyan"
-        Write-LogFile -Message "  Individual role files: $outputDirPath" -Level Standard
-        Write-LogFile -Message "  Merged file: $mergedFile" -Level Standard
+        Write-Summary -Summary $summary -Title "Admin Users Summary"
     }
     catch {
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal

@@ -166,12 +166,15 @@ function Get-MessageTraceLog
     }
 
 	$summary.ProcessingTime = (Get-Date) - $summary.StartTime
-	Write-LogFile -Message "`n=== Message Trace Analysis Summary ===" -Color "Cyan" -Level Standard
-    Write-LogFile -Message "Analysis Period: $($script:StartDate) to $($script:EndDate)" -Level Standard
-    Write-LogFile -Message "Output Statistics:" -Level Standard
-	Write-LogFile -Message "  Output Directory: $OutputDir" -Level Standard
-    Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
-    Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+    $summaryData = [ordered]@{
+        "Collection Details" = [ordered]@{
+            "Analysis Period" = "$($script:StartDate) to $($script:EndDate)"
+            "Users Processed" = if ($UserIds) { ($UserIds -split ",").Count } else { "All Users" }
+            "Output Directory" = $OutputDir
+        }
+    }
+
+    Write-Summary -Summary $summaryData -Title "Message Trace Analysis Summary"
 }
 
 function Retrieve-MessageTrace {
