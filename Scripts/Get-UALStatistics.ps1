@@ -186,7 +186,8 @@ function Get-UALStatistics
 		Write-LogFile -Message "`n=== Record Type Analysis ===" -Color "Cyan" -Level Standard
         Write-LogFile -Message "----------------------------------------" -Level Standard
 
-        $results | Sort-Object Count -Descending | Export-Csv -Path $outputDirectory -NoTypeInformation
+		$results | Sort-Object Count -Descending | Export-Csv -Path $script:outputFile -NoTypeInformation
+
 		$summary.ProcessingTime = (Get-Date) - $summary.StartTime
 
 		$results | Sort-Object Count -Descending | ForEach-Object {
@@ -197,17 +198,20 @@ function Get-UALStatistics
 
 		Write-LogFile -Message "----------------------------------------" -Level Standard
 
-		Write-LogFile -Message "`n=== Analysis Summary ===" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "Time Period: $dateRange" -Level Standard
-        Write-LogFile -Message "Total Log Entries: $($summary.TotalCount.ToString('N0'))" -Level Standard
-        Write-LogFile -Message "Record Types:" -Level Standard
-        Write-LogFile -Message "  With Data: $($summary.RecordsWithData)" -Level Standard
-        Write-LogFile -Message "  Without Data: $($summary.RecordsWithoutData)" -Level Standard
-        Write-LogFile -Message "`nOutput File: $outputDirectory" -Level Standard
-        
 		$summary.ProcessingTime = (Get-Date) - $summary.StartTime
-        Write-LogFile -Message "Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
-        Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+
+		$summaryOutput = [ordered]@{
+			"Analysis Period" = [ordered]@{
+				"Time Period" = $dateRange
+				"Total Log Entries" = $summary.TotalCount.ToString('N0')
+			}
+			"Record Type Statistics" = [ordered]@{
+				"Record Types with Data" = $summary.RecordsWithData
+				"Record Types without Data" = $summary.RecordsWithoutData
+			}
+		}
+
+		Write-Summary -Summary $summaryOutput -Title "UAL Statistics Analysis Summary"
 	}
 	
 	else {

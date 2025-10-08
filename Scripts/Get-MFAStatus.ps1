@@ -382,29 +382,34 @@ function Get-MFA {
     
     $authMethodsPath  = "$script:outputFile"
     $results | Export-Csv -Path $script:outputFile  -NoTypeInformation -Encoding $Encoding
-    Write-LogFile -Message "`n=== MFA Status Analysis Summary ===" -Color "Cyan" -Level Standard
-    Write-LogFile -Message "`nMFA Status:" -Level Standard
-    Write-LogFile -Message "  Total Users: $($summary.TotalUsers)" -Level Standard
-    Write-LogFile -Message "  MFA Enabled: $($summary.MFAEnabled) users ($([math]::Round($summary.MFAEnabled/$summary.TotalUsers*100,1))%)" -Level Standard
-    Write-LogFile -Message "  MFA Disabled: $($summary.MFADisabled) users ($([math]::Round($summary.MFADisabled/$summary.TotalUsers*100,1))%)" -Level Standard
-    if ($IncludePhoneNumbers) {
-        Write-LogFile -Message "  Users with Phone MFA: $($summary.PhoneNumberUsers) users" -Level Standard
-    }    
-    Write-LogFile -Message "`nAuthentication Methods:" -Level Standard
-    Write-LogFile -Message "  - Email: $($summary.MethodCounts.Email)" -Level Standard
-    Write-LogFile -Message "  - Fido2: $($summary.MethodCounts.Fido2)" -Level Standard
-    Write-LogFile -Message "  - Microsoft Authenticator App: $($summary.MethodCounts.App)" -Level Standard
-    Write-LogFile -Message "  - Phone: $($summary.MethodCounts.Phone)" -Level Standard
-    Write-LogFile -Message "  - Software OAuth: $($summary.MethodCounts.SoftwareOath)" -Level Standard
-    Write-LogFile -Message "  - Hello Business: $($summary.MethodCounts.HelloBusiness)" -Level Standard
-    Write-LogFile -Message "  - Temporary Access Pass: $($summary.MethodCounts.TemporaryAccessPass)" -Level Standard
-    Write-LogFile -Message "  - Certificate Based Auth: $($summary.MethodCounts.CertificateBasedAuth)" -Level Standard
     
-    Write-LogFile -Message "`nOutput Files:" -Level Standard
-    Write-LogFile -Message "  Authentication Methods: $authMethodsPath" -Level Standard
-    Write-LogFile -Message "  Registration Details: $registrationResults " -Level Standard
-    Write-LogFile -Message "Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
-    Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+    $summaryOutput = [ordered]@{
+    "MFA Status" = [ordered]@{
+        "Total Users" = $summary.TotalUsers
+        "MFA Enabled" = "$($summary.MFAEnabled) users ($([math]::Round($summary.MFAEnabled/$summary.TotalUsers*100,1))%)"
+        "MFA Disabled" = "$($summary.MFADisabled) users ($([math]::Round($summary.MFADisabled/$summary.TotalUsers*100,1))%)"
+    }
+    "Authentication Methods" = [ordered]@{
+        "Email" = $summary.MethodCounts.Email
+        "Fido2" = $summary.MethodCounts.Fido2
+        "Microsoft Authenticator App" = $summary.MethodCounts.App
+        "Phone" = $summary.MethodCounts.Phone
+        "Software OAuth" = $summary.MethodCounts.SoftwareOath
+        "Hello Business" = $summary.MethodCounts.HelloBusiness
+        "Temporary Access Pass" = $summary.MethodCounts.TemporaryAccessPass
+        "Certificate Based Auth" = $summary.MethodCounts.CertificateBasedAuth
+    }
+    "Output Files" = [ordered]@{
+        "Authentication Methods" = $authMethodsPath
+        "Registration Details" = $registrationResults
+    }
+}
+
+if ($IncludePhoneNumbers) {
+    $summaryOutput["MFA Status"]["Users with Phone MFA"] = "$($summary.PhoneNumberUsers) users"
+}
+
+Write-Summary -Summary $summaryOutput -Title "MFA Status Analysis Summary" -SkipExportDetails
 }
           
         

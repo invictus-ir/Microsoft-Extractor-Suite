@@ -114,21 +114,17 @@ function Get-TransportRules
 		}
 	}
 
-	$summary = @{
-		TotalRules = $transportRules.Count
-		EnabledRules = $enabledCount
-		DisabledRules = $disabledCount
-	}
-
 	$transportRules | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
-	Write-LogFile -Message "`nTransport Rules Summary:" -Color "Cyan" -Level Standard
-    Write-LogFile -Message "Total Rules: $($summary.TotalRules)" -Level Standard
-    Write-LogFile -Message "  - Enabled: $($summary.EnabledRules)" -Level Standard
-    Write-LogFile -Message "  - Disabled: $($summary.DisabledRules)" -Level Standard
-    
-    Write-LogFile -Message "`nExported File:" -Level Standard
-    Write-LogFile -Message "  - $script:outputFile" -Level Standard
+	$summary = [ordered]@{
+		"Transport Rules" = [ordered]@{
+			"Total Rules" = $transportRules.Count
+			"Enabled Rules" = $enabledCount
+			"Disabled Rules" = $disabledCount
+		}
+	}
+
+	Write-Summary -Summary $summary -Title "Transport Rules Summary"
 }
 
 function Show-MailboxRules
@@ -448,40 +444,29 @@ function Get-MailboxRules
 		}
 	}
 
-	Write-LogFile -Message "`nMailbox Rules Summary:" -Color "Cyan" -Level Standard
-    Write-LogFile -Message "Users Processed: $($summary.TotalUsers)" -Level Standard
-    Write-LogFile -Message "Users with Rules: $($summary.UsersWithRules)" -Level Standard
-    Write-LogFile -Message "Total Rules Found: $($summary.TotalRules)" -Level Standard
-    Write-LogFile -Message "  - Enabled Rules: $($summary.EnabledRules)" -Level Standard
-	if ($summary.ForwardingRules -ne 0) {
-        Write-LogFile -Message "  - Forwarding Rules: $($summary.ForwardingRules)" -Level Standard
-    }
-    
-    if ($summary.ForwardAsAttachmentRules -ne 0) {
-        Write-LogFile -Message "  - Forward As Attachment Rules: $($summary.ForwardAsAttachmentRules)" -Level Standard
-    }
+	$summaryOutput = [ordered]@{
+		"User Statistics" = [ordered]@{
+			"Users Processed" = $summary.TotalUsers
+			"Users with Rules" = $summary.UsersWithRules
+			"Total Rules Found" = $summary.TotalRules
+			"Enabled Rules" = $summary.EnabledRules
+		}
+	}
 
-    if ($summary.RedirectRules -ne 0) {
-        Write-LogFile -Message "  - Redirect Rules: $($summary.RedirectRules)" -Level Standard
-    }
-    
-    if ($summary.SoftDeleteRules -ne 0) {
-        Write-LogFile -Message "  - Soft Delete Rules: $($summary.SoftDeleteRules)" -Level Standard
-    }
-    
-    if ($summary.DeleteRules -ne 0) {
-        Write-LogFile -Message "  - Delete Rules: $($summary.DeleteRules)" -Level Standard
-    }
-    
-    if ($summary.HasAttachmentRules -ne 0) {
-        Write-LogFile -Message "  - Has Attachment Rules: $($summary.HasAttachmentRules)" -Level Standard
-    }
-    
-    Write-LogFile -Message "  - Stop Processing Rules: $($summary.StopProcessingRules)" -Level Standard
-    
-    if ($summary.HighImportanceRules -ne 0) {
-        Write-LogFile -Message "  - High Importance Rules: $($summary.HighImportanceRules)" -Level Standard
-    }
-    Write-LogFile -Message "`nExported File:" -Level Standard
-    Write-LogFile -Message "  - $script:outputFile" -Level Standard
+	# Only add rule types that have counts > 0
+	$ruleTypes = [ordered]@{}
+	if ($summary.ForwardingRules -gt 0) { $ruleTypes["Forwarding Rules"] = $summary.ForwardingRules }
+	if ($summary.ForwardAsAttachmentRules -gt 0) { $ruleTypes["Forward As Attachment Rules"] = $summary.ForwardAsAttachmentRules }
+	if ($summary.RedirectRules -gt 0) { $ruleTypes["Redirect Rules"] = $summary.RedirectRules }
+	if ($summary.SoftDeleteRules -gt 0) { $ruleTypes["Soft Delete Rules"] = $summary.SoftDeleteRules }
+	if ($summary.DeleteRules -gt 0) { $ruleTypes["Delete Rules"] = $summary.DeleteRules }
+	if ($summary.HasAttachmentRules -gt 0) { $ruleTypes["Has Attachment Rules"] = $summary.HasAttachmentRules }
+	if ($summary.StopProcessingRules -gt 0) { $ruleTypes["Stop Processing Rules"] = $summary.StopProcessingRules }
+	if ($summary.HighImportanceRules -gt 0) { $ruleTypes["High Importance Rules"] = $summary.HighImportanceRules }
+
+	if ($ruleTypes.Count -gt 0) {
+		$summaryOutput["Rule Types"] = $ruleTypes
+	}
+
+	Write-Summary -Summary $summaryOutput -Title "Mailbox Rules Summary"
 }

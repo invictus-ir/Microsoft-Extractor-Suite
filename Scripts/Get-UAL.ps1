@@ -746,13 +746,22 @@ function Get-UAL {
     }
 
 	$stats.ProcessingTime = (Get-Date) - $stats.StartTime
-	Write-LogFile -Message "`n=== Collection Summary ===" -Color "Cyan" -Level Standard
-	Write-LogFile -Message "Start date: $($script:StartDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard
-	Write-LogFile -Message "End date: $($script:EndDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard
-	Write-LogFile -Message "Total Records: $($stats.TotalRecords)" -Level Standard
-	Write-LogFile -Message "Files Created: $($stats.FilesCreated)" -Level Standard
-	Write-LogFile -Message "Interval Adjustments: $($stats.IntervalAdjustments)" -Level Standard
-	Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
-	Write-LogFile -Message "Processing Time: $($stats.ProcessingTime.ToString('hh\:mm\:ss'))" -Level Standard -Color "Green"
-	Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+
+	$summary = [ordered]@{
+		"Date Range" = [ordered]@{
+			"Start Date" = $script:StartDate.ToString('yyyy-MM-dd HH:mm:ss')
+			"End Date" = $script:EndDate.ToString('yyyy-MM-dd HH:mm:ss')
+		}
+		"Collection Statistics" = [ordered]@{
+			"Total Records" = $stats.TotalRecords
+			"Files Created" = $stats.FilesCreated
+			"Interval Adjustments" = $stats.IntervalAdjustments
+		}
+		"Export Details" = [ordered]@{
+			"Output Directory" = $OutputDir
+			"Processing Time" = $stats.ProcessingTime.ToString('hh\:mm\:ss')
+		}
+	}
+
+	Write-Summary -Summary $summary -Title "Unified Audit Log Collection Summary" -SkipExportDetails
 }

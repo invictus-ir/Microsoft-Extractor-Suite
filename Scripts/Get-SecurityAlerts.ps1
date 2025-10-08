@@ -149,6 +149,7 @@ Function Get-SecurityAlerts {
             }
             
             switch ($_.Status) {
+                "newAlert" { $alertSummary.StatusNew++ }
                 "new" { $alertSummary.StatusNew++ }
                 "inProgress" { $alertSummary.StatusInProgress++ }
                 "resolved" { $alertSummary.StatusResolved++ }
@@ -246,23 +247,26 @@ Function Get-SecurityAlerts {
 
         $formattedAlerts | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
-        Write-LogFile -Message "`nSecurity Alert Analysis Results:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "Total Alerts: $($alertSummary.TotalAlerts)" -Level Standard
-        Write-LogFile -Message "`nSeverity Distribution:" -Level Standard
-        Write-LogFile -Message "  - High: $($alertSummary.SeverityHigh)" -Level Standard
-        Write-LogFile -Message "  - Medium: $($alertSummary.SeverityMedium)" -Level Standard
-        Write-LogFile -Message "  - Low: $($alertSummary.SeverityLow)" -Level Standard
-        Write-LogFile -Message "  - Informational: $($alertSummary.SeverityInformational)" -Level Standard
-        
-        Write-LogFile -Message "`nStatus Distribution:" -Level Standard
-        Write-LogFile -Message "  - New: $($alertSummary.StatusNew)" -Level Standard
-        Write-LogFile -Message "  - In Progress: $($alertSummary.StatusInProgress)" -Level Standard
-        Write-LogFile -Message "  - Resolved: $($alertSummary.StatusResolved)" -Level Standard
-        Write-LogFile -Message "  - Dismissed: $($alertSummary.StatusDismissed)" -Level Standard
-        Write-LogFile -Message "  - Unknown: $($alertSummary.StatusUnknown)" -Level Standard
+        $summary = [ordered]@{
+            "Alert Summary" = [ordered]@{
+                "Total Alerts" = $alertSummary.TotalAlerts
+            }
+            "Severity Distribution" = [ordered]@{
+                "High" = $alertSummary.SeverityHigh
+                "Medium" = $alertSummary.SeverityMedium
+                "Low" = $alertSummary.SeverityLow
+                "Informational" = $alertSummary.SeverityInformational
+            }
+            "Status Distribution" = [ordered]@{
+                "New" = $alertSummary.StatusNew
+                "In Progress" = $alertSummary.StatusInProgress
+                "Resolved" = $alertSummary.StatusResolved
+                "Dismissed" = $alertSummary.StatusDismissed
+                "Unknown" = $alertSummary.StatusUnknown
+            }
+        }
 
-        Write-LogFile -Message "`nExported File:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "  - File: $script:outputFile" -Level Standard
+        Write-Summary -Summary $summary -Title "Security Alerts Analysis"
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal

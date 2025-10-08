@@ -391,6 +391,7 @@ function Get-OAuthPermissionsGraph {
 	# Export results
 	Write-LogFile -Message "[INFO] Exporting results to CSV..." -Level Standard
 	$report | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+	$oauthPermissionsFile = $script:outputFile
 
 	Write-LogFile -Message "[INFO] Exporting service principals to CSV..." -Level Standard
 	if ($OutputDir) {
@@ -399,6 +400,7 @@ function Get-OAuthPermissionsGraph {
        Init-OutputDir -Component "EntraID" -SubComponent "ServicePrincipals" -FilePostfix "ServicePrincipals"
     }
 	$allServicePrincipals | Select-Object AppId, AppDisplayName, AppDescription, AccountEnabled, AppOwnerOrganizationId | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+	$servicePrincipalsFile = $script:outputFile
 
 	Write-LogFile -Message "[INFO] Exporting App Registrations to CSV..." -Level Standard
 	if ($OutputDir) {
@@ -406,8 +408,27 @@ function Get-OAuthPermissionsGraph {
     } else {
        Init-OutputDir -Component "EntraID" -SubComponent "AppRegistrations" -FilePostfix "AppRegistrations"
     }
+
  	Get-MgApplication -All | Select-Object Id, DisplayName, AppId, CreatedDateTime | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+	$appRegistrationsFile = $script:outputFile
 
 	$summary.TotalPermissions = $summary.DelegatedCount + $summary.ApplicationCount
-	Write-Summary -Summary $summary
+	$summaryOutput = [ordered]@{
+		"Processing Summary" = [ordered]@{
+			"Service Principals Processed" = $summary.ServicePrincipalsProcessed
+			"Delegated Grants Processed" = $summary.DelegatedGrantsProcessed
+		}
+		"Permissions Found" = [ordered]@{
+			"Total Permissions" = $summary.TotalPermissions
+			"Delegated Permissions" = $summary.DelegatedCount
+			"Application Permissions" = $summary.ApplicationCount
+		}
+		"Output Files" = [ordered]@{
+			"OAuth Permissions" = $oauthPermissionsFile
+			"Service Principals" = $servicePrincipalsFile
+			"App Registrations" = $appRegistrationsFile
+		}
+	}
+
+	Write-Summary -Summary $summaryOutput -Title "OAuth Permissions Summary" -SkipExportDetails
 }

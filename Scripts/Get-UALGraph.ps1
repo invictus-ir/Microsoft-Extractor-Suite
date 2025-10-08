@@ -479,18 +479,27 @@ Function Get-UALGraph {
         $summary.TotalRecords = $totalEvents
         $summary.ProcessingTime = (Get-Date) - $summary.StartTime
 
-        Write-LogFile -Message "`n=== Audit Log Retrieval Summary ===" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "Time Period: $dateRange" -Level Standard
-        Write-LogFile -Message "Search Name: $SearchName" -Level Standard
-        Write-LogFile -Message "Search ID: $($summary.SearchId)" -Level Standard
-        Write-LogFile -Message "Total Records Retrieved: $($summary.TotalRecords)" -Level Standard
-        if ($summary.TotalRecords -eq 0) {
-            Write-LogFile -Message "No results matched your search criteria." -Color "Yellow" -Level Standard
+        $summaryOutput = [ordered]@{
+            "Search Information" = [ordered]@{
+                "Search Name" = $SearchName
+                "Search ID" = $summary.SearchId
+                "Time Period" = $dateRange
+            }
+            "Collection Statistics" = [ordered]@{
+                "Total Records Retrieved" = $summary.TotalRecords
+                "Files Created" = $summary.ExportedFiles
+            }
+            "Export Details" = [ordered]@{
+                "Output Directory" = $outputDirPath
+                "Processing Time" = $summary.ProcessingTime.ToString('hh\:mm\:ss')
+            }
         }
-        Write-LogFile -Message "Files Created: $($summary.ExportedFiles)" -Level Minimal
-        Write-LogFile -Message "Output Directory: $outputDirPath" -Level Standard
-        Write-LogFile -Message "Processing Time: $($summary.ProcessingTime.ToString('hh\:mm\:ss'))"  -Color "Green" -Level Standard
-        Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard      
+
+        if ($summary.TotalRecords -eq 0) {
+            Write-LogFile -Message "[INFO] No results matched your search criteria." -Color "Yellow" -Level Standard
+        }
+
+        Write-Summary -Summary $summaryOutput -Title "Audit Log Retrieval Summary" -SkipExportDetails
     }
     catch {
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal

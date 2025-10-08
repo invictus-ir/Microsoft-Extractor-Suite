@@ -107,7 +107,7 @@ function Get-Devices {
             foreach ($device in $devices) {
                 try {
                     $owners = Get-MgDeviceRegisteredOwner -DeviceId $device.Id -ErrorAction SilentlyContinue
-                    $users = Get-MgDeviceRegisteresdUser -DeviceId $device.Id -ErrorAction SilentlyContinue
+                    $users = Get-MgDeviceRegisteredUser -DeviceId $device.Id -ErrorAction SilentlyContinue
                 } catch {
                     Write-LogFile -Message "[WARNING] Failed to retrieve owners/users for device $($device.DisplayName) (ID: $($device.Id)). Error: $($_.Exception.Message)" -Level Standard -Color "Yellow"
                     if ($isDebugEnabled) {
@@ -172,10 +172,10 @@ function Get-Devices {
             if ($device.IsManaged) { $summary["Device Status"]["Managed Devices"]++ }
 
             if ($lastSignInDate -gt (Get-Date).AddDays(-30)) {
-                $summary["Device Status"]["Active Devices (30 Days)"]++
+                $summary["Device Status"]["Active (Last 30 Days)"]++
             }
             if ($lastSignInDate -lt (Get-Date).AddDays(-90)) {
-                $summary["Device Status"]["Inactive Devices (90 Days)"]++
+                $summary["Device Status"]["Inactive (>90 Days)"]++
             }
 
             switch -Wildcard ($device.OperatingSystem) {
@@ -185,6 +185,9 @@ function Get-Devices {
                 "Android*" { $summary["Operating Systems"]["Android"]++ }
                 default { $summary["Operating Systems"]["Other"]++ }
             }
+
+            $ownersList = ($owners.AdditionalProperties.userPrincipalName -join "; ")
+            $usersList = ($users.AdditionalProperties.userPrincipalName -join "; ")
 
             $deviceEntry = [PSCustomObject]@{
                 CreatedDateTime = if ($createdDateTime -ne "N/A") { $createdDateTime.ToString("yyyy-MM-dd HH:mm:ss") } else { "" }
@@ -207,7 +210,7 @@ function Get-Devices {
                     (Get-Date $device.ApproximateLastSignInDateTime).ToString("yyyy-MM-dd HH:mm:ss") 
                 } else { "" }
                 TrustType = $device.TrustType
-                RegisteredOwners = $ownersList
+                RegisteredOwners = $ownersList 
                 RegisteredUsers = $usersList
                 MDMAppId = if ($device.MDMAppId) { $device.MDMAppId } else { "" }
                 OnPremisesSyncEnabled = $device.OnPremisesSyncEnabled

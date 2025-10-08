@@ -186,14 +186,16 @@ Function Get-AllRoleActivity {
             Write-LogFile -Message "  - $emptyRole" -Level Standard
         }
         
-        Write-LogFile -Message "`nSummary:" -Level Standard -Color "Cyan"
-        Write-LogFile -Message "  - Total roles processed: $processedRoles" -Level Standard
-        Write-LogFile -Message "  - Roles with members: $rolesWithMembers" -Level Standard
-        Write-LogFile -Message "  - Roles without members: $rolesWithoutMembers" -Level Standard
-        Write-LogFile -Message "  - Total role user assignments: $totalMembers" -Level Standard
-        
-        Write-LogFile -Message "`nExported file:" -Level Standard -Color "Cyan"
-        Write-LogFile -Message "  - File: $script:outputFile" -Level Standard
+        $summary = [ordered]@{
+            "Role Statistics" = [ordered]@{
+                "Total Roles Processed" = $processedRoles
+                "Roles with Members" = $rolesWithMembers
+                "Roles without Members" = $rolesWithoutMembers
+                "Total User Assignments" = $totalMembers
+            }
+        }
+
+        Write-Summary -Summary $summary -Title "Directory Role Membership Summary"
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
@@ -485,23 +487,29 @@ function Get-PIMAssignments {
         $onPremSyncedCount = ($allAssignments | Where-Object { $_.OnPremisesSynced -eq $true }).Count
         $cloudOnlyCount = ($allAssignments | Where-Object { $_.OnPremisesSynced -eq $false }).Count
         
-        Write-LogFile -Message "`nSummary:" -Level Standard -Color "Cyan"
-        Write-LogFile -Message " - Total role assignments: $totalAssignments" -Level Standard
-        Write-LogFile -Message " - PIM Active assignments: $pimActiveCount" -Level Standard
-        Write-LogFile -Message " - PIM Eligible assignments: $pimEligibleCount" -Level Standard
-        Write-LogFile -Message " - Direct assignments: $directCount" -Level Standard
-        Write-LogFile -Message " - Group-inherited assignments: $groupCount" -Level Standard
-        Write-LogFile -Message " - On-premises synced users: $onPremSyncedCount" -Level Standard
-        Write-LogFile -Message " - Cloud-only users: $cloudOnlyCount" -Level Standard
+        $summary = [ordered]@{
+            "Assignment Statistics" = [ordered]@{
+                "Total Role Assignments" = $totalAssignments
+                "PIM Active Assignments" = $pimActiveCount
+                "PIM Eligible Assignments" = $pimEligibleCount
+            }
+            "Assignment Types" = [ordered]@{
+                "Direct Assignments" = $directCount
+                "Group-Inherited Assignments" = $groupCount
+            }
+            "User Types" = [ordered]@{
+                "On-Premises Synced Users" = $onPremSyncedCount
+                "Cloud-Only Users" = $cloudOnlyCount
+            }
+        }
 
         # Only show this if there's a discrepancy between found and processed
         if (($activeAssignmentsCount + $eligibleAssignmentsCount) -ne $totalAssignments) {
             Write-LogFile -Message "`nNote: $($activeAssignmentsCount + $eligibleAssignmentsCount) total assignments were found, but only $totalAssignments were processed." -Level Standard -Color "Yellow"
             Write-LogFile -Message " - This is usually due to service principals or empty groups that were skipped during processing." -Level Standard
         }
-        
-        Write-LogFile -Message "`nExported file:" -Level Standard -Color "Cyan"
-        Write-LogFile -Message " - File: $script:outputFile" -Level Standard
+
+        Write-Summary -Summary $summary -Title "PIM Assignments Summary"
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal

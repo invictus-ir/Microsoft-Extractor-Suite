@@ -331,7 +331,8 @@ function Write-Summary {
     param(
         [Parameter(Mandatory=$true)]
         [object]$Summary,
-        [string]$Title = "Summary"
+        [string]$Title = "Summary",
+        [switch]$SkipExportDetails
     )
 
     Write-LogFile -Message "`n=== $Title ===" -Color "Cyan" -Level Standard
@@ -347,13 +348,17 @@ function Write-Summary {
         }
     }
 
-    $ProcessingTime = (Get-Date) - $script:ScriptStartedAt
-    Write-LogFile -Message "`nExport Details:" -Level Standard
-    Write-LogFile -Message "  Output File: $script:outputFile" -Level Standard
-    Write-LogFile -Message "  Processing Time: $($ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
-    Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
-
-
+    # Only show Export Details if not skipped and outputFile exists
+    if (-not $SkipExportDetails -and $script:outputFile) {
+        $ProcessingTime = (Get-Date) - $script:ScriptStartedAt
+        Write-LogFile -Message "`nExport Details:" -Level Standard
+        Write-LogFile -Message "  Output File: $script:outputFile" -Level Standard
+        Write-LogFile -Message "  Processing Time: $($ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
+    } elseif (-not $SkipExportDetails) {
+        # If no outputFile but we want to show processing time
+        $ProcessingTime = (Get-Date) - $script:ScriptStartedAt
+        Write-LogFile -Message "`nProcessing Time: $($ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
+    }
 }
 
 function Merge-OutputFiles {
