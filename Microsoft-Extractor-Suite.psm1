@@ -289,7 +289,6 @@ function Init-OutputDir {
         $CustomOutputDir = $script:CollectionOutputDir
     }
 
-
 	$date = [datetime]::Now.ToString('yyyyMMdd')
 
     if ($CustomOutputDir) {

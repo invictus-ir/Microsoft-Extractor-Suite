@@ -48,11 +48,7 @@ function Get-UALStatistics
 	)
 
 	Init-Logging
-	if ($OutputDir) {
-        Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix "Amount_Of_Audit_Logs" -CustomOutputDir $OutputDir
-    } else {
-        Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix "Amount_Of_Audit_Logs"
-    }
+    Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix "Amount_Of_Audit_Logs" -CustomOutputDir $OutputDir
 
     $results = @()
     $summary = @{

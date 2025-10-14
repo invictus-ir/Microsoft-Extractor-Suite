@@ -49,12 +49,8 @@ function Get-Users {
     )
 
     Init-Logging
-    if ($OutputDir) {
-        Init-OutputDir -Component "Users" -FilePostfix "Users" -CustomOutputDir $OutputDir
-    } else {
-        Init-OutputDir -Component "Users" -FilePostfix "Users"
-    }
-    
+    Init-OutputDir -Component "Users" -FilePostfix "Users" -CustomOutputDir $OutputDir
+
     $requiredScopes = @("User.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
     Write-LogFile -Message "=== Starting Users Collection ===" -Color "Cyan" -Level Standard
@@ -216,11 +212,7 @@ Function Get-AdminUsers {
     )
 
     Init-Logging
-    if ($OutputDir) {
-        Init-OutputDir -Component "Admins" -FilePostfix "AdminUsers" -CustomOutputDir $OutputDir
-    } else {
-        Init-OutputDir -Component "Admins" -FilePostfix "AdminUsers"
-    }
+    Init-OutputDir -Component "Admins" -FilePostfix "AdminUsers" -CustomOutputDir $OutputDir
 
     Write-LogFile -Message "=== Starting Admin Users Collection ===" -Color "Cyan" -Level Standard
 

@@ -144,11 +144,7 @@ function Get-UAL {
 		)
 
 	Init-Logging
-	if ($OutputDir) {
-        Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix "UAL" -CustomOutputDir $OutputDir
-    } else {
-        Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix "UAL"
-    }
+    Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix "UAL" -CustomOutputDir $OutputDir
 	$OutputDir = Split-Path $script:outputFile -Parent
 	Write-LogFile -Message "=== Starting Unified Audit Log Collection ===" -Color "Cyan" -Level Standard
 	

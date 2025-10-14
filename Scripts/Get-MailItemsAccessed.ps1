@@ -72,11 +72,7 @@ Function Get-Sessions {
         $filePostfix = "Sessions-$IP"
     }
     
-    if ($OutputDir) {
-       Init-OutputDir -Component "MailItemsAccessed" -FilePostfix $filePostfix -CustomOutputDir $OutputDir
-    } else {
-       Init-OutputDir -Component "MailItemsAccessed" -FilePostfix $filePostfix
-    }
+    Init-OutputDir -Component "MailItemsAccessed" -FilePostfix $filePostfix -CustomOutputDir $OutputDir
 
     $OutputDir = Split-Path $script:outputFile -Parent
 

@@ -48,11 +48,7 @@ function Get-MailboxPermissions {
         )
 
     Init-Logging
-    if ($OutputDir) {
-       Init-OutputDir -Component "Mailbox Permissions" -FilePostfix "MailboxPermissions" -CustomOutputDir $OutputDir
-    } else {
-       Init-OutputDir -Component "Mailbox Permissions" -FilePostfix "MailboxPermissions"
-    }
+    Init-OutputDir -Component "Mailbox Permissions" -FilePostfix "MailboxPermissions" -CustomOutputDir $OutputDir
 
     $summary = @{
         TotalMailboxes = 0

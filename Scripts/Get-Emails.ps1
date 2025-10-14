@@ -61,11 +61,7 @@ Function Get-Email {
     ) 
 
     Init-Logging
-    if ($OutputDir) {
-       Init-OutputDir -Component "Email Export" -FilePostfix "EmailExport" -CustomOutputDir $OutputDir
-    } else {
-       Init-OutputDir -Component "Email Export" -FilePostfix "EmailExport"
-    }
+    Init-OutputDir -Component "Email Export" -FilePostfix "EmailExport" -CustomOutputDir $OutputDir
     $outputDir = Split-Path $script:outputFile -Parent
 
     $summary = @{
@@ -394,11 +390,7 @@ Function Get-Attachment {
     )
 
    Init-Logging
-   if ($OutputDir) {
-       Init-OutputDir -Component "Email Export" -SubComponent "Attachments" -FilePostfix "Attachments" -CustomOutputDir $OutputDir
-    } else {
-       Init-OutputDir -Component "Email Export" -SubComponent "Attachments" -FilePostfix "Attachments"
-    }
+   Init-OutputDir -Component "Email Export" -SubComponent "Attachments" -FilePostfix "Attachments" -CustomOutputDir $OutputDir
    $outputDir = Split-Path $script:outputFile -Parent
 
     try {

@@ -63,11 +63,7 @@ function Get-ActivityLogs {
 	)
 
 	Init-Logging
-    if ($OutputDir) {
-        Init-OutputDir -Component "Activity Logs" -FilePostfix "ActivityLogs" -CustomOutputDir $OutputDir
-    } else {
-        Init-OutputDir -Component "Activity Logs" -FilePostfix "ActivityLogs"
-    }
+    Init-OutputDir -Component "Activity Logs" -FilePostfix "ActivityLogs" -CustomOutputDir $OutputDir
 
     $summary = @{
         TotalRecords = 0

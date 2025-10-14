@@ -58,11 +58,7 @@ function Get-MailboxAuditStatus {
     }
 
     Init-Logging
-    if ($OutputDir) {
-        Init-OutputDir -Component "Audit Status" -FilePostfix "MailboxAuditStatus" -CustomOutputDir $OutputDir
-    } else {
-        Init-OutputDir -Component "Audit Status" -FilePostfix "MailboxAuditStatus"
-    }
+    Init-OutputDir -Component "Audit Status" -FilePostfix "MailboxAuditStatus" -CustomOutputDir $OutputDir
 
     Write-LogFile -Message "=== Starting Mailbox Audit Status Collection ===" -Color "Cyan" -Level Standard
 

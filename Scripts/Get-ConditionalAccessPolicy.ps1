@@ -48,11 +48,7 @@ Function Get-ConditionalAccessPolicies {
     )
 
     Init-Logging
-    if ($OutputDir) {
-       Init-OutputDir -Component "ConditionalAccessPolicies" -FilePostfix "ConditionalAccessPolicies" -CustomOutputDir $OutputDir
-    } else {
-       Init-OutputDir -Component "ConditionalAccessPolicies" -FilePostfix "ConditionalAccessPolicies"
-    }
+    Init-OutputDir -Component "ConditionalAccessPolicies" -FilePostfix "ConditionalAccessPolicies" -CustomOutputDir $OutputDir
 
     $results=@();
     $requiredScopes = @("Policy.Read.All")

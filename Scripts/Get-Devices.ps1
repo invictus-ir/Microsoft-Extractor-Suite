@@ -62,11 +62,7 @@ function Get-Devices {
     )
 
     Init-Logging
-    if ($OutputDir) {
-        Init-OutputDir -Component "Device Information" -FilePostfix "Devices" -CustomOutputDir $OutputDir
-    } else {
-        Init-OutputDir -Component "Device Information" -FilePostfix "Devices"
-    }
+    Init-OutputDir -Component "Device Information" -FilePostfix "Devices" -CustomOutputDir $OutputDir
     Write-LogFile -Message "=== Starting Device Collection ===" -Color "Cyan" -Level Standard
     
 	$requiredScopes = @("Application.Read.All")

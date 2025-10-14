@@ -37,11 +37,7 @@ function Get-OAuthPermissionsGraph {
     Init-Logging
 	Write-LogFile -Message "=== Starting OAuth Permissions Collection ===" -Color "Cyan" -Level Standard
     
-	if ($OutputDir) {
-       Init-OutputDir -Component "EntraID" -SubComponent "OAuthPermissions" -FilePostfix "OAuthPermissions" -CustomOutputDir $OutputDir
-    } else {
-       Init-OutputDir -Component "EntraID" -SubComponent "OAuthPermissions" -FilePostfix "OAuthPermissions"
-    }
+    Init-OutputDir -Component "EntraID" -SubComponent "OAuthPermissions" -FilePostfix "OAuthPermissions" -CustomOutputDir $OutputDir
 
 	$requiredScopes = @("Application.Read.All")
     Check-GraphContext -RequiredScopes $requiredScopes
@@ -394,11 +390,7 @@ function Get-OAuthPermissionsGraph {
 	$oauthPermissionsFile = $script:outputFile
 
 	Write-LogFile -Message "[INFO] Exporting service principals to CSV..." -Level Standard
-	if ($OutputDir) {
-       Init-OutputDir -Component "EntraID" -SubComponent "ServicePrincipals" -FilePostfix "ServicePrincipals" -CustomOutputDir $OutputDir
-    } else {
-       Init-OutputDir -Component "EntraID" -SubComponent "ServicePrincipals" -FilePostfix "ServicePrincipals"
-    }
+    Init-OutputDir -Component "EntraID" -SubComponent "ServicePrincipals" -FilePostfix "ServicePrincipals" -CustomOutputDir $OutputDir
 	$allServicePrincipals | Select-Object AppId, AppDisplayName, AppDescription, AccountEnabled, AppOwnerOrganizationId | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 	$servicePrincipalsFile = $script:outputFile
 
