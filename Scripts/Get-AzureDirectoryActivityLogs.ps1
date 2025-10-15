@@ -52,55 +52,24 @@ function Get-DirectoryActivityLogs {
 		[string]$StartDate,
 		[string]$endDate,
 		[string]$output = "CSV",
-		[string]$outputDir = "Output\DirectoryActivityLogs",
+		[string]$OutputDir,
 		[string]$encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'	
 	)
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
+    Init-Logging
+    Init-OutputDir -Component "Directory Activity Logs" -FilePostfix "DirectoryActivityLogs" -CustomOutputDir $OutputDir
     Write-LogFile -Message "=== Starting Directory Activity Log Analysis ===" -Color "Cyan" -Level Standard
 
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   StartDate: $StartDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   EndDate: $endDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Output: $output" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: $outputDir" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: $encoding" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
-        
-        $azModule = Get-Module -Name Az* -ErrorAction SilentlyContinue
-        if ($azModule) {
-            Write-LogFile -Message "[DEBUG] Azure Modules loaded:" -Level Debug
-            foreach ($module in $azModule) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Azure modules loaded" -Level Debug
-        }
-    }
-	
 	StartDate -Quiet
     EndDate -Quiet
 
-    Write-LogFile -Message "Start Date: $($summary.DateRange)$($script:StartDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard
+    Write-LogFile -Message "Start Date: $($script:StartDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard
     Write-LogFile -Message "End Date: $($script:EndDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard
-    Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
     Write-LogFile -Message "----------------------------------------`n" -Level Standard
 
-	if (!(test-path $outputDir)) {
-        New-Item -ItemType Directory -Force -Path $outputDir > $null
-	}
-	else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal -Color "Red"
-        }
-    }
-
+    $OutputDir = Split-Path $script:outputFile -Parent
     $originalWarningPreference = $WarningPreference
 	$WarningPreference = 'SilentlyContinue'
 

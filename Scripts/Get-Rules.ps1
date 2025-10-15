@@ -58,50 +58,16 @@ function Get-TransportRules
 
 	[CmdletBinding()]
 	param (
-		[string]$OutputDir = "Output\Rules"	,
+		[string]$OutputDir,
 		[string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 
-	Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
+	Init-Logging
+	Init-OutputDir -Component "Rules" -FilePostfix "TransportRules" -CustomOutputDir $OutputDir
     Write-LogFile -Message "=== Starting Transport Rules Collection ===" -Color "Cyan" -Level Standard
 
-	if ($isDebugEnabled) {
-		Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-		Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-		Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-		
-		$exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-		if ($exchangeModule) {
-			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
-		} else {
-			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
-		}
-	
-		$connectionInfo = Get-ConnectionInformation -ErrorAction SilentlyContinue
-		if ($connectionInfo) {
-			Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
-			Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug
-		}
-	}
-
-	if (!(test-path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Path $OutputDir > $null
-	}
-	else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }
-    
-	$filename = "$($date)-TransportRules.csv"
-	$outputDirectory = Join-Path $OutputDir $filename		
 	if ($isDebugEnabled) {
 		Write-LogFile -Message "[DEBUG] Retrieving transport rules from Exchange Online..." -Level Debug
 		$performance = Measure-Command {
@@ -144,21 +110,17 @@ function Get-TransportRules
 		}
 	}
 
-	$summary = @{
-		TotalRules = $transportRules.Count
-		EnabledRules = $enabledCount
-		DisabledRules = $disabledCount
+	$transportRules | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+
+	$summary = [ordered]@{
+		"Transport Rules" = [ordered]@{
+			"Total Rules" = $transportRules.Count
+			"Enabled Rules" = $enabledCount
+			"Disabled Rules" = $disabledCount
+		}
 	}
 
-	$transportRules | Export-Csv -Path $outputDirectory -NoTypeInformation -Encoding $Encoding
-
-	Write-LogFile -Message "`nTransport Rules Summary:" -Color "Cyan" -Level Standard
-    Write-LogFile -Message "Total Rules: $($summary.TotalRules)" -Level Standard
-    Write-LogFile -Message "  - Enabled: $($summary.EnabledRules)" -Level Standard
-    Write-LogFile -Message "  - Disabled: $($summary.DisabledRules)" -Level Standard
-    
-    Write-LogFile -Message "`nExported File:" -Level Standard
-    Write-LogFile -Message "  - $outputDirectory" -Level Standard
+	Write-Summary -Summary $summary -Title "Transport Rules Summary"
 }
 
 function Show-MailboxRules
@@ -304,51 +266,15 @@ function Get-MailboxRules
 	[CmdletBinding()]
 	param(
 		[string[]]$UserIds,
-		[string]$OutputDir = "Output\Rules",
+		[string]$OutputDir,
 		[string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 
-	Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
+	Init-Logging
+	Init-OutputDir -Component "Rules" -FilePostfix "MailboxRules" -CustomOutputDir $OutputDir
     Write-LogFile -Message "=== Starting Mailbox Rules Collection ===" -Color "Cyan" -Level Standard
-
-	if ($isDebugEnabled) {
-		Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-		Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-		Write-LogFile -Message "[DEBUG]   UserIds: '$UserIds'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-		
-		$exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-		if ($exchangeModule) {
-			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
-		} else {
-			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
-		}
-	
-		$connectionInfo = Get-ConnectionInformation -ErrorAction SilentlyContinue
-		if ($connectionInfo) {
-			Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
-			Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug
-		}
-	}
-	
-	if (!(test-path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Path $OutputDir > $null
-	}
-	else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }
-    
-	$date = [datetime]::Now.ToString('yyyyMMddHHmmss')
-    $outputPath = Join-Path $OutputDir "$($date)-MailboxRules.csv"
 
 	$summary = @{
 		TotalUsers = 0
@@ -430,7 +356,7 @@ function Get-MailboxRules
                         Description = $rule.Description
                         InError = $rule.InError
                         ErrorType = $rule.ErrorType
-					} | Export-Csv -Path $outputPath -Append -NoTypeInformation -Encoding $Encoding
+					} | Export-Csv -Path $script:outputFile -Append -NoTypeInformation -Encoding $Encoding
 				}
 			}
 		}
@@ -504,46 +430,35 @@ function Get-MailboxRules
                         Description = $rule.Description
                         InError = $rule.InError
                         ErrorType = $rule.ErrorType
-					} | Export-Csv -Path $outputPath -Append -NoTypeInformation -Encoding $Encoding
+					} | Export-Csv -Path $script:outputFile -Append -NoTypeInformation -Encoding $Encoding
 				}
 			}
 		}
 	}
 
-	Write-LogFile -Message "`nMailbox Rules Summary:" -Color "Cyan" -Level Standard
-    Write-LogFile -Message "Users Processed: $($summary.TotalUsers)" -Level Standard
-    Write-LogFile -Message "Users with Rules: $($summary.UsersWithRules)" -Level Standard
-    Write-LogFile -Message "Total Rules Found: $($summary.TotalRules)" -Level Standard
-    Write-LogFile -Message "  - Enabled Rules: $($summary.EnabledRules)" -Level Standard
-	if ($summary.ForwardingRules -ne 0) {
-        Write-LogFile -Message "  - Forwarding Rules: $($summary.ForwardingRules)" -Level Standard
-    }
-    
-    if ($summary.ForwardAsAttachmentRules -ne 0) {
-        Write-LogFile -Message "  - Forward As Attachment Rules: $($summary.ForwardAsAttachmentRules)" -Level Standard
-    }
+	$summaryOutput = [ordered]@{
+		"User Statistics" = [ordered]@{
+			"Users Processed" = $summary.TotalUsers
+			"Users with Rules" = $summary.UsersWithRules
+			"Total Rules Found" = $summary.TotalRules
+			"Enabled Rules" = $summary.EnabledRules
+		}
+	}
 
-    if ($summary.RedirectRules -ne 0) {
-        Write-LogFile -Message "  - Redirect Rules: $($summary.RedirectRules)" -Level Standard
-    }
-    
-    if ($summary.SoftDeleteRules -ne 0) {
-        Write-LogFile -Message "  - Soft Delete Rules: $($summary.SoftDeleteRules)" -Level Standard
-    }
-    
-    if ($summary.DeleteRules -ne 0) {
-        Write-LogFile -Message "  - Delete Rules: $($summary.DeleteRules)" -Level Standard
-    }
-    
-    if ($summary.HasAttachmentRules -ne 0) {
-        Write-LogFile -Message "  - Has Attachment Rules: $($summary.HasAttachmentRules)" -Level Standard
-    }
-    
-    Write-LogFile -Message "  - Stop Processing Rules: $($summary.StopProcessingRules)" -Level Standard
-    
-    if ($summary.HighImportanceRules -ne 0) {
-        Write-LogFile -Message "  - High Importance Rules: $($summary.HighImportanceRules)" -Level Standard
-    }
-    Write-LogFile -Message "`nExported File:" -Level Standard
-    Write-LogFile -Message "  - $outputPath" -Level Standard
+	# Only add rule types that have counts > 0
+	$ruleTypes = [ordered]@{}
+	if ($summary.ForwardingRules -gt 0) { $ruleTypes["Forwarding Rules"] = $summary.ForwardingRules }
+	if ($summary.ForwardAsAttachmentRules -gt 0) { $ruleTypes["Forward As Attachment Rules"] = $summary.ForwardAsAttachmentRules }
+	if ($summary.RedirectRules -gt 0) { $ruleTypes["Redirect Rules"] = $summary.RedirectRules }
+	if ($summary.SoftDeleteRules -gt 0) { $ruleTypes["Soft Delete Rules"] = $summary.SoftDeleteRules }
+	if ($summary.DeleteRules -gt 0) { $ruleTypes["Delete Rules"] = $summary.DeleteRules }
+	if ($summary.HasAttachmentRules -gt 0) { $ruleTypes["Has Attachment Rules"] = $summary.HasAttachmentRules }
+	if ($summary.StopProcessingRules -gt 0) { $ruleTypes["Stop Processing Rules"] = $summary.StopProcessingRules }
+	if ($summary.HighImportanceRules -gt 0) { $ruleTypes["High Importance Rules"] = $summary.HighImportanceRules }
+
+	if ($ruleTypes.Count -gt 0) {
+		$summaryOutput["Rule Types"] = $ruleTypes
+	}
+
+	Write-Summary -Summary $summaryOutput -Title "Mailbox Rules Summary"
 }

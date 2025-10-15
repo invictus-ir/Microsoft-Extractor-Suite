@@ -37,62 +37,19 @@ Function Get-Groups {
 
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\Groups",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
-        
-        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModule) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModule) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
+    Init-Logging
+    Init-OutputDir -Component "Groups" -FilePostfix "Groups" -CustomOutputDir $OutputDir
 
     $requiredScopes = @("Group.Read.All", "AuditLog.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $requiredScopes
 
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication completed" -Level Debug
-        try {
-            $context = Get-MgContext
-            if ($context) {
-                Write-LogFile -Message "[DEBUG] Graph context information:" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Account: $($context.Account)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Environment: $($context.Environment)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   TenantId: $($context.TenantId)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Scopes: $($context.Scopes -join ', ')" -Level Debug
-            }
-        } catch {
-            Write-LogFile -Message "[DEBUG] Could not retrieve Graph context details" -Level Debug
-        }
-    }
-
     Write-LogFile -Message "=== Starting Groups Collection ===" -Color "Cyan" -Level Standard
-
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    } 
-    else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }
 
     try {
         Write-LogFile -Message "[INFO] Fetching all groups..." -Level Standard
@@ -147,19 +104,16 @@ Function Get-Groups {
             }
         }
 
-        $date = Get-Date -Format "yyyyMMddHHmm"
-        $filePath = Join-Path $OutputDir "$($date)-Groups.csv"
-        $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
-
-        Write-LogFile -Message "`nGroup Analysis Results:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "Total Groups: $($results.Count)" -Level Standard
-        Write-LogFile -Message "  - Security Enabled: $(($results | Where-Object { $_.SecurityEnabled -eq $true }).Count)" -Level Standard
-        Write-LogFile -Message "  - Mail Enabled: $(($results | Where-Object { $_.MailEnabled -eq $true }).Count)" -Level Standard
-        Write-LogFile -Message "  - On-Premises Synced: $(($results | Where-Object { $_.OnPremisesSyncEnabled -eq $true }).Count)" -Level Standard
-
-        Write-LogFile -Message "`nExported File:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "  - File: $filePath" -Level Standard
-
+        $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+        $summaryData = [ordered]@{
+            "Group Summary" = [ordered]@{
+                "Total Groups" = $results.Count
+                "Security Enabled" = ($results | Where-Object { $_.SecurityEnabled -eq $true }).Count
+                "Mail Enabled" = ($results | Where-Object { $_.MailEnabled -eq $true }).Count
+                "On-Premises Synced" = ($results | Where-Object { $_.OnPremisesSyncEnabled -eq $true }).Count
+            }
+        }
+        Write-Summary -Summary $summaryData -Title "Group Analysis Summary"
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
@@ -207,57 +161,19 @@ Function Get-GroupMembers {
 
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\Groups",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
-        
-        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModule) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModule) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
+    Init-Logging
+    Init-OutputDir -Component "Groups" -FilePostfix "GroupMembers" -CustomOutputDir $OutputDir
 
     $requiredScopes = @("Group.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication completed" -Level Debug
-        try {
-            $context = Get-MgContext
-            if ($context) {
-                Write-LogFile -Message "[DEBUG] Graph context information:" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Account: $($context.Account)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Environment: $($context.Environment)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   TenantId: $($context.TenantId)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Scopes: $($context.Scopes -join ', ')" -Level Debug
-            }
-        } catch {
-            Write-LogFile -Message "[DEBUG] Could not retrieve Graph context details" -Level Debug
-        }
-    }
-
     Write-LogFile -Message "=== Starting Group Members Collection ===" -Color "Cyan" -Level Standard
-
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
-    }
 
     try {
         Write-LogFile -Message "[INFO] Fetching all groups..." -Level Standard
@@ -307,12 +223,16 @@ Function Get-GroupMembers {
                 Write-LogFile -Message "[ERROR] Failed to retrieve members for group: $($group.DisplayName) Error: $($_.Exception.Message)" -Color "Red" -Level Minimal
             }
         }
-        $date = Get-Date -Format "yyyyMMddHHmm"
-        $filePath = Join-Path $OutputDir "$($date)-GroupMembers.csv"
-        $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
 
-        Write-LogFile -Message "`nExported File:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "  - File: $filePath" -Level Standard
+        $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+        $summaryData = [ordered]@{
+            "Collection Results" = [ordered]@{
+                "Total Groups Processed" = $allGroups.Count
+                "Total Members Found" = $results.Count
+            }
+        }
+
+        Write-Summary -Summary $summaryData -Title "Group Members Summary"
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
@@ -359,63 +279,19 @@ Function Get-DynamicGroups {
 
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\Groups",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
-        
-        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModule) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModule) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
+    Init-Logging
+    Init-OutputDir -Component "Groups" -FilePostfix "DynamicGroups" -CustomOutputDir $OutputDir
 
     $requiredScopes = @("Group.Read.All", "Directory.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication completed" -Level Debug
-        try {
-            $context = Get-MgContext
-            if ($context) {
-                Write-LogFile -Message "[DEBUG] Graph context information:" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Account: $($context.Account)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Environment: $($context.Environment)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   TenantId: $($context.TenantId)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Scopes: $($context.Scopes -join ', ')" -Level Debug
-            }
-        } catch {
-            Write-LogFile -Message "[DEBUG] Could not retrieve Graph context details" -Level Debug
-        }
-    }
-        
     Write-LogFile -Message "=== Starting Dynamic Groups Collection ===" -Color "Cyan" -Level Standard
-
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    } 
-    else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }  
-
     try {
         Write-LogFile -Message "[INFO] Fetching all groups from Microsoft Graph..." -Level Standard
 
@@ -478,23 +354,27 @@ Function Get-DynamicGroups {
             }
         }
 
-        $date = Get-Date -Format "yyyyMMddHHmm"
-        $filePath = Join-Path $OutputDir "$($date)-DynamicGroups.csv"
-        $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+        $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+        $totalCount = if ($results) { @($results).Count } else { 0 }
+        $securityEnabledCount = @($results | Where-Object { $_.SecurityEnabled -eq $true }).Count
+        $mailEnabledCount = @($results | Where-Object { $_.MailEnabled -eq $true }).Count
 
-        Write-LogFile -Message "`nDynamic Group Analysis Results:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "Total Dynamic Groups: $($results.Count)" -Level Standard
-        Write-LogFile -Message "  - Security Enabled: $(($results | Where-Object { $_.SecurityEnabled -eq $true }).Count)" -Level Standard
-        Write-LogFile -Message "  - Mail Enabled: $(($results | Where-Object { $_.MailEnabled -eq $true }).Count)" -Level Standard
-        
         $processingStates = $results | Group-Object -Property MembershipRuleProcessingState
-        Write-LogFile -Message "`nMembership Rule Processing States:" -Color "Cyan" -Level Standard
+        $statesHashtable = [ordered]@{}
         foreach ($state in $processingStates) {
-            Write-LogFile -Message "  - $($state.Name): $($state.Count)" -Level Standard
+            $statesHashtable[$state.Name] = $state.Count
         }
 
-        Write-LogFile -Message "`nExported File:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "  - File: $filePath" -Level Standard
+        $summaryData = [ordered]@{
+            "Dynamic Group Summary" = [ordered]@{
+                "Total Dynamic Groups" = $totalCount
+                "Security Enabled" = $securityEnabledCount
+                "Mail Enabled" = $mailEnabledCount
+            }
+            "Membership Rule Processing States" = $statesHashtable
+        }
+
+        Write-Summary -Summary $summaryData -Title "Dynamic Group Analysis Summary"
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal

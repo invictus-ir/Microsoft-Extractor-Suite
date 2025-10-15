@@ -45,31 +45,19 @@ Function Get-AllRoleActivity {
 
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\Roles",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [switch]$IncludeEmptyRoles = $false,
         [ValidateSet('None', 'Minimal', 'Standard')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $date = Get-Date -Format "yyyyMMddHHmm"
-
+    Init-Logging
+    Init-OutputDir -Component "Roles" -FilePostfix "AllRoles" -CustomOutputDir $OutputDir
     Write-LogFile -Message "=== Starting Directory Role Membership Export ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("User.Read.All", "Directory.Read.All", "AuditLog.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-        
-    if (!(Test-Path $OutputDir)) {
-        try {
-            New-Item -ItemType Directory -Force -Path $OutputDir > $null
-        }
-        catch {
-            Write-LogFile -Message "[Error] Could not create output directory: $OutputDir" -Level Minimal
-            return
-        }
-    }
-
     Write-LogFile -Message "[INFO] Retrieving directory roles and memberships..." -Level Standard
     
     $processedRoles = 0
@@ -182,7 +170,7 @@ Function Get-AllRoleActivity {
         }
 
         $outputFile = "$OutputDir\$($date)-All-Roles.csv"
-        $allRoleMembers | Export-Csv -Path $outputFile -NoTypeInformation -Encoding $Encoding
+        $allRoleMembers | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
         Write-LogFile -Message "`nRoles with users:" -Color "Green" -Level Standard
         foreach ($role in $rolesWithUsers) {
@@ -194,14 +182,16 @@ Function Get-AllRoleActivity {
             Write-LogFile -Message "  - $emptyRole" -Level Standard
         }
         
-        Write-LogFile -Message "`nSummary:" -Level Standard -Color "Cyan"
-        Write-LogFile -Message "  - Total roles processed: $processedRoles" -Level Standard
-        Write-LogFile -Message "  - Roles with members: $rolesWithMembers" -Level Standard
-        Write-LogFile -Message "  - Roles without members: $rolesWithoutMembers" -Level Standard
-        Write-LogFile -Message "  - Total role user assignments: $totalMembers" -Level Standard
-        
-        Write-LogFile -Message "`nExported file:" -Level Standard -Color "Cyan"
-        Write-LogFile -Message "  - File: $outputFile" -Level Standard
+        $summary = [ordered]@{
+            "Role Statistics" = [ordered]@{
+                "Total Roles Processed" = $processedRoles
+                "Roles with Members" = $rolesWithMembers
+                "Roles without Members" = $rolesWithoutMembers
+                "Total User Assignments" = $totalMembers
+            }
+        }
+
+        Write-Summary -Summary $summary -Title "Directory Role Membership Summary"
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
@@ -248,30 +238,19 @@ function Get-PIMAssignments {
 
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\Roles",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $date = Get-Date -Format "yyyyMMddHHmm"
-
+    Init-Logging
+    Init-OutputDir -Component "Roles" -FilePostfix "PIM-Assignments" -CustomOutputDir $OutputDir
     Write-LogFile -Message "=== Starting PIM Role Assignment Export ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("RoleAssignmentSchedule.Read.Directory", "RoleEligibilitySchedule.Read.Directory", "User.Read.All", "Group.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-        
-    if (!(Test-Path $OutputDir)) {
-        try {
-            New-Item -ItemType Directory -Force -Path $OutputDir > $null
-        }
-        catch {
-            Write-LogFile -Message "[Error] Could not create output directory: $OutputDir" -Level Minimal
-            return
-        }
-    }
-
+    
     Write-LogFile -Message "[INFO] Retrieving PIM role assignments..." -Level Standard
     $allAssignments = @()
     $processedActiveAssignments = 0
@@ -490,8 +469,7 @@ function Get-PIMAssignments {
             }
         }
         
-        $outputFile = "$OutputDir\$($date)-PIM-Assignments.csv"
-        $allAssignments | Export-Csv -Path $outputFile -NoTypeInformation -Encoding $Encoding
+        $allAssignments | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
         
         $totalAssignments = $allAssignments.Count
         $pimActiveCount = ($allAssignments | Where-Object { $_.AssignmentStatus -eq "Active" }).Count
@@ -501,23 +479,29 @@ function Get-PIMAssignments {
         $onPremSyncedCount = ($allAssignments | Where-Object { $_.OnPremisesSynced -eq $true }).Count
         $cloudOnlyCount = ($allAssignments | Where-Object { $_.OnPremisesSynced -eq $false }).Count
         
-        Write-LogFile -Message "`nSummary:" -Level Standard -Color "Cyan"
-        Write-LogFile -Message " - Total role assignments: $totalAssignments" -Level Standard
-        Write-LogFile -Message " - PIM Active assignments: $pimActiveCount" -Level Standard
-        Write-LogFile -Message " - PIM Eligible assignments: $pimEligibleCount" -Level Standard
-        Write-LogFile -Message " - Direct assignments: $directCount" -Level Standard
-        Write-LogFile -Message " - Group-inherited assignments: $groupCount" -Level Standard
-        Write-LogFile -Message " - On-premises synced users: $onPremSyncedCount" -Level Standard
-        Write-LogFile -Message " - Cloud-only users: $cloudOnlyCount" -Level Standard
+        $summary = [ordered]@{
+            "Assignment Statistics" = [ordered]@{
+                "Total Role Assignments" = $totalAssignments
+                "PIM Active Assignments" = $pimActiveCount
+                "PIM Eligible Assignments" = $pimEligibleCount
+            }
+            "Assignment Types" = [ordered]@{
+                "Direct Assignments" = $directCount
+                "Group-Inherited Assignments" = $groupCount
+            }
+            "User Types" = [ordered]@{
+                "On-Premises Synced Users" = $onPremSyncedCount
+                "Cloud-Only Users" = $cloudOnlyCount
+            }
+        }
 
         # Only show this if there's a discrepancy between found and processed
         if (($activeAssignmentsCount + $eligibleAssignmentsCount) -ne $totalAssignments) {
             Write-LogFile -Message "`nNote: $($activeAssignmentsCount + $eligibleAssignmentsCount) total assignments were found, but only $totalAssignments were processed." -Level Standard -Color "Yellow"
             Write-LogFile -Message " - This is usually due to service principals or empty groups that were skipped during processing." -Level Standard
         }
-        
-        Write-LogFile -Message "`nExported file:" -Level Standard -Color "Cyan"
-        Write-LogFile -Message " - File: $outputFile" -Level Standard
+
+        Write-Summary -Summary $summary -Title "PIM Assignments Summary"
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal

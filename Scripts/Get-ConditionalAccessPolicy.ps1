@@ -41,64 +41,22 @@ Function Get-ConditionalAccessPolicies {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\ConditionalAccessPolicies",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+    Init-Logging
+    Init-OutputDir -Component "ConditionalAccessPolicies" -FilePostfix "ConditionalAccessPolicies" -CustomOutputDir $OutputDir
+
     $results=@();
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
-        
-        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModule) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModule) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
-
     $requiredScopes = @("Policy.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication completed" -Level Debug
-        try {
-            $context = Get-MgContext
-            if ($context) {
-                Write-LogFile -Message "[DEBUG] Graph context information:" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Account: $($context.Account)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Environment: $($context.Environment)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   TenantId: $($context.TenantId)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Scopes: $($context.Scopes -join ', ')" -Level Debug
-            }
-        } catch {
-            Write-LogFile -Message "[DEBUG] Could not retrieve Graph context details" -Level Debug
-        }
-    }
-
+    $OutputDir = Split-Path $script:outputFile -Parent
     Write-LogFile -Message "=== Starting Conditional Access Policy Collection ===" -Color "Cyan" -Level Standard
-
-    if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    }    
-    else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal -Color "Red"
-        }
-    }  
-
+    
     try {
         $policies = Get-MgIdentityConditionalAccessPolicy -All
         foreach ($policy in $policies) {
@@ -209,15 +167,19 @@ Function Get-ConditionalAccessPolicies {
         throw
     }
 
-    $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-    $filePath = "$OutputDir\$($date)-ConditionalAccessPolicy.csv"
-    $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+    $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+    $reportOnlyCount = ($results | Where-Object { $_.State -eq 'enabledForReportingButNotEnforced' }).Count
+    if ($null -eq $reportOnlyCount) { $reportOnlyCount = 0 }
 
-    Write-LogFile -Message "`n=== Conditional Access Policy Summary ===" -Color "Cyan" -Level Standard
-    Write-LogFile -Message "Total Policies: $($results.Count)" -Level Standard
-    Write-LogFile -Message "Enabled Policies: $(($results | Where-Object { $_.State -eq 'enabled' }).Count)" -Level Standard
-    Write-LogFile -Message "Disabled Policies: $(($results | Where-Object { $_.State -eq 'disabled' }).Count)" -Level Standard
-    Write-LogFile -Message "Output: $filePath" -Level Standard
-    Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+    $summaryData = [ordered]@{
+        "Policy Summary" = [ordered]@{
+            "Total Policies" = $results.Count
+            "Enabled Policies" = ($results | Where-Object { $_.State -eq 'enabled' }).Count
+            "Disabled Policies" = ($results | Where-Object { $_.State -eq 'disabled' }).Count
+            "Report Only" = $reportOnlyCount
+        }
+    }
+
+    Write-Summary -Summary $summaryData -Title "Conditional Access Policy Summary"
 }
         

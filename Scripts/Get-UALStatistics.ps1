@@ -42,38 +42,14 @@ function Get-UALStatistics
 		[string]$UserIds = "*",
 		[string]$StartDate,
 		[string]$EndDate,
-		[string]$OutputDir = "Output\",
+		[string]$OutputDir,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 
-	Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+	Init-Logging
+    Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix "Amount_Of_Audit_Logs" -CustomOutputDir $OutputDir
 
-	if ($isDebugEnabled) {
-		Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-		Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-		Write-LogFile -Message "[DEBUG]   UserIds: '$UserIds'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   StartDate: '$StartDate'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   EndDate: '$EndDate'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-		
-		$exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-		if ($exchangeModule) {
-			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
-		} else {
-			Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
-		}
-	
-		$connectionInfo = Get-ConnectionInformation -ErrorAction SilentlyContinue
-		if ($connectionInfo) {
-			Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
-			Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug
-		}
-	}
-
-	$date = Get-Date -Format "yyyyMMddHHmm"
     $results = @()
     $summary = @{
         TotalCount = 0
@@ -94,24 +70,9 @@ function Get-UALStatistics
 
 	Write-LogFile -Message "Analysis Period: $dateRange" -Level Standard
 	Write-LogFile -Message "Record Types to Process: $($recordTypes.Count)" -Level Standard
-	Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
 	Write-LogFile -Message "----------------------------------------`n" -Level Standard
 
-	$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-	$outputFile = "$($date)-Amount_Of_Audit_Logs.csv"
-
-	if (!(Test-Path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Path $OutputDir > $null
-	} 
-	else {
-		if (!(Test-Path -Path $OutputDir)) {
-			Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-			Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-		}
-	}
-
-	$outputDirectory = Join-Path $OutputDir $outputFile
-	Set-Content $outputDirectory -Value "RecordType,Amount,Percentage"
+	Set-Content $script:outputFile -Value "RecordType,Amount,Percentage"
 
 	try {
 		$maxRetries = 3
@@ -209,7 +170,7 @@ function Get-UALStatistics
 			}
 
 			#Write-LogFile -Message "$($record):$($specificResult)" -Level Standard
-			Write-Output "$record,$specificResult,$percentage" | Out-File $outputDirectory -Append
+			Write-Output "$record,$specificResult,$percentage" | Out-File $script:outputFile -Append
 		}
 		else {
 			$summary.RecordsWithoutData++
@@ -221,7 +182,8 @@ function Get-UALStatistics
 		Write-LogFile -Message "`n=== Record Type Analysis ===" -Color "Cyan" -Level Standard
         Write-LogFile -Message "----------------------------------------" -Level Standard
 
-        $results | Sort-Object Count -Descending | Export-Csv -Path $outputDirectory -NoTypeInformation
+		$results | Sort-Object Count -Descending | Export-Csv -Path $script:outputFile -NoTypeInformation
+
 		$summary.ProcessingTime = (Get-Date) - $summary.StartTime
 
 		$results | Sort-Object Count -Descending | ForEach-Object {
@@ -232,17 +194,20 @@ function Get-UALStatistics
 
 		Write-LogFile -Message "----------------------------------------" -Level Standard
 
-		Write-LogFile -Message "`n=== Analysis Summary ===" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "Time Period: $dateRange" -Level Standard
-        Write-LogFile -Message "Total Log Entries: $($summary.TotalCount.ToString('N0'))" -Level Standard
-        Write-LogFile -Message "Record Types:" -Level Standard
-        Write-LogFile -Message "  With Data: $($summary.RecordsWithData)" -Level Standard
-        Write-LogFile -Message "  Without Data: $($summary.RecordsWithoutData)" -Level Standard
-        Write-LogFile -Message "`nOutput File: $outputDirectory" -Level Standard
-        
 		$summary.ProcessingTime = (Get-Date) - $summary.StartTime
-        Write-LogFile -Message "Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
-        Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+
+		$summaryOutput = [ordered]@{
+			"Analysis Period" = [ordered]@{
+				"Time Period" = $dateRange
+				"Total Log Entries" = $summary.TotalCount.ToString('N0')
+			}
+			"Record Type Statistics" = [ordered]@{
+				"Record Types with Data" = $summary.RecordsWithData
+				"Record Types without Data" = $summary.RecordsWithoutData
+			}
+		}
+
+		Write-Summary -Summary $summaryOutput -Title "UAL Statistics Analysis Summary"
 	}
 	
 	else {

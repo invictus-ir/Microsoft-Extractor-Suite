@@ -55,7 +55,7 @@ function Get-AdminAuditLog {
         [string]$StartDate,
         [string]$EndDate,
         [decimal]$Interval,
-        [string]$OutputDir = "Output\AdminAuditLog",
+        [string]$OutputDir,
         [ValidateSet("CSV", "JSON", "SOF-ELK", "JSONL")]
         [string]$Output = "CSV",
         [switch]$MergeOutput,
@@ -86,25 +86,11 @@ function Get-AdminAuditLog {
         $params['MergeOutput'] = $true
     }
 
-    $date = [datetime]::Now.ToString('yyyyMMddHHmmss')
-    if ($OutputDir -eq "Output\AdminAuditLog") {
-        $OutputDir = "Output\AdminAuditLog\$date"
-    }
-
-    if (!(Test-Path -Path $OutputDir)) {
-        try {
-            New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
-        }
-        catch {
-            Write-LogFile -Message "[Error] Failed to create directory: $OutputDir" -Level Minimal -Color "Red"
-            Write-Error "[Error] Failed to create directory: $OutputDir"
-            return
-        }
-    }
+    Init-OutputDir -Component "AdminAuditLog" -FilePostfix "AdminAuditLog"  -CustomOutputDir $OutputDir
 
     Write-LogFile -Message "== Starting the Admin Audit Log Collection (utilizing Get-UAL) ==" -Level Minimal
 
-    # Call Get-UAL with the constructed parameters
+#     Call Get-UAL with the constructed parameters
     Get-UAL @params
 }
     

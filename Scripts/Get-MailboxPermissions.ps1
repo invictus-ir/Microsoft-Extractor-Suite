@@ -40,15 +40,15 @@ function Get-MailboxPermissions {
 #>
     [CmdletBinding()]
     param (
-        [string]$outputDir = "Output\Delegated Permissions",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
         [string[]]$UserIds
         )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+    Init-Logging
+    Init-OutputDir -Component "Mailbox Permissions" -FilePostfix "MailboxPermissions" -CustomOutputDir $OutputDir
 
     $summary = @{
         TotalMailboxes = 0
@@ -66,49 +66,6 @@ function Get-MailboxPermissions {
     }
 
     Write-LogFile -Message "=== Starting Mailbox Permissions Collection ===" -Color "Cyan" -Level Standard
-    
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: $outputDir" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
-        
-        $exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-        if ($exchangeModule) {
-            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
-        }
-
-        try {
-            $connectionInfo = Get-ConnectionInformation -ErrorAction SilentlyContinue
-            if ($connectionInfo) {
-                Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
-                Write-LogFile -Message "[DEBUG] Connection Type: $($connectionInfo.TokenStatus)" -Level Debug
-                Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug
-            } else {
-                Write-LogFile -Message "[DEBUG] No active Exchange Online connection found" -Level Debug
-            }
-        } catch {
-            Write-LogFile -Message "[DEBUG] Unable to retrieve connection information" -Level Debug
-        }
-    }
-
-    $date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-    $outputFile = "$($date)-MailboxDelegatedPermissions.csv"
-
-    if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    } else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal -color "Red"
-        }
-    }
-
-    $outputDirectory = Join-Path $outputDir $outputFile
-
     try {
         Get-EXOMailbox -ResultSize 1 > $null
     }
@@ -345,24 +302,25 @@ function Get-MailboxPermissions {
         $results += $permissionEntry
     }
 
-    $results | Export-Csv -Path $outputDirectory -NoTypeInformation -Encoding $Encoding
+    $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+    Write-Progress -Activity "Checking delegated permissions" -Completed
 
     $summary.ProcessingTime = (Get-Date) - $summary.StartTime
 
-    Write-LogFile -Message "`n=== Mailbox Permissions Analysis Summary ===" -Color "Cyan" -Level Standard
-    Write-LogFile -Message "Processing Statistics:" -Level Standard
-    Write-LogFile -Message "  Total Mailboxes: $($summary.TotalMailboxes)" -Level Standard
-    Write-LogFile -Message "  Mailboxes Processed: $($summary.MailboxesProcessed)" -Level Standard
-    Write-LogFile -Message "  Mailboxes with Permissions: $($summary.MailboxesWithPermissions)" -Level Standard
+    $summaryData = [ordered]@{
+        "Processing Statistics" = [ordered]@{
+            "Total Mailboxes" = $summary.TotalMailboxes
+            "Mailboxes Processed" = $summary.MailboxesProcessed
+            "Mailboxes with Permissions" = $summary.MailboxesWithPermissions
+        }
+        "Permission Counts" = [ordered]@{
+            "Full Access" = $summary.PermissionStats.FullAccess
+            "Send As" = $summary.PermissionStats.SendAs
+            "Send on Behalf" = $summary.PermissionStats.SendOnBehalf
+            "Calendar" = $summary.PermissionStats.Calendar
+            "Inbox" = $summary.PermissionStats.Inbox
+        }
+    }
 
-    Write-LogFile -Message "`nPermission Counts:" -Level Standard
-    Write-LogFile -Message "  Full Access: $($summary.PermissionStats.FullAccess)" -Level Standard
-    Write-LogFile -Message "  Send As: $($summary.PermissionStats.SendAs)" -Level Standard
-    Write-LogFile -Message "  Send on Behalf: $($summary.PermissionStats.SendOnBehalf)" -Level Standard
-    Write-LogFile -Message "  Calendar: $($summary.PermissionStats.Calendar)" -Level Standard
-    Write-LogFile -Message "  Inbox: $($summary.PermissionStats.Inbox)" -Level Standard
-
-    Write-LogFile -Message "`nOutput:" -Level Standard
-    Write-LogFile -Message "  Output File: $outputDirectory" -Level Standard
-    Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
+    Write-Summary -Summary $summaryData -Title "Mailbox Permissions Analysis Summary"
 }

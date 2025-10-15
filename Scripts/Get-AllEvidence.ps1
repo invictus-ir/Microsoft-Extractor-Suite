@@ -6,9 +6,18 @@ $Global:CollectionTasks = @{
             Description = "Collects information about users marked as risky"
             Function = { param($OutputDir, $LogLevel, $UserIds)
                 if ($UserIds) {
-                    Get-RiskyUsers -OutputDir "$OutputDir\RiskyEvents" -LogLevel $LogLevel -UserIds $UserIds
+                    if ($OutputDir) {
+                        Get-RiskyUsers -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
+                    } else {
+                        Get-RiskyUsers -LogLevel $LogLevel -UserIds $UserIds
+                    }
+                    
                 } else {
-                    Get-RiskyUsers -OutputDir "$OutputDir\RiskyEvents" -LogLevel $LogLevel
+                    if ($OutputDir) {
+                        Get-RiskyUsers -OutputDir $OutputDir -LogLevel $LogLevel
+                    } else {
+                        Get-RiskyUsers -LogLevel $LogLevel
+                    }
                 }
                 return $true
             }
@@ -19,9 +28,17 @@ $Global:CollectionTasks = @{
             Description = "Collects risk detection events"
             Function = { param($OutputDir, $LogLevel, $UserIds)
                 if ($UserIds) {
-                    Get-RiskyDetections -OutputDir "$OutputDir\RiskyEvents" -LogLevel $LogLevel -UserIds $UserIds
+                    if ($OutputDir) {
+                        Get-RiskyDetections -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
+                    } else {
+                        Get-RiskyDetections -LogLevel $LogLevel -UserIds $UserIds
+                    }
                 } else {
-                    Get-RiskyDetections -OutputDir "$OutputDir\RiskyEvents" -LogLevel $LogLevel
+                    if ($OutputDir) {
+                        Get-RiskyDetections -OutputDir $OutputDir -LogLevel $LogLevel
+                    } else {
+                        Get-RiskyDetections -LogLevel $LogLevel
+                    }
                 }
                 return $true
             }
@@ -32,9 +49,17 @@ $Global:CollectionTasks = @{
             Description = "Collects MFA configuration and status"
             Function = { param($OutputDir, $LogLevel, $UserIds)
                 if ($UserIds) {
-                    Get-MFA -OutputDir "$OutputDir\MFA" -LogLevel $LogLevel -UserIds $UserIds
+                    if ($OutputDir) {
+                        Get-MFA -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
+                    } else {
+                        Get-MFA -LogLevel $LogLevel -UserIds $UserIds
+                    } 
                 } else {
-                    Get-MFA -OutputDir "$OutputDir\MFA" -LogLevel $LogLevel
+                    if ($OutputDir) {
+                        Get-MFA -OutputDir $OutputDir -LogLevel $LogLevel
+                    } else {
+                        Get-MFA -LogLevel $LogLevel
+                    }
                 }
                 return $true
             }
@@ -45,7 +70,11 @@ $Global:CollectionTasks = @{
             Description = "Collects general user information"
             Function = { param($OutputDir, $LogLevel, $UserIds)
                 if (-not $UserIds) {
-                    Get-Users -OutputDir "$OutputDir\Users" -LogLevel $LogLevel
+                    if ($OutputDir) {
+                        Get-Users -LogLevel $LogLevel -OutputDir $OutputDir
+                    } else {
+                        Get-Users -LogLevel $LogLevel
+                    }
                     return $true
                 }
                 return $false
@@ -57,7 +86,11 @@ $Global:CollectionTasks = @{
             Description = "Collects administrative user information"
             Function = { param($OutputDir, $LogLevel, $UserIds)
                 if (-not $UserIds) {
-                    Get-AdminUsers -OutputDir "$OutputDir\Admins" -LogLevel $LogLevel
+                    if ($OutputDir) {
+                        Get-AdminUsers -OutputDir $OutputDir -LogLevel $LogLevel
+                    } else {
+                        Get-AdminUsers -LogLevel $LogLevel
+                    }
                     return $true
                 }
                 return $false
@@ -69,9 +102,17 @@ $Global:CollectionTasks = @{
             Description = "Collects device information"
             Function = { param($OutputDir, $LogLevel, $UserIds)
                 if ($UserIds) {
-                    Get-Devices -OutputDir "$OutputDir\Devices" -LogLevel $LogLevel -UserIds $UserIds
+                    if ($OutputDir) {
+                        Get-Devices -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
+                    } else {
+                        Get-Devices -LogLevel $LogLevel -UserIds $UserIds
+                    }                    
                 } else {
-                    Get-Devices -OutputDir "$OutputDir\Devices" -LogLevel $LogLevel
+                    if ($OutputDir) {
+                        Get-Devices -OutputDir $OutputDir -LogLevel $LogLevel
+                    } else {
+                        Get-Devices -LogLevel $LogLevel
+                    }
                 }
                 return $true
             }
@@ -82,7 +123,11 @@ $Global:CollectionTasks = @{
             Description = "Collects Conditional Access Policies"
             Function = { param($OutputDir, $LogLevel, $UserIds)
                 if (-not $UserIds) {
-                    Get-ConditionalAccessPolicies -OutputDir "$OutputDir\ConditionalAccessPolicies" -LogLevel $LogLevel
+                    if ($OutputDir) {
+                        Get-ConditionalAccessPolicies -OutputDir $OutputDir -LogLevel $LogLevel
+                    } else {
+                        Get-ConditionalAccessPolicies -LogLevel $LogLevel
+                    }
                     return $true
                 }
                 return $false
@@ -137,7 +182,11 @@ $Global:CollectionTasks = @{
             Description = "Collects delegated and application permissions using Microsoft Graph API"
             Function = { param($OutputDir, $LogLevel, $UserIds)
                 if (-not $UserIds) {
-                    Get-OAuthPermissionsGraph -OutputDir "$OutputDir\OAuthPermissions" -LogLevel $LogLevel
+                    if ($OutputDir) {
+                        Get-OAuthPermissionsGraph -OutputDir $OutputDir -LogLevel $LogLevel
+                    } else {
+                        Get-OAuthPermissionsGraph -LogLevel $LogLevel
+                    }
                     return $true
                 }
                 return $false
@@ -148,12 +197,16 @@ $Global:CollectionTasks = @{
             Name = "Directory Role Activity"
             Description = "Exports all directory role memberships with last login information"
             Function = { param($OutputDir, $LogLevel, $UserIds)
-                if (-not $UserIds) {
-                    Get-AllRoleActivity -OutputDir "$OutputDir\Roles" -LogLevel $LogLevel
-                    return $true
+            if (-not $UserIds) {
+                if ($OutputDir) {
+                    Get-AllRoleActivity -OutputDir $OutputDir -LogLevel $LogLevel
+                } else {
+                    Get-AllRoleActivity -LogLevel $LogLevel
                 }
-                return $false
+                return $true
             }
+            return $false
+        }
             Enabled = $true
         }
         "PIMAssignments" = @{
@@ -161,7 +214,11 @@ $Global:CollectionTasks = @{
             Description = "Generates a report of all Entra ID PIM role assignments (active and eligible)"
             Function = { param($OutputDir, $LogLevel, $UserIds)
                 if (-not $UserIds) {
-                    Get-PIMAssignments -OutputDir "$OutputDir\Roles" -LogLevel $LogLevel
+                    if ($OutputDir) {
+                        Get-PIMAssignments -OutputDir $OutputDir -LogLevel $LogLevel
+                    } else {
+                        Get-PIMAssignments -LogLevel $LogLevel
+                    }
                     return $true
                 }
                 return $false
@@ -172,12 +229,16 @@ $Global:CollectionTasks = @{
             Name = "Security Alerts"
             Description = "Retrieves security alerts from Microsoft Graph Security API"
             Function = { param($OutputDir, $LogLevel, $UserIds)
-                if (-not $UserIds) {
-                    Get-SecurityAlerts -OutputDir "$OutputDir\SecurityAlerts" -LogLevel $LogLevel
-                    return $true
+            if (-not $UserIds) {
+                if ($OutputDir) {
+                    Get-SecurityAlerts -OutputDir $OutputDir -LogLevel $LogLevel
+                } else {
+                    Get-SecurityAlerts -LogLevel $LogLevel
                 }
-                return $false
+                return $true
             }
+            return $false
+        }
             Enabled = $true
         }
     }
@@ -186,38 +247,58 @@ $Global:CollectionTasks = @{
             Name = "Inbox Rules"
             Description = "Collects Exchange inbox rules"
             Function = { param($OutputDir, $LogLevel, $UserIds)
-                if ($UserIds) {
-                    Get-MailboxRules -OutputDir "$OutputDir\Rules" -LogLevel $LogLevel -UserIds $UserIds
+            if ($UserIds) {
+                if ($OutputDir) {
+                    Get-MailboxRules -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
                 } else {
-                    Get-MailboxRules -OutputDir "$OutputDir\Rules" -LogLevel $LogLevel
+                    Get-MailboxRules -LogLevel $LogLevel -UserIds $UserIds
                 }
-                return $true
+            } else {
+                if ($OutputDir) {
+                    Get-MailboxRules -OutputDir $OutputDir -LogLevel $LogLevel
+                } else {
+                    Get-MailboxRules -LogLevel $LogLevel
+                }
             }
+            return $true
+        }
             Enabled = $true
         }
         "MessageTrace" = @{
             Name = "Message Trace"
             Description = "Collects Exchange message tracking logs"
             Function = { param($OutputDir, $LogLevel, $UserIds)
-                if ($UserIds) {
-                    Get-MessageTraceLog -OutputDir "$OutputDir\MessageTrace" -LogLevel $LogLevel -UserIds $UserIds
+            if ($UserIds) {
+                if ($OutputDir) {
+                    Get-MessageTraceLog -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
                 } else {
-                    Get-MessageTraceLog -OutputDir "$OutputDir\MessageTrace" -LogLevel $LogLevel
+                    Get-MessageTraceLog -LogLevel $LogLevel -UserIds $UserIds
                 }
-                return $true
+            } else {
+                if ($OutputDir) {
+                    Get-MessageTraceLog -OutputDir $OutputDir -LogLevel $LogLevel
+                } else {
+                    Get-MessageTraceLog -LogLevel $LogLevel
+                }
             }
+            return $true
+        }
             Enabled = $true
         }
         "TransportRules" = @{
             Name = "Transport Rules"
             Description = "Collects Exchange transport rules"
             Function = { param($OutputDir, $LogLevel, $UserIds)
-                if (-not $UserIds) {
-                    Get-TransportRules -OutputDir "$OutputDir\Rules" -LogLevel $LogLevel
-                    return $true
+            if (-not $UserIds) {
+                if ($OutputDir) {
+                    Get-TransportRules -OutputDir $OutputDir -LogLevel $LogLevel
+                } else {
+                    Get-TransportRules -LogLevel $LogLevel
                 }
-                return $false
+                return $true
             }
+            return $false
+        }
             Enabled = $true
         }
         "MailboxPermissions" = @{
@@ -225,9 +306,17 @@ $Global:CollectionTasks = @{
             Description = "Collects mailbox delegated permissions"
             Function = { param($OutputDir, $LogLevel, $UserIds)
                 if ($UserIds) {
-                    Get-MailboxPermissions -OutputDir "$OutputDir\Delegated Permissions" -LogLevel $LogLevel -UserIds $UserIds
+                    if ($OutputDir) {
+                        Get-MailboxPermissions -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
+                    } else {
+                        Get-MailboxPermissions -LogLevel $LogLevel -UserIds $UserIds
+                    }
                 } else {
-                    Get-MailboxPermissions -OutputDir "$OutputDir\Delegated Permissions" -LogLevel $LogLevel
+                    if ($OutputDir) {
+                        Get-MailboxPermissions -OutputDir $OutputDir -LogLevel $LogLevel
+                    } else {
+                        Get-MailboxPermissions -LogLevel $LogLevel
+                    }
                 }
                 return $true
             }
@@ -238,9 +327,17 @@ $Global:CollectionTasks = @{
             Description = "Collects mailbox audit configuration"
             Function = { param($OutputDir, $LogLevel, $UserIds)
                 if ($UserIds) {
-                    Get-MailboxAuditStatus -OutputDir "$OutputDir\MailboxAudit" -LogLevel $LogLevel -UserIds $UserIds
+                    if ($OutputDir) {
+                        Get-MailboxAuditStatus -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
+                    } else {
+                        Get-MailboxAuditStatus -LogLevel $LogLevel -UserIds $UserIds
+                    }
                 } else {
-                    Get-MailboxAuditStatus -OutputDir "$OutputDir\MailboxAudit" -LogLevel $LogLevel
+                    if ($OutputDir) {
+                        Get-MailboxAuditStatus -OutputDir $OutputDir -LogLevel $LogLevel
+                    } else {
+                        Get-MailboxAuditStatus -LogLevel $LogLevel
+                    }
                 }
                 return $true
             }
@@ -250,13 +347,19 @@ $Global:CollectionTasks = @{
             Name = "Unified Audit Log"
             Description = "Collects Office 365 Unified Audit Logs"
             Function = { param($OutputDir, $LogLevel, $UserIds, $Output = 'CSV')
-                $OutputDirAudit = "$OutputDir\UnifiedAuditLog"
-                Write-LogFile -Message "Starting Unified Audit Log collection (this may take a while)..." -Color "Yellow"
-                New-Item -ItemType Directory -Force -Path $OutputDirAudit > $null
+                Write-LogFile -Message "Starting Unified Audit Log collection (this may take a while)..." -Color "Yellow" -Level Minimal
                 if ($UserIds) {
-                    Get-UAL -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $UserIds -MergeOutput -Interval 2880 -Output $Output
+                    if ($OutputDir) {
+                        Get-UAL -LogLevel $LogLevel -UserIds $UserIds -MergeOutput -Output $Output -OutputDir $OutputDir
+                    } else {
+                        Get-UAL -LogLevel $LogLevel -UserIds $UserIds -MergeOutput -Output $Output
+                    }
                 } else {
-                    Get-UAL -OutputDir $OutputDirAudit -LogLevel $LogLevel -MergeOutput -Output $Output
+                    if ($OutputDir) {
+                        Get-UAL -LogLevel $LogLevel -MergeOutput -Output $Output -OutputDir $OutputDir
+                    } else {
+                        Get-UAL -LogLevel $LogLevel -MergeOutput -Output $Output
+                    }
                 }
                 return $true
             }
@@ -627,7 +730,8 @@ function Start-EvidenceCollection {
         foreach ($task in $Global:CollectionTasks.Azure.GetEnumerator()) {
             if ($task.Value.Enabled) {
                 try {
-                    $executed = & $task.Value.Function -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
+                    $script:CollectionOutputDir = $OutputDir
+                    $executed = & $task.Value.Function -LogLevel $LogLevel -UserIds $UserIds -Output $Output
                     if ($executed) {
                         $summary.TotalTasks++
                         $summary.SuccessfulTasks++
@@ -648,7 +752,8 @@ function Start-EvidenceCollection {
         foreach ($task in $Global:CollectionTasks.M365.GetEnumerator()) {
             if ($task.Value.Enabled) {
                 try {
-                    $executed = & $task.Value.Function -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
+                    $script:CollectionOutputDir = $OutputDir
+                    $executed = & $task.Value.Function -LogLevel $LogLevel -UserIds $UserIds -Output $Output
                     if ($executed) {
                         $summary.TotalTasks++
                         $summary.SuccessfulTasks++
@@ -665,16 +770,24 @@ function Start-EvidenceCollection {
     }    
 
     $summary.ProcessingTime = (Get-Date) - $summary.StartTime
-    Write-LogFile -Message "`n=== Collection Summary ===" -Color "Cyan" -Level Minimal
-    if ($UserIds) {
-        Write-LogFile -Message "Target User: $UserIds" -Level Minimal
+    $summaryData = [ordered]@{
+        "Collection Details" = [ordered]@{
+            "Project Name" = $ProjectName
+            "Platform" = if ($Platform -eq 'All') { 'Microsoft 365 and Azure/Entra ID' } else { $Platform }
+            "Target User(s)" = if ($UserIds) { $UserIds } else { "All Users" }
+        }
+        "Timing" = [ordered]@{
+            "Start Time" = $summary.StartTime.ToString('yyyy-MM-dd HH:mm:ss')
+            "End Time" = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')
+            "Duration" = $summary.ProcessingTime.ToString('hh\:mm\:ss')
+        }
+        "Task Status" = [ordered]@{
+            "Total Tasks" = $summary.TotalTasks
+            "Successful" = $summary.SuccessfulTasks
+            "Failed" = $summary.FailedTasks
+        }
     }
-    Write-LogFile -Message "Start Time: $($summary.StartTime.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Minimal
-    Write-LogFile -Message "End Time: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -Level Minimal
-    Write-LogFile -Message "Duration: $($summary.ProcessingTime.ToString('hh\:mm\:ss'))" -Level Minimal
-    Write-LogFile -Message "`nTask Status:" -Level Minimal
-    Write-LogFile -Message "  Successful: $($summary.SuccessfulTasks)" -Level Minimal -Color "Green"
-    Write-LogFile -Message "  Failed: $($summary.FailedTasks)" -Level Minimal -Color $(if ($summary.FailedTasks -gt 0) { "Red" } else { "Green" })
-    Write-LogFile -Message "`nOutput Location: $OutputDir" -Level Minimal
-    Write-LogFile -Message "===================================" -Color "Cyan" -Level Minimal
+
+    Write-Summary -Summary $summaryData -Title "Collection Summary"
+    Write-LogFile -Message "`nOutput Location: $OutputDir" -Level Minimal -Color "Cyan"
 }

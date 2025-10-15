@@ -1,369 +1,3 @@
-function CacheObject ($Object) {
-    if ($Object) {
-        if (-not $script:ObjectByObjectClassId.ContainsKey($Object.ObjectType)) {
-            $script:ObjectByObjectClassId[$Object.ObjectType] = @{}
-        }
-        $script:ObjectByObjectClassId[$Object.ObjectType][$Object.ObjectId] = $Object
-        $script:ObjectByObjectId[$Object.ObjectId] = $Object
-    }
-}
-
-# Function to retrieve an object from the cache (if it's there), or from Azure AD (if not).
-function GetObjectByObjectId ($ObjectId) {
-    if (-not $script:ObjectByObjectId.ContainsKey($ObjectId)) {
-        Write-Verbose ("Querying Azure AD for object '{0}'" -f $ObjectId)
-        try {
-            $object = Get-AzureADObjectByObjectId -ObjectId $ObjectId
-            CacheObject -Object $object
-        } catch {
-            Write-Verbose "Object not found."
-        }
-    }
-    return $script:ObjectByObjectId[$ObjectId]
-}
-
-# Function to retrieve all OAuth2PermissionGrants, either by directly listing them (-FastMode)
-# or by iterating over all ServicePrincipal objects. The latter is required if there are more than
-# 999 OAuth2PermissionGrants in the tenant, due to a bug in Azure AD.
-function GetOAuth2PermissionGrants ([switch]$FastMode) {
-    if ($FastMode) {
-        Get-AzureADOAuth2PermissionGrant -All $true
-    } else {
-        $script:ObjectByObjectClassId['ServicePrincipal'].GetEnumerator() | ForEach-Object { $i = 0 } {
-            if ($ShowProgress) {
-                Write-Progress -Activity "Retrieving delegated permissions..." `
-                               -Status ("Checked {0}/{1} apps" -f $i++, $servicePrincipalCount) `
-                               -PercentComplete (($i / $servicePrincipalCount) * 100)
-            }
-
-            $client = $_.Value
-            Get-AzureADServicePrincipalOAuth2PermissionGrant -ObjectId $client.ObjectId
-        }
-    }
-}
-
-function GetAzureADServicePrincipal ($ObjectId) {
-	Get-AzureADServicePrincipal -ObjectId $ObjectId | ForEach-Object {
-		$Output = $_
-		$script:homepage = $Output.Homepage
-		$script:PublisherName = $Output.PublisherName
-		$script:ReplyUrls = $Output.ReplyUrls
-		$script:AppDisplayName = $Output.AppDisplayName
-		$script:AppId = $Output.AppId
-	}
-}
-
-function Get-OAuthPermissions {
-<#
-.SYNOPSIS
-Lists delegated permissions (OAuth2PermissionGrants) and application permissions (AppRoleAssignments).
-Script inspired by: https://gist.github.com/psignoret/41793f8c6211d2df5051d77ca3728c09
-
-.DESCRIPTION
-Script to list all delegated permissions and application permissions in Azure AD
-The output will be written to a CSV file.
-
-.PARAMETER OutputDir
-outputDir is the parameter specifying the output directory.
-Default: Output\OAuthPermissions
-
-.PARAMETER ShowProgress
-Switch parameter to show progress bars during processing.
-Default: $true
-
-.PARAMETER Encoding
-Encoding is the parameter specifying the encoding of the CSV output file.
-Default: UTF8
-
-.PARAMETER LogLevel
-Specifies the level of logging:
-None: No logging
-Minimal: Critical errors only
-Standard: Normal operational logging
-Debug: Verbose logging for debugging purposes
-Default: Standard
-
-.EXAMPLE
-Get-OAuthPermissions
-Lists delegated permissions (OAuth2PermissionGrants) and application permissions (AppRoleAssignments).
-
-#>
-
-	[CmdletBinding()]
-	param(
-		[switch] $DelegatedPermissions,
-		[switch] $ApplicationPermissions,
-		[string[]] $UserProperties = @("DisplayName"),
-		[string[]] $ServicePrincipalProperties = @("DisplayName"),
-		[switch] $ShowProgress = $true,
-		[int] $PrecacheSize = 999,
-		[string] $OutputDir = "Output\OAuthPermissions",
-		[string] $Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
-        [string]$LogLevel = 'Standard'
-	)
-
-	Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
-	if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   DelegatedPermissions: $DelegatedPermissions" -Level Debug
-        Write-LogFile -Message "[DEBUG]   ApplicationPermissions: $ApplicationPermissions" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserProperties: $($UserProperties -join ', ')" -Level Debug
-        Write-LogFile -Message "[DEBUG]   ServicePrincipalProperties: $($ServicePrincipalProperties -join ', ')" -Level Debug
-        Write-LogFile -Message "[DEBUG]   ShowProgress: $ShowProgress" -Level Debug
-        Write-LogFile -Message "[DEBUG]   PrecacheSize: $PrecacheSize" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-        
-        $azureADModule = Get-Module -Name AzureAD -ErrorAction SilentlyContinue
-        if ($azureADModule) {
-            Write-LogFile -Message "[DEBUG] AzureAD Module Version: $($azureADModule.Version)" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG] AzureAD Module not loaded" -Level Debug
-        }
-    }
-
-	$date = Get-Date -Format "ddMMyyyyHHmmss" 
-	$summary = @{
-        TotalPermissions = 0
-        DelegatedCount = 0
-        ApplicationCount = 0
-        ServicePrincipalsProcessed = 0
-        StartTime = Get-Date
-        ProcessingTime = $null
-    }
-		
-	try {
-        $tenant_details = Get-AzureADTenantDetail -ErrorAction stop
-		if ($isDebugEnabled) {
-			Write-LogFile -Message "[DEBUG] Tenant details retrieved successfully:" -Level Debug
-			Write-LogFile -Message "[DEBUG]   Tenant ID: $($tenant_details.ObjectId)" -Level Debug
-			Write-LogFile -Message "[DEBUG]   Initial Domain: $(($tenant_details.VerifiedDomains | Where-Object { $_.Initial }).Name)" -Level Debug
-			Write-LogFile -Message "[DEBUG]   Display Name: $($tenant_details.DisplayName)" -Level Debug
-		}
-    } catch {
-		write-logFile -Message "[INFO] Ensure you are connected to Azure by running the Connect-Azure command before executing this script" -Color "Yellow" -Level Minimal
-		Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
-		if ($isDebugEnabled) {
-            Write-LogFile -Message "[DEBUG] Connection error details:" -Level Debug
-            Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
-            Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
-        }
-		throw
-	}
-
-	Write-LogFile -Message "=== Starting OAuth Permissions Collection ===" -Color "Cyan" -Level Standard
-    
-	if (!(test-path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Name $OutputDir > $null
-	}
-	else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }
-	
-	$report = @(
-	Write-Verbose ("TenantId: {0}, InitialDomain: {1}" -f `
-					$tenant_details.ObjectId, `
-					($tenant_details.VerifiedDomains | Where-Object { $_.Initial }).Name)
-
-	$script:ObjectByObjectId = @{}
-	$script:ObjectByObjectClassId = @{}
-	$empty = @{} # 
-
-	Write-LogFile -Message "[INFO] Retrieving all ServicePrincipal objects..." -Level Standard
-	Get-AzureADServicePrincipal -All $true | ForEach-Object {
-		CacheObject -Object $_
-		$summary.ServicePrincipalsProcessed++
-	}
-	$servicePrincipalCount = $script:ObjectByObjectClassId['ServicePrincipal'].Count
-
-	if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] ServicePrincipal retrieval completed:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Total ServicePrincipals cached: $servicePrincipalCount" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Cache structure initialized with $($script:ObjectByObjectClassId.Keys.Count) object types" -Level Debug
-    }
-
-	if ($DelegatedPermissions -or (-not ($DelegatedPermissions -or $ApplicationPermissions))) {
-		if ($isDebugEnabled) {
-            Write-LogFile -Message "[DEBUG] Processing delegated permissions..." -Level Debug
-            Write-LogFile -Message "[DEBUG]   Pre-caching $PrecacheSize users..." -Level Debug
-        }
-		
-		Get-AzureADUser -Top $PrecacheSize | Where-Object {
-			CacheObject -Object $_
-		}
-
-		$fastQueryMode = $false
-		try {
-			$null = Get-AzureADOAuth2PermissionGrant -Top 999
-			$fastQueryMode = $true
-		} catch {
-			if ($_.Exception.Message -and $_.Exception.Message.StartsWith("Unexpected end when deserializing array.")) {
-				Write-LogFile -Message "[ERROR] Fast query for delegated permissions failed, using slow method" -Level Minimal -Color "Red"
-			} else {
-				throw $_
-			}
-		}
-
-		$delegatedGrantCount = 0
-		GetOAuth2PermissionGrants -FastMode:$fastQueryMode | ForEach-Object {
-			$grant = $_
-			GetAzureADServicePrincipal($grant.ClientId)
-			if ($grant.Scope) {
-				$grant.Scope.Split(" ") | Where-Object { $_ } | ForEach-Object {
-					$summary.DelegatedCount++
-					if ($isDebugEnabled) {
-                        Write-LogFile -Message "[DEBUG]     Processing permission: '$_' for app '$($script:AppDisplayName)'" -Level Debug
-                    }
-					$grantDetails =  [ordered]@{
-						"PermissionType" = "Delegated"
-						"AppId" = $script:AppId
-						"ClientObjectId" = $grant.ClientId
-						"ResourceObjectId" = $grant.ResourceId
-						"Permission" = $_
-						"ConsentType" = $grant.ConsentType
-						"PrincipalObjectId" = $grant.PrincipalId
-						"Homepage" = $script:homepage
-						"PublisherName" = $script:PublisherName
-						"ReplyUrls" = $null
-						"ExpiryTime" = $grant.ExpiryTime
-					}
-
-					if ($null -ne $ReplyUrls) {
-						$grantDetails["ReplyUrls"] = $script:ReplyUrls -join ', '
-					}
-
-					if ($ServicePrincipalProperties.Count -gt 0) {
-						$client = GetObjectByObjectId -ObjectId $grant.ClientId
-						$resource = GetObjectByObjectId -ObjectId $grant.ResourceId
-						$insertAtClient = 2
-						$insertAtResource = 3
-						foreach ($propertyName in $ServicePrincipalProperties) {
-							$grantDetails.Insert($insertAtClient++, "Client$propertyName", $client.$propertyName)
-							$insertAtResource++
-							$grantDetails.Insert($insertAtResource, "Resource$propertyName", $resource.$propertyName)
-							$insertAtResource ++
-						}
-					}
-
-					if ($UserProperties.Count -gt 0) {
-						$principal = $empty
-						if ($grant.PrincipalId) {
-							$principal = GetObjectByObjectId -ObjectId $grant.PrincipalId
-						}
-						foreach ($propertyName in $UserProperties) {
-							$grantDetails["Principal$propertyName"] = $principal.$propertyName
-						}
-					}
-					New-Object PSObject -Property $grantDetails
-				}
-			}
-		}
-		if ($isDebugEnabled) {
-            Write-LogFile -Message "[DEBUG] Delegated permissions processing completed:" -Level Debug
-            Write-LogFile -Message "[DEBUG]   Total grants processed: $delegatedGrantCount" -Level Debug
-            Write-LogFile -Message "[DEBUG]   Total delegated permissions: $($summary.DelegatedCount)" -Level Debug
-        }
-	}
-
-	if ($ApplicationPermissions -or (-not ($DelegatedPermissions -or $ApplicationPermissions))) {
-		$script:ObjectByObjectClassId['ServicePrincipal'].GetEnumerator() | ForEach-Object { $i = 0 } {
-			if ($ShowProgress) {
-				Write-Progress -Activity "Retrieving application permissions..." `
-							-Status ("Checked {0}/{1} apps" -f $i++, $servicePrincipalCount) `
-							-PercentComplete (($i / $servicePrincipalCount) * 100)
-			}
-
-			$sp = $_.Value
-			GetAzureADServicePrincipal($sp.ObjectId)
-
-			Get-AzureADServiceAppRoleAssignedTo -ObjectId $sp.ObjectId -All $true `
-			| Where-Object { $_.PrincipalType -eq "ServicePrincipal" } | ForEach-Object {
-				$summary.ApplicationCount++
-				$assignment = $_
-
-				$resource = GetObjectByObjectId -ObjectId $assignment.ResourceId
-				$appRole = $resource.AppRoles | Where-Object { $_.Id -eq $assignment.Id }
-
-				if ($isDebugEnabled -and $null -eq $appRole) {
-                    Write-LogFile -Message "[DEBUG]     WARNING: Could not find app role with ID $($assignment.Id) for resource $($assignment.ResourceId)" -Level Debug
-                }
-
-				$grantDetails =  [ordered]@{
-					"PermissionType" = "Application"
-					"AppId" = $null
-					"ClientObjectId" = $assignment.PrincipalId
-					"ResourceObjectId" = $assignment.ResourceId
-					"Permission" = $appRole.Value
-					"IsEnabled" = $null
-					"Description" = $null
-					"CreationTimestamp" = $null
-					"Homepage" = $script:homepage
-					"PublisherName" = $script:PublisherName
-					"ReplyUrls" = $null
-				}
-
-				if ($null -ne $sp -and $sp.AppId) {
-					$grantDetails["AppId"] = $sp.AppId
-				}
-
-				if ($null -ne $ReplyUrls) {
-					$grantDetails["ReplyUrls"] = $script:ReplyUrls -join ', '
-				}
-			
-				if ($null -ne $appRole -and $appRole.IsEnabled) {
-					$grantDetails["IsEnabled"] = $appRole.IsEnabled
-				}
-			
-				if ($null -ne $appRole -and $appRole.Description) {
-					$grantDetails["Description"] = $appRole.Description
-				}
-			
-				if ($null -ne $assignment -and $assignment.CreationTimestamp) {
-					$grantDetails["CreationTimestamp"] = $assignment.CreationTimestamp
-				}
-
-				if ($ServicePrincipalProperties.Count -gt 0) {
-					$client = GetObjectByObjectId -ObjectId $assignment.PrincipalId         		
-
-					$insertAtClient = 2
-					$insertAtResource = 3
-					foreach ($propertyName in $ServicePrincipalProperties) {
-						$grantDetails.Insert($insertAtClient++, "Client$propertyName", $client.$propertyName)
-						$insertAtResource++
-						$grantDetails.Insert($insertAtResource, "Resource$propertyName", $resource.$propertyName)
-						$insertAtResource ++
-					}
-				}
-				
-				New-Object PSObject -Property $grantDetails
-			}
-		}
-	}
-)
-	$summary.TotalPermissions = $summary.DelegatedCount + $summary.ApplicationCount
-	$summary.ProcessingTime = (Get-Date) - $summary.StartTime
-	$report | ConvertTo-Csv | Format-Table > $null
-	$prop = $report.ForEach{ $_.PSObject.Properties.Name } | Select-Object -Unique
-	$report | Select-Object $prop | Export-CSV -NoTypeInformation -Path "$OutputDir\$($date)-OAuthPermissions.csv" -Encoding $Encoding
-
-	Write-LogFile -Message "`n=== OAuth Permissions Analysis Summary ===" -Color "Cyan" -Level Standard
-	Write-LogFile -Message "Service Principals Processed: $($summary.ServicePrincipalsProcessed)" -Level Standard
-	Write-LogFile -Message "Total Permissions Found: $($summary.TotalPermissions)" -Level Standard
-	Write-LogFile -Message "  - Delegated Permissions: $($summary.DelegatedCount)" -Level Standard
-	Write-LogFile -Message "  - Application Permissions: $($summary.ApplicationCount)" -Level Standard
-	Write-LogFile -Message "`nOutput File: $OutputDir\$($date)-OAuthPermissions.csv" -Level Standard
-	Write-LogFile -Message "Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
-	Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
-}
-
 function Get-OAuthPermissionsGraph {
 	<#
 	.SYNOPSIS
@@ -394,78 +28,27 @@ function Get-OAuthPermissionsGraph {
 	param(
 		[switch] $DelegatedPermissions,
 		[switch] $ApplicationPermissions,
-		[string] $OutputDir = "Output\OAuthPermissions",
+		[string] $OutputDir,
 		[string] $Encoding = "UTF8",
 		[ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
 		[string]$LogLevel = 'Standard'
 	)
 
-	Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+    Init-Logging
+	Write-LogFile -Message "=== Starting OAuth Permissions Collection ===" -Color "Cyan" -Level Standard
+    
+    Init-OutputDir -Component "EntraID" -SubComponent "OAuthPermissions" -FilePostfix "OAuthPermissions" -CustomOutputDir $OutputDir
 
-	if ($isDebugEnabled) {
-		Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-		Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-		Write-LogFile -Message "[DEBUG]   DelegatedPermissions: $DelegatedPermissions" -Level Debug
-		Write-LogFile -Message "[DEBUG]   ApplicationPermissions: $ApplicationPermissions" -Level Debug
-		Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-		Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-		
-		$graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-		if ($graphModules) {
-			Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-			foreach ($module in $graphModules) {
-				Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-			}
-		} else {
-			Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-		}
-	}
+	$requiredScopes = @("Application.Read.All")
+    Check-GraphContext -RequiredScopes $requiredScopes
 
-	$date = Get-Date -Format "ddMMyyyyHHmmss"
-	$summary = @{
+	$summary = [ordered]@{
+		ServicePrincipalsProcessed = 0
+		DelegatedGrantsProcessed = 0
 		TotalPermissions = 0
 		DelegatedCount = 0
 		ApplicationCount = 0
-		ServicePrincipalsProcessed = 0
-		DelegatedGrantsProcessed = 0
-		StartTime = Get-Date
-		ProcessingTime = $null
-	}
 
-	$requiredScopes = @("Directory.Read.All", "Application.Read.All")
-	$graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-
-	if ($isDebugEnabled) {
-		Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
-		if ($graphAuth.MissingScopes.Count -gt 0) {
-			Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
-		} else {
-			Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
-		}
-	}
-
-	Write-LogFile -Message "=== Starting OAuth Permissions Collection ===" -Color "Cyan" -Level Standard
-
-	if (!(Test-Path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Path $OutputDir > $null
-		if ($isDebugEnabled) {
-			Write-LogFile -Message "[DEBUG] Created output directory: $OutputDir" -Level Debug
-		}
-	}
-	else {
-		if (!(Test-Path -Path $OutputDir)) {
-			Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-			Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-		} else {
-			if ($isDebugEnabled) {
-				Write-LogFile -Message "[DEBUG] Using existing output directory: $OutputDir" -Level Debug
-			}
-		}
 	}
 
 	$script:ObjectCache = @{}
@@ -802,35 +385,42 @@ function Get-OAuthPermissionsGraph {
 	}
 
 	# Export results
-	$summary.TotalPermissions = $summary.DelegatedCount + $summary.ApplicationCount
-	$summary.ProcessingTime = (Get-Date) - $summary.StartTime
-
 	Write-LogFile -Message "[INFO] Exporting results to CSV..." -Level Standard
-	if ($isDebugEnabled) {
-		Write-LogFile -Message "[DEBUG] Exporting results to CSV..." -Level Debug
-		Write-LogFile -Message "[DEBUG]   Total records to export: $($report.Count)" -Level Debug
+	$report | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+	$oauthPermissionsFile = $script:outputFile
+
+	Write-LogFile -Message "[INFO] Exporting service principals to CSV..." -Level Standard
+    Init-OutputDir -Component "EntraID" -SubComponent "ServicePrincipals" -FilePostfix "ServicePrincipals" -CustomOutputDir $OutputDir
+	$allServicePrincipals | Select-Object AppId, AppDisplayName, AppDescription, AccountEnabled, AppOwnerOrganizationId | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+	$servicePrincipalsFile = $script:outputFile
+
+	Write-LogFile -Message "[INFO] Exporting App Registrations to CSV..." -Level Standard
+	if ($OutputDir) {
+       Init-OutputDir -Component "EntraID" -SubComponent "AppRegistrations" -FilePostfix "AppRegistrations" -CustomOutputDir $OutputDir
+    } else {
+       Init-OutputDir -Component "EntraID" -SubComponent "AppRegistrations" -FilePostfix "AppRegistrations"
+    }
+
+ 	Get-MgApplication -All | Select-Object Id, DisplayName, AppId, CreatedDateTime | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+	$appRegistrationsFile = $script:outputFile
+
+	$summary.TotalPermissions = $summary.DelegatedCount + $summary.ApplicationCount
+	$summaryOutput = [ordered]@{
+		"Processing Summary" = [ordered]@{
+			"Service Principals Processed" = $summary.ServicePrincipalsProcessed
+			"Delegated Grants Processed" = $summary.DelegatedGrantsProcessed
+		}
+		"Permissions Found" = [ordered]@{
+			"Total Permissions" = $summary.TotalPermissions
+			"Delegated Permissions" = $summary.DelegatedCount
+			"Application Permissions" = $summary.ApplicationCount
+		}
+		"Output Files" = [ordered]@{
+			"OAuth Permissions" = $oauthPermissionsFile
+			"Service Principals" = $servicePrincipalsFile
+			"App Registrations" = $appRegistrationsFile
+		}
 	}
 
-	$outputPath = Join-Path $OutputDir "$($date)-OAuthPermissions.csv"
-	$report | Export-CSV -NoTypeInformation -Path $outputPath -Encoding $Encoding
-
-	Write-LogFile -Message "[INFO] Export completed successfully" -Level Standard -Color "Green"
-	if ($isDebugEnabled) {
-		Write-LogFile -Message "[DEBUG] Export completed successfully" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Output file: $outputPath" -Level Debug
-		Write-LogFile -Message "[DEBUG]   File size: $(if (Test-Path $outputPath) { (Get-Item $outputPath).Length } else { 'File not found' }) bytes" -Level Debug
-		Write-LogFile -Message "[DEBUG] Performance metrics:" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Processing time: $($summary.ProcessingTime.ToString('mm\:ss\.fff'))" -Level Debug
-		Write-LogFile -Message "[DEBUG]   Records per second: $([math]::Round($summary.TotalPermissions / $summary.ProcessingTime.TotalSeconds, 2))" -Level Debug
-	}
-
-	Write-LogFile -Message "`n=== OAuth Permissions Analysis Summary ===" -Color "Cyan" -Level Standard
-	Write-LogFile -Message "Service Principals Processed: $($summary.ServicePrincipalsProcessed)" -Level Standard
-	Write-LogFile -Message "Delegated Grants Processed: $($summary.DelegatedGrantsProcessed)" -Level Standard
-	Write-LogFile -Message "Total Permissions Found: $($summary.TotalPermissions)" -Level Standard
-	Write-LogFile -Message "  - Delegated Permissions: $($summary.DelegatedCount)" -Level Standard
-	Write-LogFile -Message "  - Application Permissions: $($summary.ApplicationCount)" -Level Standard
-	Write-LogFile -Message "`nOutput File: $outputPath" -Level Standard
-	Write-LogFile -Message "Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
-	Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+	Write-Summary -Summary $summaryOutput -Title "OAuth Permissions Summary" -SkipExportDetails
 }

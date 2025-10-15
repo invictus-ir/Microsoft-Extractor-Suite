@@ -52,7 +52,7 @@ Function Get-SecurityAlerts {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\SecurityAlerts",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [string]$AlertId,
         [int]$DaysBack = 90,
@@ -61,33 +61,22 @@ Function Get-SecurityAlerts {
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $date = Get-Date -Format "yyyyMMddHHmm"
+    Init-Logging
+    Init-OutputDir -Component "SecurityAlerts" -FilePostfix "SecurityAlerts" -CustomOutputDir $OutputDir
 
     Write-LogFile -Message "=== Starting Security Alerts Collection ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("SecurityEvents.Read.All")
-    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-        
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    } 
-    else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }
-
+    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes       
     Write-LogFile -Message "[INFO] Analyzing security alerts..." -Level Standard
 
     try {
         # Choose the appropriate cmdlet based on auth type
         if ($graphAuth.Type -eq "Application") {
-            Write-LogFile -Message "[INFO] Using application authentication - selecting Get-MgSecurityAlertV2" -Level Standard
+            #Write-LogFile -Message "[INFO] Using application authentication - selecting Get-MgSecurityAlertV2" -Level Standard
             $cmdlet = "Get-MgSecurityAlertV2"
         } else {
-            Write-LogFile -Message "[INFO] Using delegated authentication - selecting Get-MgSecurityAlert" -Level Standard
+            #Write-LogFile -Message "[INFO] Using delegated authentication - selecting Get-MgSecurityAlert" -Level Standard
             $cmdlet = "Get-MgSecurityAlert"
         }
 
@@ -156,6 +145,7 @@ Function Get-SecurityAlerts {
             }
             
             switch ($_.Status) {
+                "newAlert" { $alertSummary.StatusNew++ }
                 "new" { $alertSummary.StatusNew++ }
                 "inProgress" { $alertSummary.StatusInProgress++ }
                 "resolved" { $alertSummary.StatusResolved++ }
@@ -251,26 +241,28 @@ Function Get-SecurityAlerts {
             }
         }
 
-        $filePath = "$OutputDir\$($date)-SecurityAlerts.csv"
-        $formattedAlerts | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+        $formattedAlerts | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
-        Write-LogFile -Message "`nSecurity Alert Analysis Results:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "Total Alerts: $($alertSummary.TotalAlerts)" -Level Standard
-        Write-LogFile -Message "`nSeverity Distribution:" -Level Standard
-        Write-LogFile -Message "  - High: $($alertSummary.SeverityHigh)" -Level Standard
-        Write-LogFile -Message "  - Medium: $($alertSummary.SeverityMedium)" -Level Standard
-        Write-LogFile -Message "  - Low: $($alertSummary.SeverityLow)" -Level Standard
-        Write-LogFile -Message "  - Informational: $($alertSummary.SeverityInformational)" -Level Standard
-        
-        Write-LogFile -Message "`nStatus Distribution:" -Level Standard
-        Write-LogFile -Message "  - New: $($alertSummary.StatusNew)" -Level Standard
-        Write-LogFile -Message "  - In Progress: $($alertSummary.StatusInProgress)" -Level Standard
-        Write-LogFile -Message "  - Resolved: $($alertSummary.StatusResolved)" -Level Standard
-        Write-LogFile -Message "  - Dismissed: $($alertSummary.StatusDismissed)" -Level Standard
-        Write-LogFile -Message "  - Unknown: $($alertSummary.StatusUnknown)" -Level Standard
+        $summary = [ordered]@{
+            "Alert Summary" = [ordered]@{
+                "Total Alerts" = $alertSummary.TotalAlerts
+            }
+            "Severity Distribution" = [ordered]@{
+                "High" = $alertSummary.SeverityHigh
+                "Medium" = $alertSummary.SeverityMedium
+                "Low" = $alertSummary.SeverityLow
+                "Informational" = $alertSummary.SeverityInformational
+            }
+            "Status Distribution" = [ordered]@{
+                "New" = $alertSummary.StatusNew
+                "In Progress" = $alertSummary.StatusInProgress
+                "Resolved" = $alertSummary.StatusResolved
+                "Dismissed" = $alertSummary.StatusDismissed
+                "Unknown" = $alertSummary.StatusUnknown
+            }
+        }
 
-        Write-LogFile -Message "`nExported File:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "  - File: $filePath" -Level Standard
+        Write-Summary -Summary $summary -Title "Security Alerts Analysis"
     }
     catch {
         Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal

@@ -56,40 +56,14 @@ function Get-ActivityLogs {
 		[string]$StartDate,
 		[string]$EndDate,
 		[string]$SubscriptionID,
-		[string]$OutputDir = "Output\ActivityLogs",
+		[string]$OutputDir,
 		[string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'		
 	)
 
-	Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Called at: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss.fff')" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   StartDate: $StartDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   EndDate: $EndDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   SubscriptionID: $SubscriptionID" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        
-        $azAccountsModule = Get-Module -Name Az.Accounts -ErrorAction SilentlyContinue
-        if ($azAccountsModule) {
-            Write-LogFile -Message "[DEBUG] Az.Accounts Module Version: $($azAccountsModule.Version)" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG] Az.Accounts Module not loaded" -Level Debug
-        }
-
-        $azProfileModule = Get-Module -Name Az.Profile -ErrorAction SilentlyContinue
-        if ($azProfileModule) {
-            Write-LogFile -Message "[DEBUG] Az.Profile Module Version: $($azProfileModule.Version)" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG] Az.Profile Module not loaded" -Level Debug
-        }
-    }
+	Init-Logging
+    Init-OutputDir -Component "Activity Logs" -FilePostfix "ActivityLogs" -CustomOutputDir $OutputDir
 
     $summary = @{
         TotalRecords = 0
@@ -108,17 +82,6 @@ function Get-ActivityLogs {
 
 	Write-LogFile -Message "Start Date: $($script:StartDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard
 	Write-LogFile -Message "End Date: $($script:EndDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard
-    Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
-    Write-LogFile -Message "----------------------------------------`n" -Level Standard
-
-	if (!(test-path $OutputDir)) {
-		New-Item -ItemType Directory -Force -Path $OutputDir > $null
-	} else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir" -Level Minimal -Color "Red"
-            return
-        }
-    }
 
 	$originalWarningPreference = $WarningPreference
 	$WarningPreference = 'SilentlyContinue'
@@ -258,7 +221,7 @@ function Get-ActivityLogs {
         }
 
 		$date = [datetime]::Now.ToString('yyyyMMddHHmmss') 
-		$filePath = "$OutputDir\$($date)-$subId-ActivityLog.json"
+        $filePath = "$(Split-Path $script:outputFile -Parent)\$($date)-$subId-ActivityLog.json"
 
 		$uriBase = "https://management.azure.com/subscriptions/$subId/providers/Microsoft.Insights/eventtypes/management/values?api-version=2015-04-01&`$filter=eventTimestamp ge '$script:StartDate' and eventTimestamp le '$script:endDate'"
 		$events = @()
@@ -339,15 +302,18 @@ function Get-ActivityLogs {
 		}
 	}
 	$summary.ProcessingTime = (Get-Date) - $summary.StartTime
-    Write-LogFile -Message "`n=== Activity Log Collection Summary ===" -Color "Cyan" -Level Standard
-    Write-LogFile -Message "  Total Records: $($summary.TotalRecords)" -Level Standard
-    Write-LogFile -Message "  Files Created: $($summary.TotalFiles)" -Level Standard
-    Write-LogFile -Message "  Subscriptions:" -Level Standard
-    Write-LogFile -Message "    - Total Processed: $($summary.SubscriptionsProcessed)" -Level Standard
-    Write-LogFile -Message "    - With Data: $($summary.SubscriptionsWithData)" -Level Standard
-    Write-LogFile -Message "    - Empty: $($summary.EmptySubscriptions)" -Level Standard
-    Write-LogFile -Message "`nOutput Details:" -Level Standard
-    Write-LogFile -Message "  Directory: $OutputDir" -Level Standard
-    Write-LogFile -Message "  Processing Time: $($summary.ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
-    Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+    $summaryData = [ordered]@{
+        "Collection Results" = [ordered]@{
+            "Total Records" = $summary.TotalRecords
+            "Files Created" = $summary.TotalFiles
+        }
+        "Subscriptions" = [ordered]@{
+            "Total Processed" = $summary.SubscriptionsProcessed
+            "With Data" = $summary.SubscriptionsWithData
+            "Empty" = $summary.EmptySubscriptions
+        }
+    }
+
+    Write-Summary -Summary $summaryData -Title "Activity Log Collection Summary"
+    Write-LogFile -Message "`nNote: Output files saved to: $(Split-Path $script:outputFile -Parent)" -Level Standard
 }

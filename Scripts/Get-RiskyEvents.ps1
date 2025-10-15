@@ -44,61 +44,25 @@ function Get-RiskyUsers {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\RiskyEvents",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [string[]]$UserIds,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
+    Init-Logging
     Write-LogFile -Message "=== Starting Risky Users Collection ===" -Color "Cyan" -Level Standard
 
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: '$($UserIds -join ', ')'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds count: $($UserIds.Count)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-        
-        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModules) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModules) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
+    $filePostfix = "RiskyUsers"
+    if ($UserIds) {
+        $userString = ($UserIds -join "-").Substring(0, [Math]::Min(50, ($UserIds -join "-").Length))
+        $filePostfix = "RiskyUsers-$userString"
     }
-
+    
+    Init-OutputDir -Component "RiskyEvents" -FilePostfix $filePostfix -CustomOutputDir $OutputDir
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
-        if ($graphAuth.MissingScopes.Count -gt 0) {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
-        }
-    }
-    if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    }
-    else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }
 
     $results = @()
     $count = 0
@@ -173,7 +137,14 @@ function Get-RiskyUsers {
                                 AdditionalProperties = $user.AdditionalProperties -join ", "
                             }
                             
-                            if ($user.RiskLevel) { $riskSummary[$user.RiskLevel]++ }
+                            if ($user.RiskLevel) { 
+                                switch ($user.RiskLevel.ToLower()) {
+                                    "high" { $riskSummary.High++ }
+                                    "medium" { $riskSummary.Medium++ }
+                                    "low" { $riskSummary.Low++ }
+                                    "none" { $riskSummary.None++ }
+                                }
+                            }
                             if ($user.RiskState -eq "atRisk") { $riskSummary.AtRisk++ }
                             elseif ($user.RiskState -eq "notAtRisk") { $riskSummary.NotAtRisk++ }
                             elseif ($user.RiskState -eq "remediated") { $riskSummary.Remediated++ }
@@ -245,7 +216,14 @@ function Get-RiskyUsers {
                             AdditionalProperties        = $user.AdditionalProperties -join ", "
                         }
 
-                        if ($user.RiskLevel) { $riskSummary[$user.RiskLevel]++ }
+                        if ($user.RiskLevel) { 
+                            switch ($user.RiskLevel.ToLower()) {
+                                "high" { $riskSummary.High++ }
+                                "medium" { $riskSummary.Medium++ }
+                                "low" { $riskSummary.Low++ }
+                                "none" { $riskSummary.None++ }
+                            }
+                        }
                         if ($user.RiskState -eq "atRisk") { $riskSummary.AtRisk++ }
                         elseif ($user.RiskState -eq "confirmedSafe") { $riskSummary.NotAtRisk++ }
                         elseif ($user.RiskState -eq "remediated") { $riskSummary.Remediated++ }
@@ -267,29 +245,27 @@ function Get-RiskyUsers {
         throw
     }
 
-    $date = Get-Date -Format "yyyyMMddHHmm"
-    $filePath = "$OutputDir\$($date)-RiskyUsers.csv"
-
     if ($results.Count -gt 0) {
-        $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+        $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
         Write-LogFile -Message "[INFO] A total of $count Risky Users found" -Level Standard
         
-        Write-LogFile -Message "`nSummary of Risky Users:" -Color "Cyan" -Level Standard 
-        Write-LogFile -Message "----------------------------------------" -Level Standard
-        Write-LogFile -Message "Total Risky Users: $count" -Level Standard
-        Write-LogFile -Message "  - High Risk: $($riskSummary.High)" -Level Standard
-        Write-LogFile -Message "  - Medium Risk: $($riskSummary.Medium)" -Level Standard
-        Write-LogFile -Message "  - Low Risk: $($riskSummary.Low)" -Level Standard
+        $summary = [ordered]@{
+            "Risk Levels" = [ordered]@{
+                "Total Risky Users" = $count
+                "High Risk" = $riskSummary.High
+                "Medium Risk" = $riskSummary.Medium
+                "Low Risk" = $riskSummary.Low
+            }
+            "Risk States" = [ordered]@{
+                "At Risk" = $riskSummary.AtRisk
+                "Confirmed Safe" = $riskSummary.NotAtRisk
+                "Remediated" = $riskSummary.Remediated
+                "Dismissed" = $riskSummary.Dismissed
+            }
+        }
 
-        Write-LogFile -Message "`nRisk States:" -Level Standard
-        Write-LogFile -Message "  - At Risk: $($riskSummary.AtRisk)" -Level Standard
-        Write-LogFile -Message "  - Confirmed Safe: $($riskSummary.NotAtRisk)" -Level Standard
-        Write-LogFile -Message "  - Remediated: $($riskSummary.Remediated)" -Level Standard
-        Write-LogFile -Message "  - Dismissed: $($riskSummary.Dismissed)" -Level Standard
-
-        Write-LogFile -Message "`nExported Files:" -Level Standard
-        Write-LogFile -Message "  - $filePath" -Level Standard
-        } else {
+        Write-Summary -Summary $summary -Title "Risky Users Summary"
+    } else {
         Write-LogFile -Message "[INFO] No Risky Users found" -Color "Yellow" -Level Standard
     }
 }
@@ -340,62 +316,25 @@ function Get-RiskyDetections {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir= "Output\RiskyEvents",
+        [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [string[]]$UserIds,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: '$Encoding'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: '$($UserIds -join ', ')'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds count: $($UserIds.Count)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-        
-        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModules) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModules) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
+    Init-Logging
+    $filePostfix = "RiskyEvents"
+    if ($UserIds) {
+        $userString = ($UserIds -join "-").Substring(0, [Math]::Min(50, ($UserIds -join "-").Length))
+        $filePostfix = "RiskyEvents-$userString"
     }
 
+    Init-OutputDir -Component "RiskyEvents" -FilePostfix $filePostfix -CustomOutputDir $OutputDir
     Write-LogFile -Message "=== Starting Risky Detections Collection ===" -Color "Cyan" -Level Standard
 
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] Graph authentication details:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Required scopes: $($requiredScopes -join ', ')" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Authentication type: $($graphAuth.AuthType)" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Current scopes: $($graphAuth.Scopes -join ', ')" -Level Debug
-        if ($graphAuth.MissingScopes.Count -gt 0) {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: $($graphAuth.MissingScopes -join ', ')" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG]   Missing scopes: None" -Level Debug
-        }
-    }
-
-    if (!(test-path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-    }
-    else {
-        if (!(Test-Path -Path $OutputDir)) {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }
 
     $results = @()
     $count = 0
@@ -584,31 +523,31 @@ function Get-RiskyDetections {
         throw
     }
 
-    $date = Get-Date -Format "yyyyMMddHHmm"
-    $filePath = "$OutputDir\$($date)-RiskyDetections.csv"
 
     if ($results.Count -gt 0) {
-        $results | Export-Csv -Path $filePath -NoTypeInformation -Encoding $Encoding
+        $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
-        Write-LogFile -Message "`nSummary of Risky Detections:" -Color "Cyan" -Level Standard 
-        Write-LogFile -Message "----------------------------------------" -Level Standard
-        Write-LogFile -Message "Total Risky Detections: $count" -Level Standard
-        Write-LogFile -Message "  - High Risk: $($riskSummary.High)" -Level Standard
-        Write-LogFile -Message "  - Medium Risk: $($riskSummary.Medium)" -Level Standard
-        Write-LogFile -Message "  - Low Risk: $($riskSummary.Low)" -Level Standard
+        $summary = [ordered]@{
+            "Detection Summary" = [ordered]@{
+                "Total Risky Detections" = $count
+                "High Risk" = $riskSummary.High
+                "Medium Risk" = $riskSummary.Medium
+                "Low Risk" = $riskSummary.Low
+            }
+            "Risk States" = [ordered]@{
+                "At Risk" = $riskSummary.AtRisk
+                "Confirmed Safe" = $riskSummary.NotAtRisk
+                "Remediated" = $riskSummary.Remediated
+                "Dismissed" = $riskSummary.Dismissed
+            }
+            "Affected Resources" = [ordered]@{
+                "Unique Users" = $riskSummary.UniqueUsers.Count
+                "Unique Countries" = $riskSummary.UniqueCountries.Count
+                "Unique Cities" = $riskSummary.UniqueCities.Count
+            }
+        }
 
-        Write-LogFile -Message "`nRisk States:" -Level Standard
-        Write-LogFile -Message "  - At Risk: $($riskSummary.AtRisk)" -Level Standard
-        Write-LogFile -Message "  - Confirmed Safe: $($riskSummary.NotAtRisk)" -Level Standard
-        Write-LogFile -Message "  - Remediated: $($riskSummary.Remediated)" -Level Standard
-        Write-LogFile -Message "  - Dismissed: $($riskSummary.Dismissed)" -Level Standard
-
-        Write-LogFile -Message "`nAffected Resources:" -Level Standard 
-        Write-LogFile -Message "  - Unique Users: $($riskSummary.UniqueUsers.Count)" -Level Standard
-        Write-LogFile -Message "  - Unique Countries: $($riskSummary.UniqueCountries.Count)" -Level Standard
-
-        Write-LogFile -Message "`nExported Files:" -Level Standard
-        Write-LogFile -Message "  - $filePath" -Level Standard
+        Write-Summary -Summary $summary -Title "Risky Detections Summary"
     } else {
         Write-LogFile -Message "[INFO] No Risky Detections found" -Color "Yellow" -Level Standard
     }

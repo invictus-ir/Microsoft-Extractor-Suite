@@ -21,7 +21,7 @@ function Get-UAL {
 	Default: Now
 
 	.PARAMETER Output
-    Output is the parameter specifying the CSV, JSON, or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
+    Output is the parameter specifying the CSV, JSON, JSONL or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
 	Default: CSV
 
 	.PARAMETER OutputDir
@@ -29,7 +29,7 @@ function Get-UAL {
 	Default: Output\UnifiedAuditLog
 
  	.PARAMETER MergeOutput
-    MergeOutput is the parameter specifying if you wish to merge CSV/JSON/SOF-ELK outputs to a single file.
+    MergeOutput is the parameter specifying if you wish to merge CSV/JSON/JSONL/SOF-ELK outputs to a single file.
 
 	.PARAMETER Encoding
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.
@@ -54,8 +54,8 @@ function Get-UAL {
     The RecordType parameter filters the log entries by record type.
 	Options are: ExchangeItem, ExchangeAdmin, etc. A total of 353 RecordTypes are supported.
 
- 	.PARAMETER Operation
-    The Operation parameter filters the log entries by operation or activity type.
+ 	.PARAMETER Operations
+    The Operations parameter filters the log entries by operations or activity type.
 	Options are: New-MailboxRule, MailItemsAccessed, etc.
 
 	.PARAMETER LogLevel
@@ -112,7 +112,7 @@ function Get-UAL {
 	Gets the ExchangeItem and all Azure related logging from the unified audit log.
 
 	.EXAMPLE
-	Get-UAL -Operation New-InboxRule
+	Get-UAL -Operations New-InboxRule
 	Gets the New-InboxRule logging from the unified audit log.
 
 	.EXAMPLE
@@ -129,8 +129,8 @@ function Get-UAL {
 			[ValidateSet("Exchange", "Azure", "Sharepoint", "Skype", "Defender")]
 			[string]$Group = $null,
 			[array]$RecordType = $null,
-			[array]$Operation = $null,
-			[ValidateSet("CSV", "JSON", "SOF-ELK")]
+			[array]$Operations = $null,
+			[ValidateSet("CSV", "JSON", "SOF-ELK", "JSONL")]
 			[string]$Output = "CSV",
 			[switch]$MergeOutput,
 			[string]$OutputDir,
@@ -143,9 +143,11 @@ function Get-UAL {
 			[int]$MaxItemsPerInterval = 50000
 		)
 
-	Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
+	Init-Logging
+    Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix "UAL" -CustomOutputDir $OutputDir
+	$OutputDir = Split-Path $script:outputFile -Parent
+	Write-LogFile -Message "=== Starting Unified Audit Log Collection ===" -Color "Cyan" -Level Standard
+	
 	$stats = @{
 		StartTime = Get-Date
 		ProcessingTime = $null
@@ -153,41 +155,6 @@ function Get-UAL {
 		FilesCreated = 0
 		IntervalAdjustments = 0
 	}
-
-	Write-LogFile -Message "=== Starting Unified Audit Log Collection ===" -Color "Cyan" -Level Standard
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        
-        $exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-        if ($exchangeModule) {
-            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
-        }
-
-		$orgUnit = Get-OrganizationalUnit | Where-Object { $_.Name -like "*onmicrosoft.com" } | Select-Object -First 1        
-		if ($orgUnit) {
-			Write-LogFile -Message "[DEBUG] Tenant Name: $($orgUnit.Name)" -Level Debug
-			Write-LogFile -Message "[DEBUG] Canonical Name: $($orgUnit.CanonicalName)" -Level Debug
-			Write-LogFile -Message "[DEBUG] Distinguished Name: $($orgUnit.DistinguishedName)" -Level Debug
-			Write-LogFile -Message "[DEBUG] Organization ID: $($orgUnit.OrganizationId)" -Level Debug
-			Write-LogFile -Message "[DEBUG] Exchange Object ID: $($orgUnit.ExchangeObjectId)" -Level Debug
-		}
-
-		$connectionInfo = Get-ConnectionInformation -ErrorAction Stop
-        Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Connection Type: $($connectionInfo.TokenStatus)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug	
-        
-        Write-LogFile -Message "[DEBUG] Script parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   StartDate: $StartDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   EndDate: $EndDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Group: $Group" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Output: $Output" -Level Debug
-        Write-LogFile -Message "[DEBUG]   MaxItemsPerInterval: $MaxItemsPerInterval" -Level Debug
-    }
 
 	try {
 		$areYouConnected = Search-UnifiedAuditLog -StartDate (Get-Date).AddDays(-1) -EndDate (Get-Date) -ResultSize 1 -ErrorAction Stop
@@ -217,25 +184,12 @@ function Get-UAL {
         $baseSearchQuery.ObjectIds = $ObjectIds
     }
 
-	if ($Operation) {
-		$baseSearchQuery.Operations = $Operation
+	if ($Operations) {
+		$baseSearchQuery.Operations = $Operations
 	}
 
 	$totalResults = 0
 	$recordTypes = [System.Collections.ArrayList]::new()
-
-	$date = [datetime]::Now.ToString('yyyyMMddHHmmss')
-	if ($OutputDir -eq "") {
-		$OutputDir = "Output\UnifiedAuditLog\$date"
-		If (!(test-path $OutputDir)) {
-			New-Item -ItemType Directory -Force -Path $OutputDir > $null
-		}
-	} else {
-		if (!(Test-Path -Path $OutputDir)) {
-			Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-			Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-		}
-	}
 
 	$GroupRecordTypes = @{
         "Exchange" = @("ExchangeAdmin","ExchangeAggregatedOperation","ExchangeItem","ExchangeItemGroup",
@@ -297,9 +251,9 @@ function Get-UAL {
 			Write-LogFile -Message "  - $record" -Level Standard
 		}
 	}
-	if ($Operation) {
+	if ($Operations) {
 		Write-LogFile -Message "`nThe following Operation(s) are configured to be extracted:" -Level Standard
-		foreach ($activity in $Operation) {
+		foreach ($activity in $Operations) {
 			Write-LogFile -Message "- $activity" -Level Standard
 		}
 	}
@@ -713,6 +667,12 @@ function Get-UAL {
 											}
 											Add-Content "$OutputDir/UAL-$sessionID.json" "`n"
 										}
+										elseif ($Output -eq "JSONL") {
+											$stats.FilesCreated++
+											$allResults | ForEach-Object {
+												$_ | ConvertTo-Json -Compress -Depth 100 | Out-File -Append "$outputPath.jsonl" -Encoding $Encoding
+											}
+										}
 										elseif ($Output -eq "CSV") {
 											$stats.FilesCreated++
 											$allResults | export-CSV "$outputPath.csv" -NoTypeInformation -Append -Encoding $Encoding
@@ -776,18 +736,28 @@ function Get-UAL {
         switch ($Output) {
             "CSV" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "CSV" -MergedFileName "UAL-Combined.csv" }
             "JSON" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "UAL-Combined.json" }
+			"JSONL" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSONL" -MergedFileName "UAL-Combined.jsonl" }
             "SOF-ELK" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "SOF-ELK" -MergedFileName "UAL-Combined.json" }
         }
     }
 
 	$stats.ProcessingTime = (Get-Date) - $stats.StartTime
-	Write-LogFile -Message "`n=== Collection Summary ===" -Color "Cyan" -Level Standard
-	Write-LogFile -Message "Start date: $($script:StartDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard
-	Write-LogFile -Message "End date: $($script:EndDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard
-	Write-LogFile -Message "Total Records: $($stats.TotalRecords)" -Level Standard
-	Write-LogFile -Message "Files Created: $($stats.FilesCreated)" -Level Standard
-	Write-LogFile -Message "Interval Adjustments: $($stats.IntervalAdjustments)" -Level Standard
-	Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
-	Write-LogFile -Message "Processing Time: $($stats.ProcessingTime.ToString('hh\:mm\:ss'))" -Level Standard -Color "Green"
-	Write-LogFile -Message "===================================" -Color "Cyan" -Level Standard
+
+	$summary = [ordered]@{
+		"Date Range" = [ordered]@{
+			"Start Date" = $script:StartDate.ToString('yyyy-MM-dd HH:mm:ss')
+			"End Date" = $script:EndDate.ToString('yyyy-MM-dd HH:mm:ss')
+		}
+		"Collection Statistics" = [ordered]@{
+			"Total Records" = $stats.TotalRecords
+			"Files Created" = $stats.FilesCreated
+			"Interval Adjustments" = $stats.IntervalAdjustments
+		}
+		"Export Details" = [ordered]@{
+			"Output Directory" = $OutputDir
+			"Processing Time" = $stats.ProcessingTime.ToString('hh\:mm\:ss')
+		}
+	}
+
+	Write-Summary -Summary $summary -Title "Unified Audit Log Collection Summary" -SkipExportDetails
 }

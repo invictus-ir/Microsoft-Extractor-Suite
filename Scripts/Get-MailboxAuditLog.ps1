@@ -61,7 +61,7 @@ function Get-MailboxAuditLog
         [string]$StartDate,
         [string]$EndDate,
         [decimal]$Interval = 1440,
-        [string]$OutputDir = "Output\MailboxAuditLog",
+        [string]$OutputDir,
         [ValidateSet("CSV", "JSON", "SOF-ELK")]
         [string]$Output = "CSV",
         [switch]$MergeOutput,
@@ -70,26 +70,11 @@ function Get-MailboxAuditLog
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+    Init-Logging
+    Init-OutputDir -Component "Mailbox Audit Log" -FilePostfix "MailboxAuditLog" -CustomOutputDir $OutputDir
+    $OutputDir = Split-Path $script:outputFile -Parent
 
     Write-LogFile -Message "== Starting the Mailbox Audit Log Collection (utilizing Get-UAL) ==" -Level Standard
-
-    $date = [datetime]::Now.ToString('yyyyMMddHHmmss')
-    if ($OutputDir -eq "Output\MailboxAuditLog") {
-        $OutputDir = "Output\MailboxAuditLog\$date"
-    }
-
-    if (!(Test-Path -Path $OutputDir)) {
-        try {
-            New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
-        }
-        catch {
-            Write-LogFile -Message "[Error] Failed to create directory: $OutputDir" -Level Minimal -Color "Red"
-            Write-Error "[Error] Failed to create directory: $OutputDir"
-            return
-        }
-    }
 
     $params = @{
         RecordType = "ExchangeItem"
@@ -175,14 +160,15 @@ function Get-MailboxAuditLogLegacy
 		[string]$UserIds,
 		[string]$StartDate,
 		[string]$EndDate,
-		[string]$OutputDir = "Output\MailboxAuditLog",
+		[string]$OutputDir,
 		[string]$Encoding = "UTF8",
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
 	)
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+    Init-Logging
+    Init-OutputDir -Component "Mailbox Audit Log" -SubComponent "Legacy" -FilePostfix "MailboxAuditLogLegacy" -CustomOutputDir $OutputDir
+    $OutputDir = Split-Path $script:outputFile -Parent
 
 	try {
         $areYouConnected = Search-MailboxAuditlog -ErrorAction stop
@@ -193,52 +179,7 @@ function Get-MailboxAuditLogLegacy
         throw
     }
 
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   UserIds: $UserIds" -Level Debug
-        Write-LogFile -Message "[DEBUG]   StartDate: $StartDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   EndDate: $EndDate" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: $OutputDir" -Level Debug
-        Write-LogFile -Message "[DEBUG]   Encoding: $Encoding" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: $LogLevel" -Level Debug
-        
-        $exchangeModule = Get-Module -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue
-        if ($exchangeModule) {
-            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module Version: $($exchangeModule.Version)" -Level Debug
-        } else {
-            Write-LogFile -Message "[DEBUG] ExchangeOnlineManagement Module not loaded" -Level Debug
-        }
-
-        try {
-            $connectionInfo = Get-ConnectionInformation -ErrorAction SilentlyContinue
-            if ($connectionInfo) {
-                Write-LogFile -Message "[DEBUG] Connection Status: $($connectionInfo.State)" -Level Debug
-                Write-LogFile -Message "[DEBUG] Connection Type: $($connectionInfo.TokenStatus)" -Level Debug
-                Write-LogFile -Message "[DEBUG] Connected Account: $($connectionInfo.UserPrincipalName)" -Level Debug
-            } else {
-                Write-LogFile -Message "[DEBUG] No active Exchange Online connection found" -Level Debug
-            }
-        } catch {
-            Write-LogFile -Message "[DEBUG] Unable to retrieve connection information" -Level Debug
-        }
-    }
-
     Write-LogFile -Message "[INFO] Running Get-MailboxAuditLogLegacy" -Level Minimal -Color "Green"
-
-	If (!(Test-Path $OutputDir)){
-        New-Item -ItemType Directory -Force -Path $OutputDir > $null
-        Write-LogFile -Message "[INFO] Creating the following directory: $OutputDir" -Level Standard
-    }
-    else {
-        if (Test-Path -Path $OutputDir) {
-            Write-LogFile -Message "[INFO] Custom directory set to: $OutputDir" -Level Standard
-        }
-        else {
-            Write-Error "[Error] Custom directory invalid: $OutputDir exiting script" -ErrorAction Stop
-            Write-LogFile -Message "[Error] Custom directory invalid: $OutputDir exiting script" -Level Minimal
-        }
-    }
 	
 	StartDate
 	EndDate

@@ -24,35 +24,13 @@ Function Get-Licenses {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\Licenses",
+        [string]$OutputDir,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-        
-        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModules) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModules) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
-
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
-    }
-
+    Init-Logging
+    Init-OutputDir -Component "Licenses" -FilePostfix "TenantLicenses" -CustomOutputDir $OutputDir
     Write-LogFile -Message "=== Starting License Collection ===" -Color "Cyan" -Level Standard
 
     try {
@@ -99,10 +77,8 @@ Function Get-Licenses {
             }
         }
 
-        $date = [datetime]::Now.ToString('yyyyMMddHHmmss')
-        $outputFile = Join-Path $OutputDir "$($date)-TenantLicenses.csv"
-        $results | Sort-Object -Property Units -Descending | Export-Csv -Path $outputFile -NoTypeInformation -Encoding UTF8
-        Write-LogFile -Message "[INFO] License information saved to: $outputFile" -Color "Green" -Level Standard
+        $results | Sort-Object -Property Units -Descending | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding UTF8
+        Write-LogFile -Message "[INFO] License information saved to: $script:outputFile" -Color "Green" -Level Standard
         Write-LogFile -Message "`nLicense Information:" -Color "Cyan" -Level Standard
 
         return $results | 
@@ -161,33 +137,10 @@ Function Get-LicenseCompatibility {
     param(
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard',
-        [string]$OutputDir = "Output\Licenses"
+        [string]$OutputDir
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-        
-        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModules) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModules) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
-
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
-    }
-
+    Init-Logging
     Write-LogFile -Message "=== Starting License Compatibility Check ===" -Color "Cyan" -Level Standard
 
     try {
@@ -307,35 +260,13 @@ Function Get-EntraSecurityDefaults {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\Licenses",
+        [string]$OutputDir,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-        
-        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModules) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModules) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
-
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
-    }
-
+    Init-Logging
+    Init-OutputDir -Component "Licenses" -FilePostfix "EntraSecurityDefaults" -CustomOutputDir $OutputDir
     Write-LogFile -Message "=== Starting Security Defaults Check ===" -Color "Cyan" -Level Standard
 
     try {
@@ -417,15 +348,13 @@ Function Get-EntraSecurityDefaults {
             CheckDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
         }
 
-        $date = [datetime]::Now.ToString('yyyyMMddHHmmss')
-        $outputFile = Join-Path $OutputDir "$($date)-EntraSecurityDefaults.csv"
-        $result | Export-Csv -Path $outputFile -NoTypeInformation -Encoding UTF8
+        $result | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding UTF8
 
         Write-LogFile -Message "`nCheck Summary:" -Color "Cyan" -Level Standard
         Write-LogFile -Message ($result | Format-List | Out-String).Trim() -Level Standard
         
         Write-LogFile -Message "`nOutput Files:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "- Results exported to: $outputFile" -Color "Green" -Level Standard
+        Write-LogFile -Message "- Results exported to: $script:outputFile" -Color "Green" -Level Standard
     } catch {
         Write-LogFile -Message "[ERROR] Failed to check security defaults: $($_.Exception.Message)" -Color "Red" -Level Minimal
         if ($isDebugEnabled) {
@@ -463,35 +392,13 @@ Function Get-LicensesByUser {
 #>
     [CmdletBinding()]
     param(
-        [string]$OutputDir = "Output\Licenses",
+        [string]$OutputDir,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
-    Set-LogLevel -Level ([LogLevel]::$LogLevel)
-    $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
-
-    if ($isDebugEnabled) {
-        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
-        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
-        Write-LogFile -Message "[DEBUG]   OutputDir: '$OutputDir'" -Level Debug
-        Write-LogFile -Message "[DEBUG]   LogLevel: '$LogLevel'" -Level Debug
-        
-        $graphModules = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
-        if ($graphModules) {
-            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
-            foreach ($module in $graphModules) {
-                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
-            }
-        } else {
-            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
-        }
-    }
-
-    if (!(Test-Path $OutputDir)) {
-        New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
-    }
-
+    Init-Logging
+    Init-OutputDir -Component "Licenses" -FilePostfix "UserLicenses" -CustomOutputDir $OutputDir
     Write-LogFile -Message "=== Starting User License Collection ===" -Color "Cyan" -Level Standard
 
     try {
@@ -555,9 +462,7 @@ Function Get-LicensesByUser {
             }
         }
 
-        $date = [datetime]::Now.ToString('yyyyMMddHHmmss')
-        $outputFile = Join-Path $OutputDir "$($date)-UserLicenses.csv"
-        $results | Sort-Object DisplayName | Export-Csv -Path $outputFile -NoTypeInformation -Encoding UTF8
+        $results | Sort-Object DisplayName | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding UTF8
 
         $userLicenseSummary = [PSCustomObject]@{
             TotalUsers = ($users | Measure-Object).Count
@@ -583,7 +488,7 @@ Function Get-LicensesByUser {
         }
 
         Write-LogFile -Message "`nExported File:" -Color "Cyan" -Level Standard
-        Write-LogFile -Message "  - File: $outputFile" -Level Standard
+        Write-LogFile -Message "  - File: $script:outputFile" -Level Standard
     } catch {
         Write-LogFile -Message "[ERROR] Failed to retrieve user license assignments: $($_.Exception.Message)" -Color "Red" -Level Minimal
         if ($isDebugEnabled) {

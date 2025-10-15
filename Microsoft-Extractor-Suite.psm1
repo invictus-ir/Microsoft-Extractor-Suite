@@ -223,6 +223,143 @@ function Get-GraphAuthType {
     }
 }
 
+function Init-Logging {
+    Set-LogLevel -Level ([LogLevel]::$LogLevel)
+	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+
+	$script:scriptStartedAt = Get-Date
+
+	if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] PowerShell Version: $($PSVersionTable.PSVersion)" -Level Debug
+        Write-LogFile -Message "[DEBUG] Input parameters:" -Level Debug
+        foreach ($param in $PSBoundParameters.GetEnumerator()) {
+            Write-LogFile -Message "[DEBUG]   $($param.Key): $($param.Value)" -Level Debug
+        }
+
+        $graphModule = Get-Module -Name Microsoft.Graph* -ErrorAction SilentlyContinue
+        if ($graphModule) {
+            Write-LogFile -Message "[DEBUG] Microsoft Graph Modules loaded:" -Level Debug
+            foreach ($module in $graphModule) {
+                Write-LogFile -Message "[DEBUG]   - $($module.Name) v$($module.Version)" -Level Debug
+            }
+        } else {
+            Write-LogFile -Message "[DEBUG] No Microsoft Graph modules loaded" -Level Debug
+        }
+    }
+}
+
+function Check-GraphContext {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [object]$RequiredScopes
+    )
+
+    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+
+    if ($isDebugEnabled) {
+        Write-LogFile -Message "[DEBUG] Graph authentication completed" -Level Debug
+        try {
+            $context = Get-MgContext
+            if ($context) {
+                Write-LogFile -Message "[DEBUG] Graph context information:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Account: $($context.Account)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Environment: $($context.Environment)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   TenantId: $($context.TenantId)" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Scopes: $($context.Scopes -join ', ')" -Level Debug
+            }
+        } catch {
+            Write-LogFile -Message "[DEBUG] Could not retrieve Graph context details" -Level Debug
+        }
+    }
+}
+
+function Init-OutputDir {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Component,
+        [string]$SubComponent = "",
+        [Parameter(Mandatory=$true)]
+        [string]$FilePostfix,
+        [string]$CustomOutputDir = ""
+    )
+
+    if ([string]::IsNullOrEmpty($CustomOutputDir) -and $script:CollectionOutputDir) {
+        $CustomOutputDir = $script:CollectionOutputDir
+    }
+
+	$date = [datetime]::Now.ToString('yyyyMMdd')
+
+    if ($CustomOutputDir) {
+        # Use custom directory but add component structure
+        $OutputDir = Join-Path $CustomOutputDir "$Component\$date"
+        if ($SubComponent -ne "") {
+            $OutputDir += "-$SubComponent"
+        }
+        
+        if (!(Test-Path -Path $CustomOutputDir)) {
+            Write-LogFile -Message "[ERROR] Custom base directory invalid: $CustomOutputDir" -Level Minimal -Color "Red"
+            throw
+        }
+        
+        if (!(Test-Path -Path $OutputDir)) {
+            Write-LogFile -Message "[DEBUG] Creating custom output directory: $OutputDir" -Level Debug
+            New-Item -ItemType Directory -Force -Path $OutputDir > $null
+        }
+    } else {
+        # Use default directory structure
+        $OutputDir = "Output\$Component\$($date)"
+        if ($SubComponent -ne "") {
+            $OutputDir += "-$SubComponent"
+        }
+        
+        if (!(Test-Path $OutputDir)) {
+            Write-LogFile -Message "[DEBUG] Creating output directory: $OutputDir" -Level Debug
+            New-Item -ItemType Directory -Force -Path $OutputDir > $null
+        }
+    }
+
+    Write-LogFile -Message "[DEBUG] Using output directory: $OutputDir" -Level Debug
+    $filename = "$($date)-$FilePostfix.csv"
+	$script:outputFile = Join-Path $OutputDir $filename
+}
+
+function Write-Summary {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [object]$Summary,
+        [string]$Title = "Summary",
+        [switch]$SkipExportDetails
+    )
+
+    Write-LogFile -Message "`n=== $Title ===" -Color "Cyan" -Level Standard
+
+    foreach ($param in $Summary.GetEnumerator()) {
+        if ($param.value -is [hashtable] -or $param.value -is [System.Collections.Specialized.OrderedDictionary]) {
+            Write-LogFile -Message "`n$($param.key):" -Level Standard
+            foreach($subitem in $param.value.GetEnumerator()) {
+                Write-LogFile -Message "  $($subitem.key): $($subitem.value)" -Level Standard
+            }
+        } else {
+            Write-LogFile -Message "$($param.key): $($param.value)" -Level Standard
+        }
+    }
+
+    # Only show Export Details if not skipped and outputFile exists
+    if (-not $SkipExportDetails -and $script:outputFile) {
+        $ProcessingTime = (Get-Date) - $script:ScriptStartedAt
+        Write-LogFile -Message "`nExport Details:" -Level Standard
+        Write-LogFile -Message "  Output File: $script:outputFile" -Level Standard
+        Write-LogFile -Message "  Processing Time: $($ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
+    } elseif (-not $SkipExportDetails) {
+        # If no outputFile but we want to show processing time
+        $ProcessingTime = (Get-Date) - $script:ScriptStartedAt
+        Write-LogFile -Message "`nProcessing Time: $($ProcessingTime.ToString('mm\:ss'))" -Color "Green" -Level Standard
+    }
+}
+
 function Merge-OutputFiles {
     param (
         [Parameter(Mandatory)][string]$OutputDir,
@@ -245,7 +382,17 @@ function Merge-OutputFiles {
             Write-LogFile -Message "[INFO] CSV files merged into $mergedPath"
         }
         'SOF-ELK' {
-			Get-ChildItem $OutputDir -Filter *.json | Select-Object -ExpandProperty FullName | ForEach-Object { Get-Content -Path $_ | Where-Object { $_.Trim() -ne "" } } | Out-File -Append $mergedPath -Encoding UTF8 
+
+            $jsonFiles = Get-ChildItem $OutputDir -Filter *.json | Sort-Object Name
+            foreach ($file in $jsonFiles) {
+                Write-LogFile -Message "[DEBUG] Processing file: $($file.Name)" -Level Debug
+                $content = Get-Content -Path $file.FullName -Encoding UTF8
+                
+                # Filter out empty lines and add each line to merged file
+                $content | Where-Object { $_.Trim() -ne "" } | ForEach-Object {
+                    Add-Content -Path $mergedPath -Value $_ -Encoding UTF8
+                }
+            }
             Write-LogFile -Message "[INFO] SOF-ELK files merged into $mergedPath"
         }
         'JSON' {           
