@@ -70,6 +70,11 @@ function Get-UAL {
     Specifies the maximum number of items to process in a single interval. Must be between 5000 and 50000.
     Lower this value if you're experiencing timeouts with large data sets.
     Default: 50000
+
+	.PARAMETER AuditDataOnly
+	AuditDataOnly is a switch parameter that extracts only the AuditData property from each log entry.
+	When enabled, the output will contain only the parsed AuditData JSON content without the wrapper properties
+	like CreationDate, UserIds, Operations, etc (those are also found in the AuditData).
 	
 	.EXAMPLE
 	Get-UAL
@@ -140,7 +145,8 @@ function Get-UAL {
 			[string]$LogLevel = 'Standard',
 			[Parameter()] 
 			[ValidateRange(5000, 50000)]
-			[int]$MaxItemsPerInterval = 50000
+			[int]$MaxItemsPerInterval = 50000,
+			[switch]$AuditDataOnly
 		)
 
 	Init-Logging
@@ -647,35 +653,66 @@ function Get-UAL {
 										$sessionID = $currentStart.ToString("yyyyMMddHHmmss") + "-" + $currentEnd.ToString("yyyyMMddHHmmss")
 										$outputPath = Join-Path $OutputDir ("UAL-" + $sessionID)
 										$stats.TotalRecords += $totalProcessed
+
+										# Extract only AuditData if flag is set
+										if ($AuditDataOnly) {
+											$outputData = $allResults | Select-Object -ExpandProperty AuditData
+										} else {
+											$outputData = $allResults
+										}										
 										
 										if ($Output -eq "JSON" -or $Output -eq "SOF-ELK") {
 											$stats.FilesCreated++
-											$allResults = $allResults | ForEach-Object {
-												$_.AuditData = $_.AuditData | ConvertFrom-Json
-												$_
+											
+											if (!$AuditDataOnly) {
+												$outputData = $outputData | ForEach-Object {
+													$_.AuditData = $_.AuditData | ConvertFrom-Json
+													$_
+												}
 											}
+											
 											if ($Output -eq "JSON") {
-												$json = $allResults | ConvertTo-Json -Depth 100
-												$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
+												if ($AuditDataOnly) {
+													$outputData | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
+												} else {
+													$json = $outputData | ConvertTo-Json -Depth 100
+													$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
+												}
 											} 
 											elseif ($Output -eq "SOF-ELK") {
-												# Encoding is hard-coded to UTF8 as UTF16 causes problems when importing the data into SOF-ELK
-												foreach ($item in $allResults) {
-													$item.AuditData | ConvertTo-Json -Compress -Depth 100 | 
-														Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding UTF8
+												if ($AuditDataOnly) {
+													$outputData | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding UTF8
+												} else {
+													foreach ($item in $outputData) {
+														$item.AuditData | ConvertTo-Json -Compress -Depth 100 | 
+															Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding UTF8
+													}
 												}
 											}
 											Add-Content "$OutputDir/UAL-$sessionID.json" "`n"
 										}
 										elseif ($Output -eq "JSONL") {
 											$stats.FilesCreated++
-											$allResults | ForEach-Object {
-												$_ | ConvertTo-Json -Compress -Depth 100 | Out-File -Append "$outputPath.jsonl" -Encoding $Encoding
+											if ($AuditDataOnly) {
+												$outputData | ForEach-Object {
+													$_ | Out-File -Append "$outputPath.jsonl" -Encoding $Encoding
+												}
+											} else {
+												$outputData | ForEach-Object {
+													$_ | ConvertTo-Json -Compress -Depth 100 | Out-File -Append "$outputPath.jsonl" -Encoding $Encoding
+												}
 											}
 										}
 										elseif ($Output -eq "CSV") {
 											$stats.FilesCreated++
-											$allResults | export-CSV "$outputPath.csv" -NoTypeInformation -Append -Encoding $Encoding
+											if ($AuditDataOnly) {
+												$parsedData = $outputData | ForEach-Object {
+													$_ | ConvertFrom-Json
+												}
+												$parsedData | Export-CSV "$outputPath.csv" -NoTypeInformation -Append -Encoding $Encoding
+											} else {
+												$outputData | Export-CSV "$outputPath.csv" -NoTypeInformation -Append -Encoding $Encoding
+											}
 										}
 										Write-LogFile -Message "[INFO] Successfully retrieved $totalProcessed records for the current time range. Moving on!" -Level Standard -Color "Green"
 									}
