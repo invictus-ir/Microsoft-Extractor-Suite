@@ -100,18 +100,18 @@ $Global:CollectionTasks = @{
         "Devices" = @{
             Name = "Devices"
             Description = "Collects device information"
-            Function = { param($OutputDir, $LogLevel, $UserIds)
+            Function = { param($OutputDir, $LogLevel, $UserIds, $Output)
                 if ($UserIds) {
                     if ($OutputDir) {
-                        Get-Devices -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
+                        Get-Devices -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds, $Output
                     } else {
-                        Get-Devices -LogLevel $LogLevel -UserIds $UserIds
+                        Get-Devices -LogLevel $LogLevel -UserIds $UserIds, $Output
                     }                    
                 } else {
                     if ($OutputDir) {
-                        Get-Devices -OutputDir $OutputDir -LogLevel $LogLevel
+                        Get-Devices -OutputDir $OutputDir -LogLevel $LogLevel, $Output
                     } else {
-                        Get-Devices -LogLevel $LogLevel
+                        Get-Devices -LogLevel $LogLevel, $Output
                     }
                 }
                 return $true
