@@ -725,13 +725,20 @@ function Start-EvidenceCollection {
     Write-LogFile -Message "Start Time: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -Level Minimal
     Write-LogFile -Message "----------------------------------------" -Level Minimal
 
+    # List of tasks supporting Output parameter
+    $tasksWithOutput = @('Devices','SignInLogs','AuditLogs','UnifiedAuditLog')
+
     if ($Platform -eq "All" -or $Platform -eq "Azure") {
         Write-LogFile -Message "`n==== Starting Azure/Entra ID Data Collection ====" -Color "Yellow" -Level Minimal
         foreach ($task in $Global:CollectionTasks.Azure.GetEnumerator()) {
             if ($task.Value.Enabled) {
                 try {
                     $script:CollectionOutputDir = $OutputDir
-                    $executed = & $task.Value.Function -LogLevel $LogLevel -UserIds $UserIds -Output $Output
+                    if ($tasksWithOutput -contains $task.Key) {
+                        $executed = & $task.Value.Function -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds -Output $Output
+                    } else {
+                        $executed = & $task.Value.Function -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
+                    }
                     if ($executed) {
                         $summary.TotalTasks++
                         $summary.SuccessfulTasks++
@@ -753,7 +760,11 @@ function Start-EvidenceCollection {
             if ($task.Value.Enabled) {
                 try {
                     $script:CollectionOutputDir = $OutputDir
-                    $executed = & $task.Value.Function -LogLevel $LogLevel -UserIds $UserIds -Output $Output
+                    if ($tasksWithOutput -contains $task.Key) {
+                        $executed = & $task.Value.Function -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds -Output $Output
+                    } else {
+                        $executed = & $task.Value.Function -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds
+                    }
                     if ($executed) {
                         $summary.TotalTasks++
                         $summary.SuccessfulTasks++
