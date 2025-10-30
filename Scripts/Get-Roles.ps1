@@ -24,6 +24,7 @@ Function Get-AllRoleActivity {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
     
     .EXAMPLE
@@ -48,7 +49,7 @@ Function Get-AllRoleActivity {
         [string]$OutputDir,
         [string]$Encoding = "UTF8",
         [switch]$IncludeEmptyRoles = $false,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
@@ -221,6 +222,7 @@ function Get-PIMAssignments {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
 
     .EXAMPLE
@@ -240,7 +242,7 @@ function Get-PIMAssignments {
     param(
         [string]$OutputDir,
         [string]$Encoding = "UTF8",
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 
