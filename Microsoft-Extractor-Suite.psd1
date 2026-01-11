@@ -54,7 +54,6 @@
 	FunctionsToExport = @(
 		# Connect.ps1
 		"Connect-M365"
-		"Connect-Azure"
 		"Connect-AzureAZ"
 		
 		# Disconnect.ps1
@@ -85,7 +84,6 @@
 		"Get-MessageTraceLog"
 	
 		# Get-OAuthPermissions.ps1
-		"Get-OAuthPermissions"
 		"Get-OAuthPermissionsGraph"
 	
 		# Get-AdminAuditLog.ps1
