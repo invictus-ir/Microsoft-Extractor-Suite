@@ -14,7 +14,7 @@
 	GUID = '4376306b-0078-4b4d-b565-e22804e3be01'
 	
 	# Copyright statement for this module
-	Copyright = 'Copyright 2025 Invictus Incident Response'
+	Copyright = 'Copyright 2026 Invictus Incident Response'
 	
 	# Description of the functionality provided by this module
 	Description = 'Microsoft-Extractor-Suite is a fully-featured, actively-maintained, Powershell tool designed to streamline the process of collecting all necessary data and information from various sources within Microsoft.'	

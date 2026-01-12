@@ -14,7 +14,7 @@ if (-not $NoWelcome) {
  +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+
  |M|i|c|r|o|s|o|f|t| |E|x|t|r|a|c|t|o|r| |S|u|i|t|e|
  +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+-+ +-+-+-+-+-+                                                                                                                                                                     
-Copyright 2025 Invictus Incident Response
+Copyright 2026 Invictus Incident Response
 Created by Joey Rentenaar & Korstiaan Stam
 "@
 
