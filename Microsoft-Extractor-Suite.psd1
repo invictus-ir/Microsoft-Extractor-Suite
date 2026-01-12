@@ -58,7 +58,6 @@
 		
 		# Disconnect.ps1
 		"Disconnect-M365"
-		"Disconnect-Azure"
 		"Disconnect-AzureAZ"
 
 		# Get-UAL.ps1
