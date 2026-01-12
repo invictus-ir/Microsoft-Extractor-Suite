@@ -58,6 +58,10 @@ function Get-UAL {
     The Operations parameter filters the log entries by operations or activity type.
 	Options are: New-MailboxRule, MailItemsAccessed, etc.
 
+	.PARAMETER IPAddresses
+	The IPAddresses parameter filters the log entries by the IP address of the client that performed the action.
+	You can enter multiple values separated by commas.
+
 	.PARAMETER LogLevel
 	Specifies the level of logging:
 	None: No logging
@@ -139,6 +143,7 @@ function Get-UAL {
 			[string]$Output = "CSV",
 			[switch]$MergeOutput,
 			[string]$OutputDir,
+			[string]$IPAddresses,
 			[string]$Encoding = "UTF8",
 			[string]$ObjectIds,
 			[ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
@@ -185,6 +190,10 @@ function Get-UAL {
 	$baseSearchQuery = @{
 		UserIds = $UserIds
 	}	
+
+	if ($IPAddresses) {
+        $baseSearchQuery.IPAddresses = $IPAddresses
+    }
 
 	if ($ObjectIds) {
         $baseSearchQuery.ObjectIds = $ObjectIds
