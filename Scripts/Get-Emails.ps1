@@ -20,6 +20,11 @@ Function Get-Email {
     Output is the parameter specifying the eml or txt output type.
     Default: eml
 
+    .PARAMETER DownloadDuplicates
+    The DownloadDuplicates parameter specifies whether duplicate emails should be downloaded or skipped.
+    When enabled, duplicate emails will be downloaded with "DUPLICATE-" prefix in the filename.
+    Default: False (duplicates are skipped)
+
     .PARAMETER inputFile
     The inputFile parameter specifies the .txt file containing multiple Internet Message Identifiers. You can include multiple Internet Message Identifiers in the file. Ensure each ID is placed on a new line.
 
@@ -56,6 +61,7 @@ Function Get-Email {
         [string]$OutputDir,
         [switch]$attachment,
         [string]$inputFile,
+        [switch]$DownloadDuplicates,
         [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     ) 
@@ -151,7 +157,7 @@ Function Get-Email {
                     }
                     $summary.DuplicatesFound++
                     Write-LogFile -Message "[INFO] Duplicate message detected! Message ID $messageId was previously processed with Internet Message ID $($processedMessages[$messageId])" -Color "Yellow" -Level Standard
-
+                    
                     if ($isDebugEnabled) {
                         Write-LogFile -Message "[DEBUG] Duplicate detection details:" -Level Debug
                         Write-LogFile -Message "[DEBUG]   Duplicate message ID: $messageId" -Level Debug
@@ -159,11 +165,18 @@ Function Get-Email {
                         Write-LogFile -Message "[DEBUG]   Current ID: $id" -Level Debug
                         Write-LogFile -Message "[DEBUG]   Total duplicates found so far: $($summary.DuplicatesFound)" -Level Debug
                     }
-                    continue
+                    
+                    if (-not $DownloadDuplicates) {
+                        continue
+                    } else {
+                        Write-LogFile -Message "[INFO] Downloading duplicate as requested..." -Color "Green" -Level Standard
+                        $subject = "DUPLICATE-" + ($message.Subject -replace '[\\/:*?"<>|]', '_')
+                    }
+                } else {
+                    $subject = $message.Subject -replace '[\\/:*?"<>|]', '_'
                 }
 
                 $processedMessages[$messageId] = $id
-                $subject = $message.Subject -replace '[\\/:*?"<>|]', '_'
                 $extension = if ($output -eq "txt") { "txt" } else { "eml" }
 
                 if ($isDebugEnabled) {
@@ -176,19 +189,25 @@ Function Get-Email {
 
                 try {
                     $ReceivedDateTime = [datetime]::Parse($message.receivedDateTime).ToString("yyyyMMdd_HHmmss")
-                    do {
-                        $filePath = "$outputDir\$($fileCounter.ToString('D3'))-$ReceivedDateTime-$subject.$extension"
-                        $fileCounter++
-                    } while (Test-Path $filePath)
+                    $baseFileName = "$($fileCounter.ToString('D3'))-$ReceivedDateTime-$subject.$extension"
+                    $filePath = "$outputDir\$baseFileName"
+                    
+                    $suffix = 1
+                    while (Test-Path $filePath) {
+                        $baseFileName = "$($fileCounter.ToString('D3'))_$suffix-$ReceivedDateTime-$subject.$extension"
+                        $filePath = "$outputDir\$baseFileName"
+                        $suffix++
+                    }
                 } catch {
                     Write-LogFile -Message "[WARNING] Could not parse received date time, excluding from filename" -Level Standard -Color "Yellow"
-                    do {
-                        $filePath = "$outputDir\$($fileCounter.ToString('D3'))-$subject.$extension"
-                        $fileCounter++
-                    } while (Test-Path $filePath)
-                    if ($isDebugEnabled) {
-                        Write-LogFile -Message "[DEBUG] Date parsing failed, using file path without date: $filePath" -Level Debug
-                        Write-LogFile -Message "[DEBUG] Date parsing error: $($_.Exception.Message)" -Level Debug
+                    $baseFileName = "$($fileCounter.ToString('D3'))-$subject.$extension"
+                    $filePath = "$outputDir\$baseFileName"
+                    
+                    $suffix = 1
+                    while (Test-Path $filePath) {
+                        $baseFileName = "$($fileCounter.ToString('D3'))_$suffix-$subject.$extension"
+                        $filePath = "$outputDir\$baseFileName"
+                        $suffix++
                     }
                 }
 
@@ -261,10 +280,15 @@ Function Get-Email {
             }
 
             $extension = if ($output -eq "txt") { "txt" } else { "eml" }
-            do {
-                $filePath = "$outputDir\$($fileCounter.ToString('D3'))-$ReceivedDateTime-$subject.$extension"
-                $fileCounter++
-            } while (Test-Path $filePath)
+            $baseFileName = "$($fileCounter.ToString('D3'))-$ReceivedDateTime-$subject.$extension"
+            $filePath = "$outputDir\$baseFileName"
+
+            $suffix = 1
+            while (Test-Path $filePath) {
+                $baseFileName = "$($fileCounter.ToString('D3'))_$suffix-$ReceivedDateTime-$subject.$extension"
+                $filePath = "$outputDir\$baseFileName"
+                $suffix++
+            }
 
             $contentUri = "https://graph.microsoft.com/v1.0/users/$userIds/messages/" + $messageId + "/`$value"
             if ($isDebugEnabled) {
@@ -276,6 +300,7 @@ Function Get-Email {
 
             Invoke-MgGraphRequest -Method GET $contentUri -OutputFilePath $filePath
             $summary.SuccessfulDownloads++
+            $fileCounter++
             Write-LogFile -Message "[INFO] Output written to $filePath" -Color "Green" -Level Standard
 
             if ($isDebugEnabled) {
@@ -390,8 +415,22 @@ Function Get-Attachment {
     )
 
    Init-Logging
-   Init-OutputDir -Component "Email Export" -SubComponent "Attachments" -FilePostfix "Attachments" -CustomOutputDir $OutputDir
-   $outputDir = Split-Path $script:outputFile -Parent
+
+   if ($OutputDir) {
+        $attachmentOutputDir = Join-Path $OutputDir "Attachments"
+    } elseif ($script:outputFile) {
+        # Use the same directory as the main email export, but create an Attachments subfolder
+        $parentDir = Split-Path $script:outputFile -Parent
+        $attachmentOutputDir = Join-Path $parentDir "Attachments"
+    } else {
+        # Fallback to default location
+        $attachmentOutputDir = "Output\Email Export\Attachments"
+    }
+
+    if (!(Test-Path $attachmentOutputDir)) {
+        Write-LogFile -Message "[DEBUG] Creating attachments directory: $attachmentOutputDir" -Level Debug
+        New-Item -ItemType Directory -Force -Path $attachmentOutputDir > $null
+    }
 
     try {
         $getMessage = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/users/$userIds/messages?filter=internetMessageId eq '$internetMessageId'" -ErrorAction stop
@@ -423,7 +462,7 @@ Function Get-Attachment {
             $response = Invoke-MgGraphRequest -Method Get -Uri $uri 
 
             $filename = $filename -replace '[\\/:*?"<>|]', '_'
-            $filePath = Join-Path $outputDir "$ReceivedDateTime-$subject-$filename"
+            $filePath = Join-Path $attachmentOutputDir "$ReceivedDateTime-$subject-$filename"
 
             $base64B = ($attachment.contentBytes)
             $decoded = [System.Convert]::FromBase64String($base64B)

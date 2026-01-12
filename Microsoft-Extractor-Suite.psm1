@@ -289,7 +289,7 @@ function Init-OutputDir {
         $CustomOutputDir = $script:CollectionOutputDir
     }
 
-	$date = [datetime]::Now.ToString('yyyyMMdd')
+	$date = [datetime]::Now.ToString('yyyyMMdd-HHmmss')
 
     if ($CustomOutputDir) {
         # Use custom directory but add component structure

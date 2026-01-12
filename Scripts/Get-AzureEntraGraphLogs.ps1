@@ -235,7 +235,7 @@ function Get-GraphEntraSignInLogs {
 		try {
 			Do {
 				$retryCount = 0
-				$maxRetries = 3
+				$maxRetries = 5
 				$success = $false
 				$tokenRetryCount = 0
     			$maxTokenRetries = 5  

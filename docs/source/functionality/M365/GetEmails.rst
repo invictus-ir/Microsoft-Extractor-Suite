@@ -50,6 +50,10 @@ Parameters
     - The attachment parameter specifies whether the attachment should be saved or not. 
     - Default: False
 
+-DownloadDuplicates (optional)
+    - The DownloadDuplicates parameter specifies whether duplicate emails should be downloaded or skipped. When enabled, duplicate emails will be downloaded with "DUPLICATE-" prefix in the filename.
+    - Default: False (duplicates are skipped)
+
 -LogLevel (optional)
     - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
     - Default: Standard

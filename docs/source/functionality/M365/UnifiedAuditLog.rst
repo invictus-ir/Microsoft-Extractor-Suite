@@ -170,6 +170,10 @@ Parameters
     - This is useful when you only need the actual audit event data and want to reduce file size and improve readability.
     - Works with all output formats: CSV, JSON, JSONL, and SOF-ELK.
 
+-IPAddresses (optional)
+    - The IPAddresses parameter filters the log entries by the IP address of the client that performed the action.
+    - You can enter multiple values separated by commas.
+
 .. note::
 
   **Important note** regarding the StartDate and EndDate variables. 
