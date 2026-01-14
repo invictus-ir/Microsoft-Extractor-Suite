@@ -501,7 +501,11 @@ Function Get-UALGraph {
             "Export Details" = [ordered]@{
                 "Output Directory" = $outputDirPath
                 "Collection Time" = $summary.CollectionTime.ToString('hh\:mm\:ss')
-                "Processing Time" = $summary.ProcessingTime.ToString('hh\:mm\:ss')
+                "Processing Time" = if ($summary.ProcessingTime.Days -gt 0) {
+                    "$($summary.ProcessingTime.Days) days, $($summary.ProcessingTime.Hours):$($summary.ProcessingTime.Minutes.ToString('00')):$($summary.ProcessingTime.Seconds.ToString('00'))"
+                } else {
+                    $summary.ProcessingTime.ToString('hh\:mm\:ss')
+                }
             }
         }
 

@@ -20,6 +20,7 @@ Function Get-SecurityAlerts {
     None: No logging
     Minimal: Critical errors only
     Standard: Normal operational logging
+    Debug: Verbose logging for debugging purposes
     Default: Standard
 
     .PARAMETER AlertId
@@ -57,7 +58,7 @@ Function Get-SecurityAlerts {
         [string]$AlertId,
         [int]$DaysBack = 90,
         [string]$Filter,
-        [ValidateSet('None', 'Minimal', 'Standard')]
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
         [string]$LogLevel = 'Standard'
     )
 

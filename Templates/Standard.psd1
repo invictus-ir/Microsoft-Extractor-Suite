@@ -70,6 +70,7 @@
                 'Set-TransportRule'
                 'Enable-TransportRule'
                 'Disable-TransportRule'
+                'UpdateInboxRules'
                 
                 # ===== EMAIL ACTIVITIES =====
                 'MailboxLogin'

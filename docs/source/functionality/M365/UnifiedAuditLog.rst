@@ -164,6 +164,16 @@ Parameters
     - Default: 50000
     - Lower this value if you're experiencing timeouts with large data sets
 
+-AuditDataOnly (optional)
+    - AuditDataOnly is a switch parameter that extracts only the AuditData property from each log entry.
+    - When enabled, the output will contain only the parsed AuditData JSON content without the wrapper properties (CreationDate, UserIds, Operations, ResultIndex, etc.).
+    - This is useful when you only need the actual audit event data and want to reduce file size and improve readability.
+    - Works with all output formats: CSV, JSON, JSONL, and SOF-ELK.
+
+-IPAddresses (optional)
+    - The IPAddresses parameter filters the log entries by the IP address of the client that performed the action.
+    - You can enter multiple values separated by commas.
+
 .. note::
 
   **Important note** regarding the StartDate and EndDate variables. 

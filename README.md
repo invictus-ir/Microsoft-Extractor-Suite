@@ -93,7 +93,6 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 - `Get-DirectoryActivityLogs` - Collect directory activity logs
 
 ### OAuth apps
-- `Get-OAuthPermissions` - Collect OAuth application permissions Via AZ module
 - `Get-OAuthPermissionsGraph` - Collect OAuth application permissions via Graph API
 
 ### User Related
@@ -137,10 +136,8 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 
 ### Authentication & Session Management
 - `Connect-M365` - Connect to Microsoft 365 services
-- `Connect-Azure` - Connect to Azure/Entra ID
 - `Connect-AzureAZ` - Connect using Az module
 - `Disconnect-M365` - Disconnect from Microsoft 365 services
-- `Disconnect-Azure` - Disconnect from Azure/Entra ID
 - `Disconnect-AzureAZ` - Disconnect from Az module session
 
 ## Related Projects
