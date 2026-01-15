@@ -69,6 +69,10 @@ Function Get-UALGraph {
     .PARAMETER SearchName
     Specifies the name of the search query. This parameter is required.
 
+    .PARAMETER SearchId
+    Specifies the ID of an existing search to resume or collect results from. 
+    If provided, the function skips creating a new search and checks the status of this ID.
+
     .PARAMETER SplitFiles
     When specified, splits output into multiple files based on MaxEventsPerFile.
     When set to True, splits output into multiple files based on MaxEventsPerFile.
@@ -78,7 +82,7 @@ Function Get-UALGraph {
     Exact data returned depends on the service in the current `@odatatype.microsoft.graph.security.auditLogQuery` record.
     For Exchange admin audit logging, the name of the object modified by the cmdlet.
     For SharePoint activity, the full URL path name of the file or folder accessed by a user. 
-    For Microsoft Entra activity, the name of the user account that was modified.|
+    For Microsoft Entra activity, the name of the user account that was modified.
     
     .EXAMPLE
     Get-UALGraph -searchName Test 
@@ -120,7 +124,8 @@ Function Get-UALGraph {
         [double]$MaxEventsPerFile = 250000,
         [ValidateSet("CSV", "JSON", "JSONL", "SOF-ELK")]
         [string]$Output = "JSON",
-        [switch]$SplitFiles
+        [switch]$SplitFiles,
+        [string]$SearchId = ""
     )
 
     Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix $searchName -CustomOutputDir $OutputDir
@@ -167,25 +172,35 @@ Function Get-UALGraph {
     } | ConvertTo-Json
 
     try {
-        
-        if ($isDebugEnabled) {
-            Write-LogFile -Message "[DEBUG] Initiating Graph API audit log query..." -Level Debug
-            $createPerformance = Measure-Command {
+        if(!$SearchId)
+        {
+            if ($isDebugEnabled)
+            {
+                Write-LogFile -Message "[DEBUG] Initiating Graph API audit log query..." -Level Debug
+                $createPerformance = Measure-Command {
+                    $response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/security/auditLog/queries" -Body $body -ContentType "application/json"
+                }
+                Write-LogFile -Message "[DEBUG] Query creation took $([math]::round($createPerformance.TotalSeconds, 2) ) seconds" -Level Debug
+            }
+            else
+            {
                 $response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/security/auditLog/queries" -Body $body -ContentType "application/json"
             }
-            Write-LogFile -Message "[DEBUG] Query creation took $([math]::round($createPerformance.TotalSeconds, 2)) seconds" -Level Debug
+
+            $scanId = $response.id
+            $summary.SearchId = $scanId
+            write-logFile -Message "[INFO] A new Unified Audit Log search has started with the name: $searchName and ID: $scanId." -Color "Green" -Level Minimal
+
+            if ($isDebugEnabled)
+            {
+                Write-LogFile -Message "[DEBUG] Search created successfully:" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Search ID: $scanId" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Response status: $( $response.status )" -Level Debug
+            }
         } else {
-            $response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/security/auditLog/queries" -Body $body -ContentType "application/json"
-        }
-        
-        $scanId = $response.id
-        $summary.SearchId = $scanId
-        write-logFile -Message "[INFO] A new Unified Audit Log search has started with the name: $searchName and ID: $scanId." -Color "Green" -Level Minimal
-    
-        if ($isDebugEnabled) {
-            Write-LogFile -Message "[DEBUG] Search created successfully:" -Level Debug
-            Write-LogFile -Message "[DEBUG]   Search ID: $scanId" -Level Debug
-            Write-LogFile -Message "[DEBUG]   Response status: $($response.status)" -Level Debug
+            Write-LogFile -Message "[INFO] Using existing Unified Audit Log search with ID: $SearchId." -Color "Green" -Level Minimal
+            $scanId = $SearchId
+            $summary.SearchId = $scanId
         }
 
         Start-Sleep -Seconds 10
@@ -228,6 +243,7 @@ Function Get-UALGraph {
         }
         throw
     }
+    $summary.CollectionEndTime = Get-Date
 
     try {
         write-logFile -Message "[INFO] Collecting scan results from api (this may take a while)" -Level Standard
@@ -473,6 +489,7 @@ Function Get-UALGraph {
         }
 
         $summary.TotalRecords = $totalEvents
+        $summary.CollectionTime = $summary.CollectionEndTime - $summary.StartTime
         $summary.ProcessingTime = (Get-Date) - $summary.StartTime
 
         $summaryOutput = [ordered]@{
@@ -487,6 +504,7 @@ Function Get-UALGraph {
             }
             "Export Details" = [ordered]@{
                 "Output Directory" = $outputDirPath
+                "Collection Time" = $summary.CollectionTime.ToString('hh\:mm\:ss')
                 "Processing Time" = if ($summary.ProcessingTime.Days -gt 0) {
                     "$($summary.ProcessingTime.Days) days, $($summary.ProcessingTime.Hours):$($summary.ProcessingTime.Minutes.ToString('00')):$($summary.ProcessingTime.Seconds.ToString('00'))"
                 } else {
