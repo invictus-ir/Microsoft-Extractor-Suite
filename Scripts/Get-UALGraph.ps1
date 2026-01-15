@@ -69,6 +69,10 @@ Function Get-UALGraph {
     .PARAMETER SearchName
     Specifies the name of the search query. This parameter is required.
 
+    .PARAMETER SearchId
+    Specifies the ID of an existing search to resume or collect results from. 
+    If provided, the function skips creating a new search and checks the status of this ID.
+
     .PARAMETER SplitFiles
     When specified, splits output into multiple files based on MaxEventsPerFile.
     When set to True, splits output into multiple files based on MaxEventsPerFile.
@@ -78,7 +82,7 @@ Function Get-UALGraph {
     Exact data returned depends on the service in the current `@odatatype.microsoft.graph.security.auditLogQuery` record.
     For Exchange admin audit logging, the name of the object modified by the cmdlet.
     For SharePoint activity, the full URL path name of the file or folder accessed by a user. 
-    For Microsoft Entra activity, the name of the user account that was modified.|
+    For Microsoft Entra activity, the name of the user account that was modified.
     
     .EXAMPLE
     Get-UALGraph -searchName Test 

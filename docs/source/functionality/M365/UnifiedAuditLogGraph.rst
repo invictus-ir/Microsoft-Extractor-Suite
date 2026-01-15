@@ -42,6 +42,9 @@ Parameters
 -SearchName (required)
     - Specifies the name of the search query. This parameter is required.
 
+-SearchId (optional)
+    - Specifies the ID of an existing search. If provided, the function collects results from this search instead of starting a new one.
+
 -UserIds (optional)
     - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
 
