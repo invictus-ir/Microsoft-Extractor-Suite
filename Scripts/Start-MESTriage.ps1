@@ -408,13 +408,12 @@ function Invoke-TriageTask {
             return $true
         }
         "Get-UAL" {
-            $OutputDirAudit = "$OutputDir\Unified Audit Logs"
             $taskOutput = Get-TaskOutputFormat -TaskName $TaskName -RequestedOutput $Output -JSONLSupportedFunctions $JSONLSupportedFunctions -SOFELKSupportedFunctions $SOFELKSupportedFunctions
             if ($UserIds.Count -gt 0) {
                 $userIdsString = $UserIds -join ',' 
-                Get-UAL -OutputDir $OutputDirAudit -LogLevel $LogLevel -UserIds $userIdsString -Output $taskOutput -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate -MergeOutput
+                Get-UAL -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $userIdsString -Output $taskOutput -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate -MergeOutput
             } else {
-                Get-UAL -OutputDir $OutputDirAudit -LogLevel $LogLevel -Output $taskOutput -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate -MergeOutput
+                Get-UAL -OutputDir $OutputDir -LogLevel $LogLevel -Output $taskOutput -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate -MergeOutput
             }
             return $true
         }
