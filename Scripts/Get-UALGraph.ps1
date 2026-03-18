@@ -110,6 +110,7 @@ Function Get-UALGraph {
         [Parameter(Mandatory=$true)]$searchName,
         [string]$OutputDir,
         [string]$Encoding = "UTF8",
+        # Dates must be ISO 8601
         [string]$startDate,
         [string]$endDate,
         [string[]]$RecordType = @(),
@@ -131,6 +132,36 @@ Function Get-UALGraph {
     Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix $searchName -CustomOutputDir $OutputDir
     Init-Logging
 
+    # --- ISO 8601 StartDate/EndDate enforcement ---
+    function Convert-InvariantDateUALGraph ([string]$date, [string]$paramName) {
+        $formats = @("yyyy-MM-dd","yyyy-MM-ddTHH:mm:ssZ","yyyy-MM-ddTHH:mm:ss","yyyy-MM-dd HH:mm:ss","o")
+        if ([string]::IsNullOrWhiteSpace($date)) { return $null }
+        foreach ($fmt in $formats) {
+            try {
+                return [DateTime]::ParseExact($date, $fmt, [System.Globalization.CultureInfo]::InvariantCulture)
+            } catch {}
+        }
+        throw "ERROR: $paramName must be in ISO 8601 (yyyy-MM-dd, yyyy-MM-ddTHH:mm:ssZ, etc) format. Received: '$date'"
+    }
+    if ($startDate) {
+        $script:startDate = Convert-InvariantDateUALGraph $startDate "startDate"
+        $startDate = $script:startDate.ToString("o", [System.Globalization.CultureInfo]::InvariantCulture)
+        $script:startDate = [datetime]$startDate
+    } else {
+        $script:startDate = (Get-Date).AddDays(-90)
+    }
+    if ($endDate) {
+        $script:endDate = Convert-InvariantDateUALGraph $endDate "endDate"
+        $endDate = $script:endDate.ToString("o", [System.Globalization.CultureInfo]::InvariantCulture)
+        $script:endDate = [datetime]$endDate
+    } else {
+        $script:endDate = Get-Date
+    }
+    if ($PSCulture -ne "en-US" -and ($startDate -or $endDate)) {
+        Write-LogFile -Message "[WARNING] Non en-US PowerShell culture detected. All date parameters must be in ISO 8601 (yyyy-MM-dd or yyyy-MM-ddTHH:mm:ssZ) format." -Color "Yellow" -Level Standard
+    }
+    # --- End ISO 8601 enforcement ---
+
     $summary = @{
         TotalRecords = 0
         ProcessedRecords = 0
@@ -149,7 +180,7 @@ Function Get-UALGraph {
     StartDate -Quiet
     EndDate -Quiet
 
-    $dateRange = "$($script:StartDate.ToString('yyyy-MM-dd HH:mm:ss')) to $($script:EndDate.ToString('yyyy-MM-dd HH:mm:ss'))"
+    $dateRange = "$($script:StartDate.ToString('o', [System.Globalization.CultureInfo]::InvariantCulture)) to $($script:EndDate.ToString('o', [System.Globalization.CultureInfo]::InvariantCulture))"
     Write-LogFile -Message "Analysis Period: $dateRange" -Level Standard
     Write-LogFile -Message "Output Directory: $outputDirPath" -Level Standard
     Write-LogFile -Message "Output format: $Output" -Level Standard
@@ -524,7 +555,3 @@ Function Get-UALGraph {
         throw
     }
 }
-            
-            
-            
-            
