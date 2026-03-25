@@ -204,42 +204,41 @@ During our investigations we often ask for a Global Reader account with Audit Lo
    a. Navigate to the **API Permissions** section of the application.  
    b. Click **Add a permission** and assign the following **Graph API permissions** (Application permissions):  
 
-   +---------------------------+-----------------------------------------------------+
-   | Permissions               | Description                                         |
-   +===========================+=====================================================+
-   | Application.Read.All      | Read all applications                               |
-   +---------------------------+-----------------------------------------------------+
-   | AuditLog.Read.All         | Read all audit log data                             |
-   +---------------------------+-----------------------------------------------------+
-   | AuditLogsQuery.Read.All   | Read audit logs data from all services              |
-   +---------------------------+-----------------------------------------------------+
-   | Directory.Read.All        | Read directory data                                 |
-   +---------------------------+-----------------------------------------------------+
-   | IdentityRiskEvent.Read.All| Read all identity risk event information            |
-   +---------------------------+-----------------------------------------------------+
-   | IdentityRiskyUser.Read.All| Read all identity risky user information            |
-   +---------------------------+-----------------------------------------------------+
-   | Mail.ReadBasic.All        | Read metadata of mail in all mailboxes              |
-   +---------------------------+-----------------------------------------------------+
-   | Policy.Read.All           | Read your organization's policies                   |
-   +---------------------------+-----------------------------------------------------+
-   | UserAuthenticationMethod.Read.All | Read all users authentication methods       |
-   +---------------------------+-----------------------------------------------------+
-   | Policy.Read.All           | Read the conditional access policies                |
-   +---------------------------+-----------------------------------------------------+
-   | User.Read.All             | Read all users full profiles                        |
-   +---------------------------+-----------------------------------------------------+
-   | Group.Read.All            | Allows the app to list groups                       |
-   +---------------------------+-----------------------------------------------------+
-   | Device.Read.All           | Read all device information                         |
-   +---------------------------+-----------------------------------------------------+
-   | Mail.ReadWrite (optional) | Read the content of emails in all mailboxes.        |
-   |                           | This method requires write permissions.             |
-   |                           | Alternatively, emails can be acquired by other      |
-   |                           | means.                                              |
-   +---------------------------+-----------------------------------------------------+
-   | SecurityEvents.Read.All   | Read security events and alerts                     |
-   +---------------------------+-----------------------------------------------------+
+   +------------------------------------+-----------------------------------------------------+
+   | Permissions                        | Description                                         |
+   +====================================+=====================================================+
+   | Application.Read.All               | Read all applications                               |
+   +------------------------------------+-----------------------------------------------------+
+   | AuditLog.Read.All                  | Read all audit log data                             |
+   +------------------------------------+-----------------------------------------------------+
+   | AuditLogsQuery.Read.All            | Read audit logs data from all services              |
+   +------------------------------------+-----------------------------------------------------+
+   | Directory.Read.All                 | Read directory data                                 |
+   +------------------------------------+-----------------------------------------------------+
+   | IdentityRiskEvent.Read.All         | Read all identity risk event information            |
+   +------------------------------------+-----------------------------------------------------+
+   | IdentityRiskyUser.Read.All         | Read all identity risky user information            |
+   +------------------------------------+-----------------------------------------------------+
+   | Mail.ReadBasic.All                 | Read metadata of mail in all mailboxes              |
+   +------------------------------------+-----------------------------------------------------+
+   | Policy.Read.All                    | Read your organization's policies and               |
+   |                                    | conditional access policies                         |
+   +------------------------------------+-----------------------------------------------------+
+   | UserAuthenticationMethod.Read.All  | Read all users' authentication methods              |
+   +------------------------------------+-----------------------------------------------------+
+   | User.Read.All                      | Read all users' full profiles                       |
+   +------------------------------------+-----------------------------------------------------+
+   | Group.Read.All                     | Allows the app to list groups                       |
+   +------------------------------------+-----------------------------------------------------+
+   | Device.Read.All                    | Read all device information                         |
+   +------------------------------------+-----------------------------------------------------+
+   | Mail.ReadWrite (optional)          | Read the content of emails in all mailboxes.        |
+   |                                    | This method requires write permissions.             |
+   |                                    | Alternatively, emails can be acquired by other      |
+   |                                    | means.                                              |
+   +------------------------------------+-----------------------------------------------------+
+   | SecurityEvents.Read.All            | Read security events and alerts                     |
+   +------------------------------------+-----------------------------------------------------+
    
 
 .. note::

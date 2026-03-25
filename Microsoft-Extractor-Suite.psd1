@@ -49,6 +49,7 @@
 		".\Scripts\Get-Roles.ps1"
 		".\Scripts\Start-MESTriage.ps1"
 		".\Scripts\TriageFunctions.ps1"
+		".\Scripts\Get-SecureScore.ps1"
 	)
 	
 	FunctionsToExport = @(
@@ -74,6 +75,7 @@
 		"Get-MailboxRules"
 		"Get-TransportRules"
 		"Show-TransportRules"
+		"Get-MailboxRulesGraph"
 		
 		# Get-MailboxAuditLog.ps1
 		"Get-MailboxAuditLog"
@@ -157,6 +159,9 @@
 		# TriageFunctions
 		"Get-EntraApplicationsForSpecificUsers"
 		"Get-QuickUALOperations"
+
+		# Get-SecureScore.ps1
+		"Get-SecureScore"
 	)
 	
 	# Variables to export from this module

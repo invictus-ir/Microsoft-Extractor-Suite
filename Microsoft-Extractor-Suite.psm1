@@ -225,7 +225,8 @@ function Get-GraphAuthType {
 
 function Init-Logging {
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
-	$isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+	$script:isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
+	$isDebugEnabled = $script:isDebugEnabled
 
 	$script:scriptStartedAt = Get-Date
 

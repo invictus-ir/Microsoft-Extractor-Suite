@@ -462,3 +462,209 @@ function Get-MailboxRules
 
 	Write-Summary -Summary $summaryOutput -Title "Mailbox Rules Summary"
 }
+
+function Get-MailboxRulesGraph
+{
+<#
+    .SYNOPSIS
+    Retrieves mailbox rules (Inbox Rules) for users using Microsoft Graph API.
+
+    .DESCRIPTION
+    Retrieves the mailbox rules for all users or specific users using the Graph API.
+    The output identifies conditions (e.g., Subject contains) and actions (e.g., Forward to, Delete).
+    
+    .PARAMETER OutputDir
+    OutputDir is the parameter specifying the output directory.
+    Default: Output\Rules
+
+    .PARAMETER Encoding
+    Encoding is the parameter specifying the encoding of the CSV output file.
+    Default: UTF8
+
+    .PARAMETER LogLevel
+    Specifies the level of logging:
+    None, Minimal, Standard, Debug
+    Default: Standard
+
+    .PARAMETER UserIds
+    UserId is the parameter specifying a single user ID or UPN to filter the results.
+    Default: All users will be included if not specified.
+    
+    .EXAMPLE
+    Get-MailboxRulesGraph
+    Retrieves rules for all users.
+
+    .EXAMPLE
+    Get-MailboxRulesGraph -UserIds "HR@invictus-ir.com"
+#>
+    [CmdletBinding()]
+    param(
+        [string]$OutputDir,
+        [string]$Encoding = "UTF8",
+        [string]$UserIds,
+        [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
+        [string]$LogLevel = 'Standard'
+    )
+
+    Init-Logging
+    Init-OutputDir -Component "Rules" -FilePostfix "MailboxRulesGraph" -CustomOutputDir $OutputDir
+
+    $directoryPath = Split-Path $script:outputFile -Parent
+    $script:outputFile = Join-Path $directoryPath "MailboxRulesGraph.csv"
+
+    # MailboxSettings.Read is required to read rules; User.Read.All is required to find the users.
+    $requiredScopes = @("User.Read.All", "MailboxSettings.Read") 
+    $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
+    
+    Write-LogFile -Message "=== Starting Mailbox Rules Collection (Graph API) ===" -Color "Cyan" -Level Standard
+
+    # Initialize Summary Trackers
+    $summary = @{
+        TotalUsers = 0
+        UsersWithRules = 0
+        TotalRules = 0
+        EnabledRules = 0
+        ForwardingRules = 0
+        RedirectRules = 0
+        DeleteRules = 0
+        StopProcessingRules = 0
+        Errors = 0
+    }
+
+    try {
+        $usersToProcess = @()
+
+        if ($UserIds) {
+            Write-LogFile -Message "[INFO] Filtering results for user: $UserIds" -Level Standard
+            try {
+                $userObj = Get-MgUser -UserId $UserIds -ErrorAction Stop
+                $usersToProcess += $userObj
+            } catch {
+                Write-LogFile -Message "[WARNING] User not found or error retrieving: $UserIds - $($_.Exception.Message)" -Color "Yellow" -Level Standard
+            }
+        } else {
+            Write-LogFile -Message "[INFO] Retrieving all users from tenant..." -Level Standard
+			
+			$allEnabledUsers = Get-MgUser -All -Filter "accountEnabled eq true" -Property Id, UserPrincipalName, DisplayName, AssignedPlans
+			$usersToProcess = $allEnabledUsers | Where-Object { 
+                $_.AssignedPlans | Where-Object { $_.Service -eq "Exchange" -and $_.CapabilityStatus -eq "Enabled" }
+            }
+
+            Write-LogFile -Message "[INFO] Found $($usersToProcess.Count) enabled users" -Level Standard
+        }
+        
+        $summary.TotalUsers = $usersToProcess.Count
+
+        foreach ($user in $usersToProcess) {
+            $upn = $user.UserPrincipalName
+            Write-LogFile -Message "[INFO] Checking rules for: $upn" -Level Standard
+            
+            try {
+                $rules = $null
+                $retryCount = 0
+                $maxRetries = 3
+                $completed = $false
+
+                while (-not $completed -and $retryCount -lt $maxRetries) {
+                    try {
+                        if ($isDebugEnabled) {
+                            $perf = Measure-Command {
+                                $rules = Get-MgUserMailFolderMessageRule -UserId $user.Id -MailFolderId "inbox" -ErrorAction Stop
+                            }
+                            Write-LogFile -Message "[DEBUG]   API Call took $([math]::round($perf.TotalSeconds, 2))s" -Level Debug
+                        } else {
+                            $rules = Get-MgUserMailFolderMessageRule -UserId $user.Id -MailFolderId "inbox" -ErrorAction Stop
+                        }
+                        $completed = $true
+                    }
+                    catch {
+                        if ($_.Exception.Response.StatusCode -eq 429) {
+                            $retryCount++
+                            $sleepTime = 5 * $retryCount
+                            Write-LogFile -Message "[WARNING] Throttled for user $upn. Retrying in $sleepTime seconds..." -Color "Yellow" -Level Standard
+                            Start-Sleep -Seconds $sleepTime
+                        } else {
+                            throw $_
+                        }
+                    }
+                }
+
+                if ($rules) {
+                    $summary.UsersWithRules++
+                    $summary.TotalRules += $rules.Count
+
+                    if ($isDebugEnabled) {
+                        Write-LogFile -Message "[DEBUG]   Found $($rules.Count) rules" -Level Debug
+                    }
+
+                    foreach ($rule in $rules) {
+                        if ($rule.IsEnabled) { $summary.EnabledRules++ }
+                        if ($rule.Actions.ForwardTo) { $summary.ForwardingRules++ }
+                        if ($rule.Actions.RedirectTo) { $summary.RedirectRules++ }
+                        if ($rule.Actions.Delete) { $summary.DeleteRules++ }
+                        if ($rule.Actions.StopProcessingRules) { $summary.StopProcessingRules++ }
+                        
+                        $forwardTo = if ($rule.Actions.ForwardTo) { ($rule.Actions.ForwardTo.EmailAddress.Address -join "; ") } else { $null }
+                        $redirectTo = if ($rule.Actions.RedirectTo) { ($rule.Actions.RedirectTo.EmailAddress.Address -join "; ") } else { $null }
+                        $forwardAsAttach = if ($rule.Actions.ForwardAsAttachmentTo) { ($rule.Actions.ForwardAsAttachmentTo.EmailAddress.Address -join "; ") } else { $null }
+                        $moveTo = if ($rule.Actions.MoveToFolder) { "FolderID: $($rule.Actions.MoveToFolder)" } else { $null }
+                        
+                        $fromAddresses = if ($rule.Conditions.SenderContains) { ($rule.Conditions.SenderContains -join "; ") } else { $null }
+                        $subjectContains = if ($rule.Conditions.SubjectContains) { ($rule.Conditions.SubjectContains -join "; ") } else { $null }
+                        $bodyContains = if ($rule.Conditions.BodyContains) { ($rule.Conditions.BodyContains -join "; ") } else { $null }
+
+                        [PSCustomObject]@{
+                            UserPrincipalName      = $upn
+                            RuleName               = $rule.DisplayName
+                            Sequence               = $rule.Sequence
+                            Enabled                = $rule.IsEnabled
+                            # Actions
+                            ForwardTo              = $forwardTo
+                            RedirectTo             = $redirectTo
+                            ForwardAsAttachment    = $forwardAsAttach
+                            Delete                 = $rule.Actions.Delete
+                            PermanentDelete        = $rule.Actions.PermanentDelete
+                            MoveToFolder           = $moveTo
+                            StopProcessingRules    = $rule.Actions.StopProcessingRules
+                            MarkAsRead             = $rule.Actions.MarkAsRead
+                            # Conditions
+                            From                   = $fromAddresses
+                            SubjectContains        = $subjectContains
+                            BodyContains           = $bodyContains
+                            HasAttachments         = $rule.Conditions.HasAttachments
+                            IsImportant            = $rule.Conditions.Importance
+                            RuleId                 = $rule.Id
+                        } | Export-Csv -Path $script:outputFile -Append -NoTypeInformation -Encoding $Encoding
+                    }
+                }
+            }
+            catch {
+                Write-LogFile -Message "[WARNING] Failed to retrieve rules for $upn`: $($_.Exception.Message)" -Color "Yellow" -Level Minimal
+                $summary.Errors++
+            }
+        }
+
+        $summaryOutput = [ordered]@{
+            "Collection Statistics" = [ordered]@{
+                "Total Users Scanned" = $summary.TotalUsers
+                "Users with Rules"    = $summary.UsersWithRules
+                "Total Rules Found"   = $summary.TotalRules
+                "Errors/Access Denied"= $summary.Errors
+            }
+            "Rule Types" = [ordered]@{
+                "Enabled Rules"         = $summary.EnabledRules
+                "Forwarding Rules"      = $summary.ForwardingRules
+                "Redirect Rules"        = $summary.RedirectRules
+                "Delete Rules"          = $summary.DeleteRules
+                "Stop Processing Rules" = $summary.StopProcessingRules
+            }
+        }
+
+        Write-Summary -Summary $summaryOutput -Title "Mailbox Rules (Graph) Summary"
+
+    }
+    catch {
+        Write-LogFile -Message "[ERROR] Fatal error in Main Block: $($_.Exception.Message)" -Color "Red" -Level Minimal
+        throw
+    }
+}

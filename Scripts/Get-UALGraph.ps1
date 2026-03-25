@@ -208,30 +208,58 @@ Function Get-UALGraph {
 
         write-logFile -Message "[INFO] Waiting for the scan to start..." -Level Standard
         $lastStatus = ""
+        $pollDelay = 5
+        $maxPollRetries = 5
+
         do {
-            $response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl -ContentType 'application/json'
+            $pollRetry = 0
+            $pollSuccess = $false
+            while (-not $pollSuccess -and $pollRetry -lt $maxPollRetries) {
+                try {
+                    $response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl -ContentType 'application/json'
+                    $pollSuccess = $true
+                }
+                catch {
+                    $errMsg = $_.Exception.Message
+                    if ($errMsg -like "*BadGateway*" -or $errMsg -like "*502*" -or
+                        $errMsg -like "*ServiceUnavailable*" -or $errMsg -like "*503*" -or
+                        $errMsg -like "*GatewayTimeout*" -or $errMsg -like "*504*" -or
+                        $errMsg -like "*server side error*" -or $errMsg -like "*timed out*") {
+                        $pollRetry++
+                        $retryDelay = [math]::Min(60, $pollDelay * [math]::Pow(2, $pollRetry))
+                        Write-LogFile -Message "[WARNING] Transient error polling search status (attempt $pollRetry/$maxPollRetries): $errMsg. Retrying in $retryDelay s..." -Color "Yellow" -Level Minimal
+                        Start-Sleep -Seconds $retryDelay
+                    }
+                    else {
+                        throw
+                    }
+                }
+            }
+
+            if (-not $pollSuccess) {
+                throw "Failed to poll search status after $maxPollRetries retries. Last error: $errMsg"
+            }
+
             $status = $response.status
             if ($status -ne $lastStatus) {
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] Status changed to: $status" -Level Debug
+                }
+                switch ($status) {
+                    "notStarted" { Write-LogFile -Message "[INFO] Waiting for the scan to start..." -Level Standard }
+                    "running"    { Write-LogFile -Message "[INFO] Unified Audit Log search has started... This can take a while..." -Level Standard }
+                    "succeeded"  { } # logged below
+                    default      { Write-LogFile -Message "[INFO] Search status: $status" -Level Standard }
+                }
                 $lastStatus = $status
             }
-            Start-Sleep -Seconds 5
-        } while ($status -ne "succeeded" -and $status -ne "running")
-        if ($status -eq "running") {
-            write-logFile -Message "[INFO] Unified Audit Log search has started... This can take a while..." -Level Standard
-            do {
-                $response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl -ContentType 'application/json'
-                $status = $response.status
-                if ($status -ne $lastStatus) {
-                    if ($isDebugEnabled -and $status -ne $lastStatus) {
-                        Write-LogFile -Message "[DEBUG] Status changed to: $status" -Level Debug
-                    }
-                    write-logFile -Message "[INFO] Unified Audit Log search is still running. Waiting..." -Level Standard
-                    $lastStatus = $status
-                }
-                Start-Sleep -Seconds 5
-            } while ($status -ne "succeeded")
-        }
-       write-logFile -Message "[INFO] Unified Audit Log search complete." -Level Minimal
+
+            if ($status -ne "succeeded") {
+                Start-Sleep -Seconds $pollDelay
+            }
+        } while ($status -ne "succeeded")
+
+        write-logFile -Message "[INFO] Unified Audit Log search complete." -Level Minimal
     }
     catch {
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
