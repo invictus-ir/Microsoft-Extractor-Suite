@@ -81,6 +81,7 @@ function Get-MFA {
             HelloBusiness = 0
             TemporaryAccessPass = 0
             CertificateBasedAuth = 0
+            QrCodePin = 0
         }
         StartTime = Get-Date
         ProcessingTime = $null
@@ -174,6 +175,7 @@ function Get-MFA {
             hellobusiness      = $false
             temporaryAccessPass = $false
             certificateBasedAuthConfiguration = $false
+            qrcodepin          = $false
         }
   
         try {
@@ -238,6 +240,10 @@ function Get-MFA {
                             $myObject.certificateBasedAuthConfiguration = $true 
                             $myObject.MFAstatus = "Enabled"
                             $summary.MethodCounts.CertificateBasedAuth++
+                        }
+                        "#microsoft.graph.qrCodePinAuthenticationMethod" {
+                            $myObject.qrcodepin = $true
+                            $summary.MethodCounts.QrCodePin++   
                         }
                         Default {
                           Write-LogFile -Message "[WARNING] Unknown method type: $odataType for user $userPrinc" -Level Standard -Color "Yellow"
@@ -391,6 +397,7 @@ function Get-MFA {
         "Hello Business" = $summary.MethodCounts.HelloBusiness
         "Temporary Access Pass" = $summary.MethodCounts.TemporaryAccessPass
         "Certificate Based Auth" = $summary.MethodCounts.CertificateBasedAuth
+        "QR Code PIN" = $summary.MethodCounts.QrCodePin
     }
     "Output Files" = [ordered]@{
         "Authentication Methods" = $authMethodsPath
