@@ -178,13 +178,13 @@ Function Get-UALGraph {
             {
                 Write-LogFile -Message "[DEBUG] Initiating Graph API audit log query..." -Level Debug
                 $createPerformance = Measure-Command {
-                    $response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/security/auditLog/queries" -Body $body -ContentType "application/json"
+                    $response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/security/auditLog/queries" -Body $body -ContentType "application/json"
                 }
                 Write-LogFile -Message "[DEBUG] Query creation took $([math]::round($createPerformance.TotalSeconds, 2) ) seconds" -Level Debug
             }
             else
             {
-                $response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/security/auditLog/queries" -Body $body -ContentType "application/json"
+                $response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/security/auditLog/queries" -Body $body -ContentType "application/json"
             }
 
             $scanId = $response.id
@@ -204,7 +204,7 @@ Function Get-UALGraph {
         }
 
         Start-Sleep -Seconds 10
-        $apiUrl = "https://graph.microsoft.com/beta/security/auditLog/queries/$scanId"
+        $apiUrl = "https://graph.microsoft.com/v1.0/security/auditLog/queries/$scanId"
 
         write-logFile -Message "[INFO] Waiting for the scan to start..." -Level Standard
         $lastStatus = ""
@@ -306,7 +306,7 @@ Function Get-UALGraph {
             Write-LogFile -Message "[DEBUG]   Initial file path: $filePath" -Level Debug
         }
 
-        $apiUrl = "https://graph.microsoft.com/beta/security/auditLog/queries/$scanId/records"
+        $apiUrl = "https://graph.microsoft.com/v1.0/security/auditLog/queries/$scanId/records"
         Write-LogFile -Message "[INFO] Starting to collect records..." -Level Standard
 
         Do {
