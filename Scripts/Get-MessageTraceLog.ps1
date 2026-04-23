@@ -104,6 +104,36 @@ function Get-MessageTraceLog
 	
 	Init-Logging
 	Write-LogFile -Message "=== Starting Message Trace Log Collection ===" -Color "Cyan" -Level Standard
+	# --- ISO 8601 StartDate/EndDate enforcement ---
+	function Convert-InvariantDateMsgTrace ([string]$date, [string]$paramName) {
+		$formats = @("yyyy-MM-dd","yyyy-MM-ddTHH:mm:ssZ","yyyy-MM-ddTHH:mm:ss","yyyy-MM-dd HH:mm:ss","o")
+		if ([string]::IsNullOrWhiteSpace($date)) { return $null }
+		foreach ($fmt in $formats) {
+			try {
+				return [DateTime]::ParseExact($date, $fmt, [System.Globalization.CultureInfo]::InvariantCulture)
+			} catch {}
+		}
+		throw "ERROR: $paramName must be in ISO 8601 (yyyy-MM-dd, yyyy-MM-ddTHH:mm:ssZ, etc) format. Received: '$date'"
+	}
+	if ($StartDate) {
+		$script:StartDate = Convert-InvariantDateMsgTrace $StartDate "StartDate"
+		$StartDate = $script:StartDate.ToString("o", [System.Globalization.CultureInfo]::InvariantCulture)
+		$script:StartDate = [datetime]$StartDate
+	} else {
+		$script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-10)
+	}
+	if ($EndDate) {
+		$script:EndDate = Convert-InvariantDateMsgTrace $EndDate "EndDate"
+		$EndDate = $script:EndDate.ToString("o", [System.Globalization.CultureInfo]::InvariantCulture)
+		$script:EndDate = [datetime]$EndDate
+	} else {
+		$script:EndDate = [datetime]::Now.ToUniversalTime()
+	}
+	if ($PSCulture -ne "en-US" -and ($StartDate -or $EndDate)) {
+		Write-LogFile -Message "[WARNING] Non en-US PowerShell culture detected. All date parameters must be in ISO 8601 (yyyy-MM-dd or yyyy-MM-ddTHH:mm:ssZ) format." -Color "Yellow" -Level Standard
+	}
+	# --- End ISO 8601 enforcement ---
+
 	StartDateMTL -Quiet
 	EndDateMTL -Quiet
 
@@ -130,11 +160,11 @@ function Get-MessageTraceLog
 	}	
 
 	if (($null -eq $UserIds) -Or ($UserIds -eq "")) {
-        Write-LogFile -Message "[INFO] No users provided. Getting the Message Trace Log for all users between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow" -Level Standard
+        Write-LogFile -Message ("[INFO] No users provided. Getting the Message Trace Log for all users between {0} and {1}" -f $script:StartDate.ToString('o', [System.Globalization.CultureInfo]::InvariantCulture), $script:EndDate.ToString('o', [System.Globalization.CultureInfo]::InvariantCulture)) -Color "Yellow" -Level Standard
         Retrieve-MessageTrace -StartDate $script:StartDate -endDate $script:EndDate -OutputFile $script:outputFile 
     } else {
         if($UserIds -match "\*"){
-            Write-LogFile -Message "[INFO] An entire domain has been provided, retrieving all messages between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Color "Yellow" -Level Standard
+            Write-LogFile -Message ("[INFO] An entire domain has been provided, retrieving all messages between {0} and {1}" -f $script:StartDate.ToString('o', [System.Globalization.CultureInfo]::InvariantCulture), $script:EndDate.ToString('o', [System.Globalization.CultureInfo]::InvariantCulture)) -Color "Yellow" -Level Standard
         }
         $users = $UserIds.Split(",")
 
@@ -146,7 +176,7 @@ function Get-MessageTraceLog
                 Write-LogFile -Message "[DEBUG] Output file path: '$outputFile'" -Level Debug
             }
 
-            write-logFile -Message "[INFO] Collecting the Message Trace Log for $user between $($script:StartDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($script:EndDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Level Standard
+            write-logFile -Message ("[INFO] Collecting the Message Trace Log for {0} between {1} and {2}" -f $user, $script:StartDate.ToString('o', [System.Globalization.CultureInfo]::InvariantCulture), $script:EndDate.ToString('o', [System.Globalization.CultureInfo]::InvariantCulture)) -Level Standard
             $outputFile = "$OutputDir\$($user.Replace('*@',''))-MTL.csv"
             Remove-Item $outputFile -ErrorAction SilentlyContinue
 

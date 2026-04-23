@@ -131,6 +131,7 @@ function Get-UAL {
 
 	[CmdletBinding()]
 		param (
+			# Dates must be ISO 8601, e.g., YYYY-MM-DD or YYYY-MM-DDTHH:mm:ssZ
 			[string]$StartDate,
 			[string]$EndDate,
 			[string]$UserIds = "*",
@@ -158,6 +159,38 @@ function Get-UAL {
     Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix "UAL" -CustomOutputDir $OutputDir
 	$OutputDir = Split-Path $script:outputFile -Parent
 	Write-LogFile -Message "=== Starting Unified Audit Log Collection ===" -Color "Cyan" -Level Standard
+
+	# --- ISO 8601 StartDate/EndDate enforcement ---
+	function Convert-InvariantDateUAL ([string]$date, [string]$paramName) {
+		$formats = @("yyyy-MM-dd","yyyy-MM-ddTHH:mm:ssZ","yyyy-MM-ddTHH:mm:ss","yyyy-MM-dd HH:mm:ss","o")
+		if ([string]::IsNullOrWhiteSpace($date)) { return $null }
+		foreach ($fmt in $formats) {
+			try {
+				return [DateTime]::ParseExact($date, $fmt, [System.Globalization.CultureInfo]::InvariantCulture)
+			} catch {}
+		}
+		throw "ERROR: $paramName must be in ISO 8601 (yyyy-MM-dd, yyyy-MM-ddTHH:mm:ssZ, etc) format. Received: '$date'"
+	}
+
+	if ($StartDate) {
+		$script:StartDate = Convert-InvariantDateUAL $StartDate "StartDate"
+		$StartDate = $script:StartDate.ToString("o", [System.Globalization.CultureInfo]::InvariantCulture)
+		$script:StartDate = [datetime]$StartDate
+	} else {
+		$script:StartDate = (Get-Date).AddDays(-180)
+	}
+	if ($EndDate) {
+		$script:EndDate = Convert-InvariantDateUAL $EndDate "EndDate"
+		$EndDate = $script:EndDate.ToString("o", [System.Globalization.CultureInfo]::InvariantCulture)
+		$script:EndDate = [datetime]$EndDate
+	} else {
+		$script:EndDate = Get-Date
+	}
+	if ($PSCulture -ne "en-US" -and ($StartDate -or $EndDate)) {
+		Write-LogFile -Message "[WARNING] Non en-US PowerShell culture detected. All date parameters must be in ISO 8601 (yyyy-MM-dd or yyyy-MM-ddTHH:mm:ssZ) format." -Color "Yellow" -Level Standard
+	}
+	# --- End ISO 8601 enforcement ---
+
 	
 	$stats = @{
 		StartTime = Get-Date
@@ -256,8 +289,8 @@ function Get-UAL {
         }
 	}
 
-	Write-LogFile -Message "Start date: $($script:StartDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard
-	Write-LogFile -Message "End date: $($script:EndDate.ToString('yyyy-MM-dd HH:mm:ss'))" -Level Standard
+	Write-LogFile -Message ("Start date: {0}" -f $script:StartDate.ToString('o', [System.Globalization.CultureInfo]::InvariantCulture)) -Level Standard
+	Write-LogFile -Message ("End date: {0}" -f $script:EndDate.ToString('o', [System.Globalization.CultureInfo]::InvariantCulture)) -Level Standard
 	Write-LogFile -Message "Output format: $Output" -Level Standard
 	Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
 	if ($recordTypes.Count -gt 0) {

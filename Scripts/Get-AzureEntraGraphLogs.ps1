@@ -97,6 +97,34 @@ function Get-GraphEntraSignInLogs {
 	Init-Logging
     Init-OutputDir -Component "EntraID" -SubComponent "SignInLogs" -FilePostfix "SignInLogs" -CustomOutputDir $OutputDir
 
+    # --- ISO 8601 StartDate/EndDate enforcement ---
+    function Convert-InvariantDateEntra ([string]$date, [string]$paramName) {
+        $formats = @("yyyy-MM-dd","yyyy-MM-ddTHH:mm:ssZ","yyyy-MM-ddTHH:mm:ss","yyyy-MM-dd HH:mm:ss","o")
+        if ([string]::IsNullOrWhiteSpace($date)) { return $null }
+        foreach ($fmt in $formats) {
+            try {
+                return [DateTime]::ParseExact($date, $fmt, [System.Globalization.CultureInfo]::InvariantCulture)
+            } catch {}
+        }
+        throw "ERROR: $paramName must be in ISO 8601 (yyyy-MM-dd, yyyy-MM-ddTHH:mm:ssZ, etc) format. Received: '$date'"
+    }
+    $script:StartDate = $null
+    $script:EndDate = $null
+    if ($startDate) {
+        $script:StartDate = Convert-InvariantDateEntra $startDate "startDate"
+    } else {
+        $script:StartDate = [datetime]::Now.ToUniversalTime().AddDays(-30)
+    }
+    if ($endDate) {
+        $script:EndDate = Convert-InvariantDateEntra $endDate "endDate"
+    } else {
+        $script:EndDate = [datetime]::Now.ToUniversalTime()
+    }
+    if ($PSCulture -ne "en-US" -and ($startDate -or $endDate)) {
+        Write-LogFile -Message "[WARNING] Non en-US PowerShell culture detected. All date parameters must be ISO 8601 (yyyy-MM-dd or yyyy-MM-ddTHH:mm:ssZ) format. Received: startDate='$startDate', endDate='$endDate'" -Color "Yellow" -Level Standard
+    }
+    # --- End ISO 8601 enforcement ---
+
     $summary = @{
         TotalRecords = 0
         StartTime = Get-Date
@@ -591,4 +619,3 @@ function Get-GraphEntraAuditLogs {
 		throw
     }
 }
-	

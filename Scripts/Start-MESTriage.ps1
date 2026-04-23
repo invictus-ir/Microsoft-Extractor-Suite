@@ -71,6 +71,7 @@ function Start-MESTriage {
     [CmdletBinding()]
         param (
             [string]$Template = "Standard",
+            # StartDate/EndDate: Must be supplied in 'yyyy-MM-dd' or ISO 8601 ('yyyy-MM-ddTHH:mm:ssZ') format.
             [string]$StartDate,
             [string]$EndDate,
             [Parameter(Mandatory=$true)]
@@ -84,6 +85,32 @@ function Start-MESTriage {
             [ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
             [string]$LogLevel = 'Minimal'
         )
+
+    # --- Begin Invariant Date Parsing ---
+    # Only allow 'yyyy-MM-dd' or ISO8601 formats and fail early if not matched
+    function Convert-InvariantDate([string]$date, [string]$paramName) {
+        $formats = @("yyyy-MM-dd","yyyy-MM-ddTHH:mm:ssZ","yyyy-MM-ddTHH:mm:ss","yyyy-MM-dd HH:mm:ss")
+        if ([string]::IsNullOrWhiteSpace($date)) { return $null }
+        foreach ($fmt in $formats) {
+            try {
+                return [DateTime]::ParseExact($date, $fmt, [System.Globalization.CultureInfo]::InvariantCulture)
+            } catch {}
+        }
+        throw "ERROR: $paramName should be in YYYY-MM-DD or ISO 8601 format. Received: '$date'"
+    }
+    $StartDateObj = $null
+    $EndDateObj = $null
+    if ($StartDate) {
+        $StartDateObj = Convert-InvariantDate $StartDate "StartDate"
+    }
+    if ($EndDate) {
+        $EndDateObj = Convert-InvariantDate $EndDate "EndDate"
+    }
+    # Enforce warning if not ISO 8601/culture not invariant
+    if ($PSCulture -ne "en-US" -and ($StartDate -or $EndDate)) {
+        Write-LogFile -Message "[WARNING] Non en-US PowerShell culture detected. All date parameters must be provided in ISO 8601 (yyyy-MM-dd or yyyy-MM-ddTHH:mm:ssZ) format to ensure correct results." -Color "Yellow" -Level Standard
+    }
+    # --- End Invariant Date Parsing ---
 
     Set-LogLevel -Level ([LogLevel]::$LogLevel)
     $isDebugEnabled = $script:LogLevel -eq [LogLevel]::Debug
@@ -217,7 +244,9 @@ function Start-MESTriage {
             }
             
             try {
-                $executed = Invoke-TriageTask -TaskName $task -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIdsArray -Output $Output -MergeOutput:$MergeOutput -StartDate $StartDate -EndDate $EndDate -Encoding $Encoding -JSONLSupportedFunctions $JSONLSupportedFunctions -SOFELKSupportedFunctions $SOFELKSupportedFunctions
+                $StartDateISO = if ($StartDateObj) { $StartDateObj.ToString("o", [System.Globalization.CultureInfo]::InvariantCulture) } else { $null }
+                $EndDateISO = if ($EndDateObj) { $EndDateObj.ToString("o", [System.Globalization.CultureInfo]::InvariantCulture) } else { $null }
+                $executed = Invoke-TriageTask -TaskName $task -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIdsArray -Output $Output -MergeOutput:$MergeOutput -StartDate $StartDateISO -EndDate $EndDateISO -Encoding $Encoding -JSONLSupportedFunctions $JSONLSupportedFunctions -SOFELKSupportedFunctions $SOFELKSupportedFunctions
                 
                 if ($executed -eq $true) {
                     $triageSummary.SuccessfulTasks++
@@ -254,7 +283,9 @@ function Start-MESTriage {
                     } elseif ($Output -eq "SOF-ELK" -and "Get-UAL" -in $SOFELKSupportedFunctions) { 
                         $ualOutput = "SOF-ELK" 
                     }
-                    Get-QuickUALOperations -Operations $task.Operations -UserIds $userIdsString -OutputDir $OutputDir -LogLevel $LogLevel -Output $ualOutput -StartDate $StartDate -EndDate $EndDate
+                    $StartDateISO = if ($StartDateObj) { $StartDateObj.ToString("o", [System.Globalization.CultureInfo]::InvariantCulture) } else { $null }
+                    $EndDateISO = if ($EndDateObj) { $EndDateObj.ToString("o", [System.Globalization.CultureInfo]::InvariantCulture) } else { $null }
+                    Get-QuickUALOperations -Operations $task.Operations -UserIds $userIdsString -OutputDir $OutputDir -LogLevel $LogLevel -Output $ualOutput -StartDate $StartDateISO -EndDate $EndDateISO
                     
                     $triageSummary.SuccessfulTasks++
                     Write-TaskProgress -TaskName "UAL Operations" -Status 'Complete'
