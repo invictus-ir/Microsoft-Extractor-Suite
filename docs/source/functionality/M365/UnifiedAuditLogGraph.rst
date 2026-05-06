@@ -37,6 +37,18 @@ Retrieve audit log data for the specified time range March 1, 2026 to March 10, 
 
    Get-UALGraph -searchName scan1 -startDate "2026-03-01" -endDate "2026-03-10" -IPAddress 182.74.242.26
 
+Uses the v1.0 Microsoft Graph endpoint instead of the default beta endpoint:
+::
+
+   Get-UALGraph -SearchName Test -UseV1
+
+.. note::
+
+  By default, ``Get-UALGraph`` uses the **beta** endpoint (``https://graph.microsoft.com/beta/security/auditLog/queries``).
+  Microsoft has experienced reliability issues with both the beta and v1.0 endpoints. The beta endpoint is the default
+  because it has proven more consistently available. Use ``-UseV1`` to opt in to the v1.0 endpoint if it is stable in
+  your tenant at the time of collection.
+
 Parameters
 """"""""""""""""""""""""""
 -SearchName (required)
@@ -101,11 +113,15 @@ Parameters
     - Default: 250000
 
 -SplitFiles (optional)
-    - When specified, splits output into multiple files based on MaxEventsPerFile.
-    - Default: If not specified, outputs to a single file.
+  - When specified, splits output into multiple files based on MaxEventsPerFile.
+  - Default: If not specified, outputs to a single file.
+
+-UseV1 (optional)
+  - When specified, uses the v1.0 Microsoft Graph API endpoint (``https://graph.microsoft.com/v1.0/security/auditlog/queries``) instead of the default beta endpoint.
+  - Default: beta endpoint is used. Both endpoints have experienced intermittent instability; use this flag to switch to v1.0 when it is available and stable in your tenant.
 
 Date Format Notes
-""""""""""""""""""""""""""
+=================
 - When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
 - If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2026-01-01 08:15:00 will be converted to 2026-01-01 06:15:00 in UTC.
 - To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2026-01-01T08:15:00Z). This format will retrieve data from January 1st, 2026, starting from a quarter past 8 in the morning until the specified end date.

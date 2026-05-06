@@ -78,12 +78,18 @@ Function Get-UALGraph {
     When set to True, splits output into multiple files based on MaxEventsPerFile.
     Default: If not specified, outputs to a single file.
 
-    .PARAMETER ObjectIDs 
+    .PARAMETER ObjectIDs
     Exact data returned depends on the service in the current `@odatatype.microsoft.graph.security.auditLogQuery` record.
     For Exchange admin audit logging, the name of the object modified by the cmdlet.
-    For SharePoint activity, the full URL path name of the file or folder accessed by a user. 
+    For SharePoint activity, the full URL path name of the file or folder accessed by a user.
     For Microsoft Entra activity, the name of the user account that was modified.
-    
+
+    .PARAMETER UseV1
+    When specified, uses the v1.0 Microsoft Graph API endpoint instead of the default beta endpoint.
+    By default, the beta endpoint (https://graph.microsoft.com/beta/security/auditLog/queries) is used
+    because both endpoints have experienced reliability issues and the beta endpoint is currently more
+    stable. Use this switch to opt-in to the v1.0 endpoint when it is available and stable in your tenant.
+
     .EXAMPLE
     Get-UALGraph -searchName Test 
     Gets all the unified audit log entries.
@@ -126,6 +132,7 @@ Function Get-UALGraph {
         [string]$Output = "JSON",
         [switch]$SplitFiles,
         [string]$SearchId = "",
+        [switch]$UseV1,
         [switch]$AuditDataOnly
     )
 
@@ -156,6 +163,14 @@ Function Get-UALGraph {
     Write-LogFile -Message "Output format: $Output" -Level Standard
     Write-LogFile -Message "----------------------------------------`n" -Level Standard
 
+    if ($UseV1) {
+        $apiBase = "https://graph.microsoft.com/v1.0/security/auditLog/queries"
+        Write-LogFile -Message "[INFO] Using Microsoft Graph v1.0 endpoint." -Level Standard
+    } else {
+        $apiBase = "https://graph.microsoft.com/beta/security/auditLog/queries"
+        Write-LogFile -Message "[INFO] Using Microsoft Graph beta endpoint (default). Use -UseV1 to switch to v1.0." -Level Standard
+    }
+
     $body = @{
         "@odata.type" = "#microsoft.graph.security.auditLogQuery"
         displayName = $searchName
@@ -179,13 +194,13 @@ Function Get-UALGraph {
             {
                 Write-LogFile -Message "[DEBUG] Initiating Graph API audit log query..." -Level Debug
                 $createPerformance = Measure-Command {
-                    $response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/security/auditLog/queries" -Body $body -ContentType "application/json"
+                    $response = Invoke-MgGraphRequest -Method POST -Uri $apiBase -Body $body -ContentType "application/json"
                 }
                 Write-LogFile -Message "[DEBUG] Query creation took $([math]::round($createPerformance.TotalSeconds, 2) ) seconds" -Level Debug
             }
             else
             {
-                $response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/beta/security/auditLog/queries" -Body $body -ContentType "application/json"
+                $response = Invoke-MgGraphRequest -Method POST -Uri $apiBase -Body $body -ContentType "application/json"
             }
 
             $scanId = $response.id
@@ -205,7 +220,7 @@ Function Get-UALGraph {
         }
 
         Start-Sleep -Seconds 10
-        $apiUrl = "https://graph.microsoft.com/beta/security/auditLog/queries/$scanId"
+        $apiUrl = "$apiBase/$scanId"
 
         write-logFile -Message "[INFO] Waiting for the scan to start..." -Level Standard
         $lastStatus = ""
@@ -335,7 +350,7 @@ Function Get-UALGraph {
             Write-LogFile -Message "[DEBUG]   Initial file path: $filePath" -Level Debug
         }
 
-        $apiUrl = "https://graph.microsoft.com/beta/security/auditLog/queries/$scanId/records"
+        $apiUrl = "$apiBase/$scanId/records"
         Write-LogFile -Message "[INFO] Starting to collect records..." -Level Standard
 
         Do {
