@@ -58,12 +58,12 @@ function Get-GraphEntraSignInLogs {
     Get all audit logs of sign-ins via application authentication.
 
     .EXAMPLE
-    Get-GraphEntraSignInLogs -endDate 2025-04-12
-    Get audit logs before 2025-04-12.
+    Get-GraphEntraSignInLogs -endDate 2026-04-12
+    Get audit logs before 2026-04-12.
 
     .EXAMPLE
-    Get-GraphEntraSignInLogs -startDate 2025-04-12
-    Get audit logs after 2025-04-12.
+    Get-GraphEntraSignInLogs -startDate 2026-04-12
+    Get audit logs after 2026-04-12.
 
 	EXAMPLE
     Get-GraphEntraSignInLogs -EventTypes interactiveUser
@@ -305,7 +305,7 @@ function Get-GraphEntraSignInLogs {
 						}
 					}
 
-					$currentBatchCount = ($responseJson.value | Measure-Object).Count
+					$currentBatchCount = @($responseJson.value).Count
 					$summary.TotalRecords += $currentBatchCount
 					$summary.TotalFiles++
 					$eventTypeSummary.RecordCount += $currentBatchCount
@@ -417,12 +417,12 @@ function Get-GraphEntraAuditLogs {
     Get sign-in logs for 'user@example.com', including both userPrincipalName and targetResources in the filter.
 
 	.EXAMPLE
-	Get-GraphEntraAuditLogs -Before 2025-04-12
-	Get directory audit logs before 2025-04-12.
+	Get-GraphEntraAuditLogs -Before 2026-04-12
+	Get directory audit logs before 2026-04-12.
 
 	.EXAMPLE
-	Get-GraphEntraAuditLogs -After 2025-04-12
-	Get directory audit logs after 2025-04-12.
+	Get-GraphEntraAuditLogs -After 2026-04-12
+	Get directory audit logs after 2026-04-12.
 	#>
 	[CmdletBinding()]
 	param(
@@ -544,7 +544,7 @@ function Get-GraphEntraAuditLogs {
                     }
                 }
 
-				$currentBatchCount = ($responseJson.value | Measure-Object).Count
+				$currentBatchCount = @($responseJson.value).Count
                 $summary.TotalRecords += $currentBatchCount
                 $summary.TotalFiles++
 				

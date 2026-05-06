@@ -52,8 +52,8 @@ function Get-MailboxAuditLog
 	Get mailbox audit log entries for the users Test@invictus-ir.com and HR@invictus-ir.com.
 
 	.EXAMPLE
-	Get-MailboxAuditLog -UserIds Test@invictus-ir.com -StartDate 1/4/2025 -EndDate 5/4/2025
-	Get mailbox audit log entries for the user Test@invictus-ir.com between 1/4/2025 and 5/4/2025.
+	Get-MailboxAuditLog -UserIds Test@invictus-ir.com -StartDate 2026-04-01 -EndDate 2026-04-05
+	Get mailbox audit log entries for the user Test@invictus-ir.com between 2026-04-01 and 2026-04-05.
 #>
     [CmdletBinding()]
     param(

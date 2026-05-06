@@ -129,7 +129,7 @@ Function Get-SecureScore {
             $controlScoresHash[$_.ControlName] = $_.Score
         }
 
-        $results = @()
+        $results = [System.Collections.Generic.List[object]]::new()
         $atRiskCount = 0
         $meetsStandardCount = 0
         $partialCount = 0
@@ -155,14 +155,8 @@ Function Get-SecureScore {
                 continue
             }
 
-            try {
-                $fullProfile = Get-MgSecuritySecureScoreControlProfile -SecureScoreControlProfileId $profile.Id
-                $state = $fullProfile.ControlStateUpdates | Select-Object -Last 1 -ExpandProperty State
-                if (-not $state) { $state = "Default" }
-            } catch {
-                Write-LogFile -Message "[WARNING] Error fetching full profile for $($profile.Id): $($_.Exception.Message)" -Color "Yellow" -Level Standard
-                $state = "Error"
-            }
+            $state = $profile.ControlStateUpdates | Select-Object -Last 1 -ExpandProperty State
+            if (-not $state) { $state = "Default" }
 
             $currentScore = $controlScoresHash[$profile.Id]
             if ($null -eq $currentScore) { $currentScore = 0 }
@@ -196,7 +190,7 @@ Function Get-SecureScore {
             }
 
             $scoreGap = $profile.MaxScore - $currentScore
-            $results += [PSCustomObject]@{
+            $results.Add([PSCustomObject]@{
                 Category          = $profile.ControlCategory
                 Title             = $profile.Title
                 Service           = $profile.Service
@@ -205,18 +199,18 @@ Function Get-SecureScore {
                 MaxScore          = $profile.MaxScore
                 ScoreGap          = $scoreGap
                 State             = $state
-                ActionType        = $fullProfile.ActionType
-                ActionUrl         = $fullProfile.ActionUrl
-                ImplementationCost = $fullProfile.ImplementationCost
-                UserImpact        = $fullProfile.UserImpact
-                Tier              = $fullProfile.Tier
-                Rank              = $fullProfile.Rank
-                Deprecated        = $fullProfile.Deprecated
-                Threats           = ($fullProfile.Threats -join "; ")
-                Remediation       = $fullProfile.Remediation
-                RemediationImpact = $fullProfile.RemediationImpact
-                LastModifiedDateTime = $fullProfile.LastModifiedDateTime
-            }
+                ActionType        = $profile.ActionType
+                ActionUrl         = $profile.ActionUrl
+                ImplementationCost = $profile.ImplementationCost
+                UserImpact        = $profile.UserImpact
+                Tier              = $profile.Tier
+                Rank              = $profile.Rank
+                Deprecated        = $profile.Deprecated
+                Threats           = ($profile.Threats -join "; ")
+                Remediation       = $profile.Remediation
+                RemediationImpact = $profile.RemediationImpact
+                LastModifiedDateTime = $profile.LastModifiedDateTime
+            })
         }
 
         if ($results.Count -gt 0) {

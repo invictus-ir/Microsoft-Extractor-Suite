@@ -81,7 +81,8 @@ function Get-MailboxPermissions {
         throw
     }
 
-    $results = @()
+    $results = [System.Collections.Generic.List[object]]::new()
+    $recipientCache = @{}
     Write-LogFile -Message "[INFO] Retrieving mailbox list..." -Level Standard
 
     if ($UserIds) {
@@ -122,23 +123,21 @@ function Get-MailboxPermissions {
             }
 
         if ($isDebugEnabled) {
-            $fullAccessCount = ($fullAccessDetails | Measure-Object).Count
-            Write-LogFile -Message "[DEBUG]   Found $fullAccessCount Full Access permissions" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Found $(@($fullAccessDetails).Count) Full Access permissions" -Level Debug
         }
 
         # Get Send As permissions
-        $sendAsDetails = $null
+        $sendAsDetails = @()
         try {
-            $sendAsDetails = Get-RecipientPermission -Identity $mailbox.UserPrincipalName | 
+            $sendAsDetails = Get-RecipientPermission -Identity $mailbox.UserPrincipalName -ErrorAction Stop |
                 Where-Object {
-                    $_.IsInherited -eq $false -and 
-                    $_.Trustee -notlike "NT AUTHORITY\SELF" -and 
-                    $_.User -notlike "DiscoverySearchMailbox" -and 
+                    $_.IsInherited -eq $false -and
+                    $_.Trustee -notlike "NT AUTHORITY\SELF" -and
+                    $_.Trustee -notlike "DiscoverySearchMailbox*" -and
                     $_.Trustee -notlike "S-1-5*"
                 }
             if ($isDebugEnabled) {
-                $sendAsCount = ($sendAsDetails | Measure-Object).Count
-                Write-LogFile -Message "[DEBUG]   Found $sendAsCount Send As permissions" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Found $(@($sendAsDetails).Count) Send As permissions" -Level Debug
             }
         }
         catch [System.Management.Automation.CommandNotFoundException] {
@@ -147,14 +146,16 @@ function Get-MailboxPermissions {
             }
         }
         catch {
-            if ($LogLevel -eq 'Standard') {
+            if ($_.Exception.Message -match "couldn't be found|ManagementObjectNotFoundException") {
+                Write-LogFile -Message "[DEBUG] Skipping Send As for $($mailbox.UserPrincipalName): mailbox not found on server" -Level Debug
+            } else {
                 Write-LogFile -Message "[WARNING] Error getting Send As permissions for $($mailbox.UserPrincipalName): $($_.Exception.Message)" -Color "Yellow" -Level Standard
-            }
-            if ($isDebugEnabled) {
-                Write-LogFile -Message "[DEBUG] Mailbox retrieval error details:" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
-                Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] Mailbox retrieval error details:" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Exception type: $($_.Exception.GetType().Name)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Full error: $($_.Exception.ToString())" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   Stack trace: $($_.ScriptStackTrace)" -Level Debug
+                }
             }
         }
 
@@ -162,8 +163,7 @@ function Get-MailboxPermissions {
         $sendOnBehalfUsers = $mailbox.GrantSendOnBehalfTo | Where-Object {$_ -ne $null}
 
         if ($isDebugEnabled) {
-            $sendOnBehalfCount = ($sendOnBehalfUsers | Measure-Object).Count
-            Write-LogFile -Message "[DEBUG]   Found $sendOnBehalfCount Send on Behalf permissions" -Level Debug
+            Write-LogFile -Message "[DEBUG]   Found $(@($sendOnBehalfUsers).Count) Send on Behalf permissions" -Level Debug
         }
         
         # Get Calendar Folder Permissions
@@ -177,8 +177,7 @@ function Get-MailboxPermissions {
                 }
 
             if ($isDebugEnabled) {
-                $calendarCount = ($calendarPermissions | Measure-Object).Count
-                Write-LogFile -Message "[DEBUG]   Found $calendarCount Calendar permissions" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Found $(@($calendarPermissions).Count) Calendar permissions" -Level Debug
             }
         }
         catch {
@@ -195,100 +194,90 @@ function Get-MailboxPermissions {
                 }
 
             if ($isDebugEnabled) {
-                $inboxCount = ($inboxPermissions | Measure-Object).Count
-                Write-LogFile -Message "[DEBUG]   Found $inboxCount Inbox permissions" -Level Debug
+                Write-LogFile -Message "[DEBUG]   Found $(@($inboxPermissions).Count) Inbox permissions" -Level Debug
             }
         }
         catch {
         }
 
-        if ($fullAccessDetails) {
-            $summary.PermissionStats.FullAccess += ($fullAccessDetails | Measure-Object).Count
-        }
+        $fullAccessCount    = @($fullAccessDetails).Count
+        $sendAsCount        = @($sendAsDetails).Count
+        $sendOnBehalfCount  = @($sendOnBehalfUsers).Count
+        $calendarCount      = @($calendarPermissions).Count
+        $inboxCount         = @($inboxPermissions).Count
 
-        if ($sendAsDetails) {
-            $summary.PermissionStats.SendAs += ($sendAsDetails | Measure-Object).Count
-        }
+        $summary.PermissionStats.FullAccess    += $fullAccessCount
+        $summary.PermissionStats.SendAs        += $sendAsCount
+        $summary.PermissionStats.SendOnBehalf  += $sendOnBehalfCount
+        $summary.PermissionStats.Calendar      += $calendarCount
+        $summary.PermissionStats.Inbox         += $inboxCount
 
-        if ($sendOnBehalfUsers) {
-            $summary.PermissionStats.SendOnBehalf += ($sendOnBehalfUsers | Measure-Object).Count
-        }
-
-        if ($calendarPermissions) {
-            $summary.PermissionStats.Calendar += ($calendarPermissions | Measure-Object).Count
-        }
-
-        if ($inboxPermissions) {
-            $summary.PermissionStats.Inbox += ($inboxPermissions | Measure-Object).Count
+        # Pre-resolve all unique recipient identities for this mailbox into cache
+        $identitiesToResolve = [System.Collections.Generic.List[object]]::new()
+        if ($fullAccessDetails) { foreach ($e in $fullAccessDetails) { $identitiesToResolve.Add($e.User) } }
+        if ($sendAsDetails)     { foreach ($e in $sendAsDetails)     { $identitiesToResolve.Add($e.Trustee) } }
+        if ($sendOnBehalfUsers) { foreach ($e in $sendOnBehalfUsers) { $identitiesToResolve.Add($e) } }
+        foreach ($id in ($identitiesToResolve | Select-Object -Unique)) {
+            if (-not $recipientCache.ContainsKey($id)) {
+                $recipientCache[$id] = Get-EXORecipient $id -ErrorAction SilentlyContinue
+            }
         }
 
         $permissionEntry = [PSCustomObject]@{
             UserPrincipalName = $mailbox.UserPrincipalName
             DisplayName = $mailbox.DisplayName
             RecipientTypeDetails = $mailbox.RecipientTypeDetails
-            
+
             # Full Access Details
             FullAccessUsers = ($fullAccessDetails | ForEach-Object {
-                $user = Get-EXORecipient $_.User -ErrorAction SilentlyContinue
-                if ($user) {
-                    "$($user.DisplayName) ($($user.PrimarySmtpAddress))"
-                } else {
-                    $_.User
-                }
+                $r = $recipientCache[$_.User]
+                if ($r) { "$($r.DisplayName) ($($r.PrimarySmtpAddress))" } else { $_.User }
             }) -join '; '
-            FullAccessPermissions = ($fullAccessDetails | ForEach-Object { 
-                $user = Get-EXORecipient $_.User -ErrorAction SilentlyContinue
-                $userName = if ($user) { "$($user.DisplayName) ($($user.PrimarySmtpAddress))" } else { $_.User }
-                "$userName - Rights: $($_.AccessRights -join ','), Deny: $($_.Deny), Inheritance: $($_.InheritanceType)" 
+            FullAccessPermissions = ($fullAccessDetails | ForEach-Object {
+                $r = $recipientCache[$_.User]
+                $userName = if ($r) { "$($r.DisplayName) ($($r.PrimarySmtpAddress))" } else { $_.User }
+                "$userName - Rights: $($_.AccessRights -join ','), Deny: $($_.Deny), Inheritance: $($_.InheritanceType)"
             }) -join ' | '
-            
+
             # Send As Details
             SendAsUsers = ($sendAsDetails | ForEach-Object {
-                $user = Get-EXORecipient $_.Trustee -ErrorAction SilentlyContinue
-                if ($user) {
-                    "$($user.DisplayName) ($($user.PrimarySmtpAddress))"
-                } else {
-                    $_.Trustee
-                }
+                $r = $recipientCache[$_.Trustee]
+                if ($r) { "$($r.DisplayName) ($($r.PrimarySmtpAddress))" } else { $_.Trustee }
             }) -join '; '
-            SendAsPermissions = ($sendAsDetails | ForEach-Object { 
-                $user = Get-EXORecipient $_.Trustee -ErrorAction SilentlyContinue
-                $userName = if ($user) { "$($user.DisplayName) ($($user.PrimarySmtpAddress))" } else { $_.Trustee }
-                "$userName - Type: $($_.AccessControlType), Rights: $($_.AccessRights), Inheritance: $($_.InheritanceType)" 
+            SendAsPermissions = ($sendAsDetails | ForEach-Object {
+                $r = $recipientCache[$_.Trustee]
+                $userName = if ($r) { "$($r.DisplayName) ($($r.PrimarySmtpAddress))" } else { $_.Trustee }
+                "$userName - Type: $($_.AccessControlType), Rights: $($_.AccessRights), Inheritance: $($_.InheritanceType)"
             }) -join ' | '
-            
+
             # Send on Behalf Details
             SendOnBehalfUsers = ($sendOnBehalfUsers | ForEach-Object {
-                $user = Get-EXORecipient $_ -ErrorAction SilentlyContinue
-                if ($user) {
-                    "$($user.DisplayName) ($($user.PrimarySmtpAddress))"
-                } else {
-                    $_
-                }
+                $r = $recipientCache[$_]
+                if ($r) { "$($r.DisplayName) ($($r.PrimarySmtpAddress))" } else { $_ }
             }) -join '; '
 
             # Calendar Permissions
-            CalendarUsers = ($calendarPermissions | ForEach-Object { 
-                "$($_.User.DisplayName) ($($_.User.ADRecipient.PrimarySmtpAddress)) - $($_.AccessRights)" 
+            CalendarUsers = ($calendarPermissions | ForEach-Object {
+                "$($_.User.DisplayName) ($($_.User.ADRecipient.PrimarySmtpAddress)) - $($_.AccessRights)"
             }) -join '; '
             CalendarPermissions = ($calendarPermissions | ForEach-Object {
                 "$($_.User.DisplayName): $($_.AccessRights)"
             }) -join ' | '
 
             # Inbox Permissions
-            InboxUsers = ($inboxPermissions | ForEach-Object { 
-                "$($_.User.DisplayName) ($($_.User.ADRecipient.PrimarySmtpAddress)) - $($_.AccessRights)" 
+            InboxUsers = ($inboxPermissions | ForEach-Object {
+                "$($_.User.DisplayName) ($($_.User.ADRecipient.PrimarySmtpAddress)) - $($_.AccessRights)"
             }) -join '; '
             InboxPermissions = ($inboxPermissions | ForEach-Object {
                 "$($_.User.DisplayName): $($_.AccessRights)"
             }) -join ' | '
-            
+
             # Permission Counts
-            FullAccessCount = ($fullAccessDetails | Measure-Object).Count
-            SendAsCount = ($sendAsDetails | Measure-Object).Count
-            SendOnBehalfCount = ($sendOnBehalfUsers | Measure-Object).Count
-            CalendarPermissionCount = ($calendarPermissions | Measure-Object).Count
-            InboxPermissionCount = ($inboxPermissions | Measure-Object).Count
+            FullAccessCount           = $fullAccessCount
+            SendAsCount               = $sendAsCount
+            SendOnBehalfCount         = $sendOnBehalfCount
+            CalendarPermissionCount   = $calendarCount
+            InboxPermissionCount      = $inboxCount
         }            
 
         if ($permissionEntry.FullAccessCount -gt 0 -or 
@@ -299,7 +288,7 @@ function Get-MailboxPermissions {
             $summary.MailboxesWithPermissions++
         }
 
-        $results += $permissionEntry
+        $results.Add($permissionEntry)
     }
 
     $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding

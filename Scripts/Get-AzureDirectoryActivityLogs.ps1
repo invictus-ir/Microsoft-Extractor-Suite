@@ -40,12 +40,12 @@ function Get-DirectoryActivityLogs {
 	Get all the Directory Activity logs for the last 90 days.
 
 	.EXAMPLE
-    Get-DirectoryActivityLogs -EndDate 2025-04-12
-	Get all the Directory Activity before 2025-04-12.
+    Get-DirectoryActivityLogs -EndDate 2026-04-12
+	Get all the Directory Activity before 2026-04-12.
 
 	.EXAMPLE
-    Get-DirectoryActivityLogs -StartDate 2025-04-12
-	Get all the Directory Activity after 2025-04-12.
+    Get-DirectoryActivityLogs -StartDate 2026-04-12
+	Get all the Directory Activity after 2026-04-12.
 #>
 	[CmdletBinding()]
 	param(
@@ -108,7 +108,7 @@ function Get-DirectoryActivityLogs {
 
     Write-LogFile -Message "[INFO] Retrieving Directory Activity logs..." -Level Standard
     $uriBase = "https://management.azure.com/providers/microsoft.insights/eventtypes/management/values?api-version=2015-04-01&`$filter=eventTimestamp ge '$script:StartDate' and eventTimestamp le '$script:endDate'"
-    $events = @()
+    $events = [System.Collections.Generic.List[object]]::new()
 
     if ($isDebugEnabled) {
         Write-LogFile -Message "[DEBUG] API configuration:" -Level Debug
@@ -129,7 +129,7 @@ function Get-DirectoryActivityLogs {
         }
 
         $response = Invoke-RestMethod @listOperations
-        $events += $response.value
+        if ($response.value) { $events.AddRange([object[]]$response.value) }
         $uriBase = $response.nextLink
     } while ($null -ne $uriBase)
 

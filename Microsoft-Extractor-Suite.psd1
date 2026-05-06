@@ -8,7 +8,7 @@
 	CompanyName = 'Invictus-IR'
 	
 	# Version number of this module.
-	ModuleVersion = '4.0.2' 
+	ModuleVersion = '4.1.0' 
 	
 	# ID used to uniquely identify this module
 	GUID = '4376306b-0078-4b4d-b565-e22804e3be01'
@@ -21,7 +21,6 @@
 	
 	NestedModules = @(
 		".\Scripts\Get-UAL.ps1"
-		".\Scripts\Get-UALStatistics.ps1"
 		".\Scripts\Connect.ps1"
 		".\Scripts\Disconnect.ps1"
 		".\Scripts\Get-Rules.ps1"
@@ -66,9 +65,6 @@
 		
 		# Get-UALGraph
 		"Get-UALGraph"
-		
-		# Get-UALStatistics.ps1
-		"Get-UALStatistics"
 		
 		# Get-Rules.ps1
 		"Show-MailboxRules"

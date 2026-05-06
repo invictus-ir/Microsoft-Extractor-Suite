@@ -58,12 +58,12 @@ Perform a quick triage for multiple users:
 Execute a comprehensive triage with custom date range:
 ::
 
-    Start-MESTriage -Template Comprehensive -TriageName "FullInvestigation" -UserIds "user@domain.com" -StartDate "2025-06-01" -EndDate "2025-06-30"
+    Start-MESTriage -Template Comprehensive -TriageName "FullInvestigation" -UserIds "user@domain.com" -StartDate "2026-03-01" -EndDate "2026-03-31"
 
 Run triage for all users in the environment:
 ::
 
-    Start-MESTriage -Template Standard -TriageName "OrgWide" -StartDate "2025-06-01" -EndDate "2025-06-30"
+    Start-MESTriage -Template Standard -TriageName "OrgWide" -StartDate "2026-03-01" -EndDate "2026-03-31"
 
 Custom output directory and format:
 ::
@@ -138,7 +138,6 @@ Start-MESTriage can execute the following tasks based on template configuration:
 
 **Sign-in, Audit, Unified Audit Log and Activity Logs**
  - Get-UAL: Unified Audit Logs from Microsoft 365
- - Get-UALStatistics: Statistics on available audit log data
  - Get-GraphEntraSignInLogs: Sign-in logs
  - Get-GraphEntraAuditLogs: Audit logs
  - Get-MailboxAuditLog: Exchange mailbox audit logs

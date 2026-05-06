@@ -107,48 +107,42 @@ function Get-Users {
             Write-LogFile -Message "[DEBUG] Starting user analysis by creation date..." -Level Debug
         }
 
-        $date = (Get-Date).AddDays(-7)
-        $oneweekold = $mgUsers | Where-Object {
-            $_.CreatedDateTime -gt $date
+        $now  = Get-Date
+        $d7   = $now.AddDays(-7)
+        $d30  = $now.AddDays(-30)
+        $d90  = $now.AddDays(-90)
+        $d180 = $now.AddDays(-180)
+        $d360 = $now.AddDays(-360)
+
+        $counts = @{ Week=0; Month=0; ThreeMonth=0; SixMonth=0; Year=0; Enabled=0; Disabled=0; OnPrem=0; Guest=0 }
+        foreach ($u in $mgUsers) {
+            if ($u.CreatedDateTime -gt $d7)   { $counts.Week++ }
+            if ($u.CreatedDateTime -gt $d30)  { $counts.Month++ }
+            if ($u.CreatedDateTime -gt $d90)  { $counts.ThreeMonth++ }
+            if ($u.CreatedDateTime -gt $d180) { $counts.SixMonth++ }
+            if ($u.CreatedDateTime -gt $d360) { $counts.Year++ }
+            if ($u.AccountEnabled)            { $counts.Enabled++ }
+            else                              { $counts.Disabled++ }
+            if ($u.OnPremisesSyncEnabled)     { $counts.OnPrem++ }
+            if ($u.UserType -eq "Guest")      { $counts.Guest++ }
         }
 
-        $date = (Get-Date).AddDays(-30)
-        $onemonthold = $mgUsers | Where-Object {
-            $_.CreatedDateTime -gt $date
-        }
-
-        $date = (Get-Date).AddDays(-90)
-        $threemonthold = $mgUsers | Where-Object {
-            $_.CreatedDateTime -gt $date
-        }
-
-        $date = (Get-Date).AddDays(-180)
-        $sixmonthold = $mgUsers | Where-Object {
-            $_.CreatedDateTime -gt $date
-        }
-
-        $date = (Get-Date).AddDays(-360)
-        $OneYear = $mgUsers | Where-Object {
-            $_.CreatedDateTime -gt $date
-        }
-
-        Get-MgUser | Get-Member > $null
-        $formattedUsers  | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
+        $formattedUsers | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
 
         $summary = [ordered]@{
             "User Counts" = [ordered]@{
-                "Total Users" = $mgUsers.Count
-                "Enabled Users" = ($mgUsers | Where-Object { $_.AccountEnabled }).Count
-                "Disabled Users" = ($mgUsers | Where-Object { -not $_.AccountEnabled }).Count
-                "Synced from On-Premises" = ($mgUsers | Where-Object { $_.OnPremisesSyncEnabled }).Count
-                "Guest Users" = ($mgUsers | Where-Object { $_.UserType -eq "Guest" }).Count
+                "Total Users"            = $mgUsers.Count
+                "Enabled Users"          = $counts.Enabled
+                "Disabled Users"         = $counts.Disabled
+                "Synced from On-Premises" = $counts.OnPrem
+                "Guest Users"            = $counts.Guest
             }
             "Recent Account Creation" = [ordered]@{
-                "Last 7 days" = $oneweekold.Count
-                "Last 30 days" = $onemonthold.Count
-                "Last 90 days" = $threemonthold.Count
-                "Last 6 months" = $sixmonthold.Count
-                "Last 1 year" = $OneYear.Count
+                "Last 7 days"   = $counts.Week
+                "Last 30 days"  = $counts.Month
+                "Last 90 days"  = $counts.ThreeMonth
+                "Last 6 months" = $counts.SixMonth
+                "Last 1 year"   = $counts.Year
             }
         }
 
@@ -227,13 +221,13 @@ Function Get-AdminUsers {
     }
 
     Write-LogFile -Message "[INFO] Analyzing administrator roles..." -Level Standard
-    $rolesWithUsers = @()
-    $rolesWithoutUsers = @()
-    $exportedFiles = @()
+    $rolesWithUsers = [System.Collections.Generic.List[object]]::new()
+    $rolesWithoutUsers = [System.Collections.Generic.List[object]]::new()
+    $exportedFiles = [System.Collections.Generic.List[object]]::new()
     $totalAdminCount = 0
     $inactiveAdminCount = 0
     $inactiveThreshold = (Get-Date).AddDays(-30)
-    $inactiveAdmins = @()
+    $inactiveAdmins = [System.Collections.Generic.List[object]]::new()
 
     try {
         if ($isDebugEnabled) {
@@ -252,7 +246,7 @@ Function Get-AdminUsers {
                 $areThereUsers = Get-MgDirectoryRoleMember -DirectoryRoleId $roleId
 
                 if ($null -eq $areThereUsers) {
-                    $rolesWithoutUsers += $roleName
+                    $rolesWithoutUsers.Add($roleName)
                     continue
                 }
 
@@ -306,12 +300,12 @@ Function Get-AdminUsers {
                                 
                                 if ($lastSignInDate -lt $inactiveThreshold) {
                                     $inactiveAdminCount++
-                                    $inactiveAdmins += "$($u.DisplayName) ($userName) - $daysSinceSignIn days"
+                                    $inactiveAdmins.Add("$($u.DisplayName) ($userName) - $daysSinceSignIn days")
                                 }
                             } else {
                                 $userObject | Add-Member -MemberType NoteProperty -Name "DaysSinceLastSignIn" -Value "No sign-in data"
                                 $inactiveAdminCount++
-                                $inactiveAdmins += "$($u.DisplayName) ($userName) - No sign-in data"                 
+                                $inactiveAdmins.Add("$($u.DisplayName) ($userName) - No sign-in data")                 
                             }
                             
                             $results.Add($userObject)
@@ -325,7 +319,7 @@ Function Get-AdminUsers {
                 # Export per rol
                 if ($results.Count -gt 0) {
                     $totalAdminCount += $results.Count
-                    $rolesWithUsers += "$roleName ($($results.Count) users)"
+                    $rolesWithUsers.Add("$roleName ($($results.Count) users)")
                     
                     $date = [datetime]::Now.ToString('yyyyMMdd')
                     $safeRoleName = $roleName -replace '[^\w\-_\.]', '_'
@@ -333,10 +327,10 @@ Function Get-AdminUsers {
                     $roleFilePath = Join-Path $rolePath "$date-$safeRoleName.csv"
 
                     $results.ToArray() | Export-Csv -Path $roleFilePath -NoTypeInformation -Encoding $Encoding
-                    $exportedFiles += $roleFilePath
+                    $exportedFiles.Add($roleFilePath)
                 }
                 else {
-                    $rolesWithoutUsers += $roleName
+                    $rolesWithoutUsers.Add($roleName)
                 }
             }
         }

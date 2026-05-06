@@ -65,9 +65,9 @@ Function Get-AllRoleActivity {
     $rolesWithMembers = 0
     $rolesWithoutMembers = 0
     $totalMembers = 0
-    $emptyRoles = @()
-    $rolesWithUsers = @()
-    $allRoleMembers = @()
+    $emptyRoles = [System.Collections.Generic.List[object]]::new()
+    $rolesWithUsers = [System.Collections.Generic.List[object]]::new()
+    $allRoleMembers = [System.Collections.Generic.List[object]]::new()
 
     try {
         $allRoles = Get-MgDirectoryRole -All
@@ -80,7 +80,7 @@ Function Get-AllRoleActivity {
             
             if ($null -eq $roleMembers -or $roleMembers.Count -eq 0) {
                 $rolesWithoutMembers++
-                $emptyRoles += $displayName
+                $emptyRoles.Add($displayName)
                 continue
             }
             
@@ -135,7 +135,7 @@ Function Get-AllRoleActivity {
                         $userObject | Add-Member -MemberType NoteProperty -Name "DaysSinceLastSignIn" -Value "No sign-in data"
                     }
                     
-                    $allRoleMembers += $userObject
+                    $allRoleMembers.Add($userObject)
                 }
                 catch {
                     Write-LogFile -Message "[WARNING] Error processing user $userId in role $displayName`: $($_.Exception.Message)" -Color "Yellow" -Level Standard
@@ -163,11 +163,11 @@ Function Get-AllRoleActivity {
                         LastNonInteractiveSignIn = "Error retrieving data"
                         DaysSinceLastSignIn = "Error retrieving data"
                     }
-                    $allRoleMembers += $userObject
+                    $allRoleMembers.Add($userObject)
                 }
             }
             
-            $rolesWithUsers += "$displayName ($roleMemberCount users)"
+            $rolesWithUsers.Add("$displayName ($roleMemberCount users)")
         }
 
         $outputFile = "$OutputDir\$($date)-All-Roles.csv"
@@ -254,7 +254,7 @@ function Get-PIMAssignments {
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
     
     Write-LogFile -Message "[INFO] Retrieving PIM role assignments..." -Level Standard
-    $allAssignments = @()
+    $allAssignments = [System.Collections.Generic.List[object]]::new()
     $processedActiveAssignments = 0
     $processedEligibleAssignments = 0
     $skippedAssignments = 0
@@ -263,12 +263,13 @@ function Get-PIMAssignments {
         Write-LogFile -Message "[INFO] Retrieving active PIM assignments..." -Color "Green" -Level Standard
         $activeAssignmentsUri = "https://graph.microsoft.com/beta/roleManagement/directory/roleAssignmentSchedules?`$expand=principal,roleDefinition"
         $activeResponse = Invoke-MgGraphRequest -Method GET -Uri $activeAssignmentsUri
-        $activePimAssignments = $activeResponse.value
+        $activePimAssignments = [System.Collections.Generic.List[object]]::new()
+        if ($activeResponse.value) { $activePimAssignments.AddRange([object[]]$activeResponse.value) }
 
         $nextLink = $activeResponse.'@odata.nextLink'
         while ($null -ne $nextLink) {
             $activeResponse = Invoke-MgGraphRequest -Method GET -Uri $nextLink
-            $activePimAssignments += $activeResponse.value
+            if ($activeResponse.value) { $activePimAssignments.AddRange([object[]]$activeResponse.value) }
             $nextLink = $activeResponse.'@odata.nextLink'
         }
         
@@ -281,7 +282,7 @@ function Get-PIMAssignments {
                 $user = $assignment.Principal
                 $isOnPremSynced = $user.onPremisesSyncEnabled -eq $true
                                 
-                $allAssignments += [PSCustomObject]@{
+                $allAssignments.Add([PSCustomObject]@{
                     RoleName = $assignment.roleDefinition.displayName
                     UserPrincipalName = $user.userPrincipalName
                     DisplayName = $user.displayName
@@ -293,7 +294,7 @@ function Get-PIMAssignments {
                     StartDateTime = $assignment.scheduleInfo.startDateTime
                     EndDateTime = if ($assignment.scheduleInfo.expiration) { $assignment.scheduleInfo.expiration.endDateTime } else { "Permanent" }
                     DirectoryScopeId = $assignment.directoryScopeId
-                }
+                })
                 $processedActiveAssignments++
                 $added = $true
             }
@@ -308,12 +309,13 @@ function Get-PIMAssignments {
                 try {
                     $groupMembersUri = "https://graph.microsoft.com/v1.0/groups/$groupId/members"
                     $groupResponse = Invoke-MgGraphRequest -Method GET -Uri $groupMembersUri
-                    $groupMembers = $groupResponse.value
-                    
+                    $groupMembers = [System.Collections.Generic.List[object]]::new()
+                    if ($groupResponse.value) { $groupMembers.AddRange([object[]]$groupResponse.value) }
+
                     $nextLink = $groupResponse.'@odata.nextLink'
                     while ($null -ne $nextLink) {
                         $groupResponse = Invoke-MgGraphRequest -Method GET -Uri $nextLink
-                        $groupMembers += $groupResponse.value
+                        if ($groupResponse.value) { $groupMembers.AddRange([object[]]$groupResponse.value) }
                         $nextLink = $groupResponse.'@odata.nextLink'
                     }
 
@@ -322,14 +324,14 @@ function Get-PIMAssignments {
                         if ($member.'@odata.type' -notmatch '.user') {
                             continue
                         }
-                        
+
                         try {
                             $userId = $member.id
                             $userUri = "https://graph.microsoft.com/v1.0/users/$userId"
                             $userDetails = Invoke-MgGraphRequest -Method GET -Uri $userUri
                             $isOnPremSynced = $userDetails.onPremisesSyncEnabled -eq $true
-                            
-                            $allAssignments += [PSCustomObject]@{
+
+                            $allAssignments.Add([PSCustomObject]@{
                                 RoleName = $roleName
                                 UserPrincipalName = $userDetails.userPrincipalName
                                 DisplayName = $userDetails.displayName
@@ -341,7 +343,7 @@ function Get-PIMAssignments {
                                 StartDateTime = $assignment.scheduleInfo.startDateTime
                                 EndDateTime = if ($assignment.scheduleInfo.expiration) { $assignment.scheduleInfo.expiration.endDateTime } else { "Permanent" }
                                 DirectoryScopeId = $assignment.directoryScopeId
-                            }
+                            })
                             $processedActiveAssignments++
                             $groupMemberCount++
                             $added = $true
@@ -368,12 +370,13 @@ function Get-PIMAssignments {
         Write-LogFile -Message "[INFO] Retrieving eligible PIM assignments..." -Color "Green" -Level Standard
         $eligibleAssignmentsUri = "https://graph.microsoft.com/beta/roleManagement/directory/roleEligibilitySchedules?`$expand=principal,roleDefinition"
         $eligibleResponse = Invoke-MgGraphRequest -Method GET -Uri $eligibleAssignmentsUri
-        $eligiblePimAssignments = $eligibleResponse.value
-        
+        $eligiblePimAssignments = [System.Collections.Generic.List[object]]::new()
+        if ($eligibleResponse.value) { $eligiblePimAssignments.AddRange([object[]]$eligibleResponse.value) }
+
         $nextLink = $eligibleResponse.'@odata.nextLink'
         while ($null -ne $nextLink) {
             $eligibleResponse = Invoke-MgGraphRequest -Method GET -Uri $nextLink
-            $eligiblePimAssignments += $eligibleResponse.value
+            if ($eligibleResponse.value) { $eligiblePimAssignments.AddRange([object[]]$eligibleResponse.value) }
             $nextLink = $eligibleResponse.'@odata.nextLink'
         }
         
@@ -386,7 +389,7 @@ function Get-PIMAssignments {
                 $user = $assignment.principal
                 $isOnPremSynced = $user.onPremisesSyncEnabled -eq $true
                 
-                $allAssignments += [PSCustomObject]@{
+                $allAssignments.Add([PSCustomObject]@{
                     RoleName = $assignment.roleDefinition.displayName
                     UserPrincipalName = $user.userPrincipalName
                     DisplayName = $user.displayName
@@ -398,7 +401,7 @@ function Get-PIMAssignments {
                     StartDateTime = $assignment.scheduleInfo.startDateTime
                     EndDateTime = if ($assignment.scheduleInfo.expiration) { $assignment.scheduleInfo.expiration.endDateTime } else { "Permanent" }
                     DirectoryScopeId = $assignment.directoryScopeId
-                }
+                })
                 $processedEligibleAssignments++
                 $added = $true
             }
@@ -413,28 +416,29 @@ function Get-PIMAssignments {
                 try {
                     $groupMembersUri = "https://graph.microsoft.com/v1.0/groups/$groupId/members"
                     $groupResponse = Invoke-MgGraphRequest -Method GET -Uri $groupMembersUri
-                    $groupMembers = $groupResponse.value
-                    
+                    $groupMembers = [System.Collections.Generic.List[object]]::new()
+                    if ($groupResponse.value) { $groupMembers.AddRange([object[]]$groupResponse.value) }
+
                     $nextLink = $groupResponse.'@odata.nextLink'
                     while ($null -ne $nextLink) {
                         $groupResponse = Invoke-MgGraphRequest -Method GET -Uri $nextLink
-                        $groupMembers += $groupResponse.value
+                        if ($groupResponse.value) { $groupMembers.AddRange([object[]]$groupResponse.value) }
                         $nextLink = $groupResponse.'@odata.nextLink'
                     }
-                    
+
                     $groupMemberCount = 0
                     foreach ($member in $groupMembers) {
                         if ($member.'@odata.type' -notmatch '.user') {
                             continue
                         }
-                        
+
                         try {
                             $userId = $member.id
                             $userUri = "https://graph.microsoft.com/v1.0/users/$userId"
                             $userDetails = Invoke-MgGraphRequest -Method GET -Uri $userUri
                             $isOnPremSynced = $userDetails.onPremisesSyncEnabled -eq $true
-                            
-                            $allAssignments += [PSCustomObject]@{
+
+                            $allAssignments.Add([PSCustomObject]@{
                                 RoleName = $roleName
                                 UserPrincipalName = $userDetails.userPrincipalName
                                 DisplayName = $userDetails.displayName
@@ -446,7 +450,7 @@ function Get-PIMAssignments {
                                 StartDateTime = $assignment.scheduleInfo.startDateTime
                                 EndDateTime = if ($assignment.scheduleInfo.expiration) { $assignment.scheduleInfo.expiration.endDateTime } else { "Permanent" }
                                 DirectoryScopeId = $assignment.directoryScopeId
-                            }
+                            })
                             $processedEligibleAssignments++
                             $groupMemberCount++
                             $added = $true

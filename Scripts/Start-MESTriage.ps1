@@ -354,6 +354,15 @@ function Invoke-TriageTask {
             }
             return $true
         }
+        "Get-MailboxRulesGraph" {
+            if ($UserIds.Count -gt 0) {
+                $userIdsString = $UserIds -join ','
+                Get-MailboxRulesGraph -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $userIdsString -Encoding $Encoding
+            } else {
+                Get-MailboxRulesGraph -OutputDir $OutputDir -LogLevel $LogLevel -Encoding $Encoding
+            }
+            return $true
+        }
         "Get-OAuthPermissionsGraph" {
             if ($UserIds.Count -gt 0) {
                 Get-EntraApplicationsForSpecificUsers -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $UserIds -Encoding $Encoding
@@ -380,7 +389,7 @@ function Invoke-TriageTask {
 
             $useDateFilter = $true
             if ($StartDate) {
-                $startDateTime = [DateTime]::Parse($StartDate)
+                $startDateTime = [DateTime]::Parse($StartDate, [System.Globalization.CultureInfo]::InvariantCulture)
                 $daysDifference = ((Get-Date) - $startDateTime).Days
                 if ($daysDifference -gt 30) {
                     Write-LogFile -Message "[WARNING] Audit logs: Start date is beyond 30-day retention, removing date filter to avoid crash. It will still collect the full 30 days." -Color "Yellow" -Level Minimal
@@ -416,15 +425,6 @@ function Invoke-TriageTask {
             } else {
                 Get-UAL -OutputDir $OutputDirAudit -LogLevel $LogLevel -Output $taskOutput -Encoding $Encoding -StartDate $StartDate -EndDate $EndDate -MergeOutput
             }
-            return $true
-        }
-        "Get-UALStatistics" {
-            if ($UserIds.Count -gt 0) {
-                $userIdsString = $UserIds -join ','
-                Get-UALStatistics -OutputDir $OutputDir -LogLevel $LogLevel -UserIds $userIdsString -StartDate $StartDate -EndDate $EndDate -WarningAction SilentlyContinue
-            } else {
-                Get-UALStatistics -OutputDir $OutputDir -LogLevel $LogLevel -StartDate $StartDate -EndDate $EndDate -WarningAction SilentlyContinue
-            }           
             return $true
         }
         "Get-MailboxAuditLog" {
@@ -580,7 +580,14 @@ function Invoke-TriageTask {
             }
             Get-SecurityAlerts -OutputDir $OutputDir -LogLevel $LogLevel -Encoding $Encoding
             return $true
+        }
+        "Get-SecureScore" {
+            if ($UserIds.Count -gt 0) {
+                return 'SKIP'
             }
+            Get-SecureScore -OutputDir $OutputDir -LogLevel $LogLevel -Encoding $Encoding
+            return $true
+        }
         "Get-PIMAssignments" {
             if ($UserIds.Count -gt 0) {
                 return 'SKIP'

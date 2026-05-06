@@ -6,7 +6,7 @@ function Get-UAL {
     Gets all the unified audit log entries.
 
     .DESCRIPTION
-    Makes it possible to extract all unified audit data out of a Microsoft 365 environment. 
+    Makes it possible to extract all unified audit data out of a Microsoft 365 environment.
 	The output will be written to: Output\UnifiedAuditLog\
 
 	.PARAMETER UserIds
@@ -35,12 +35,12 @@ function Get-UAL {
     Encoding is the parameter specifying the encoding of the CSV/JSON output file.
 	Default: UTF8
 
-	.PARAMETER ObjecIDs 
+	.PARAMETER ObjecIDs
     The ObjectIds parameter filters the log entries by object ID. The object ID is the target object that was acted upon, and depends on the RecordType and Operations values of the event.
 	You can enter multiple values separated by commas.
 
 	.DESCRIPTION
-	Makes it possible to extract all unified audit data out of a Microsoft 365 environment. 
+	Makes it possible to extract all unified audit data out of a Microsoft 365 environment.
 	The output will be written to: Output\UnifiedAuditLog\
 
 	.PARAMETER Interval
@@ -70,32 +70,35 @@ function Get-UAL {
 	Default: Standard
 	Debug: Verbose logging for debugging purposes
 
-	.PARAMETER MaxItemsPerInterval
-    Specifies the maximum number of items to process in a single interval. Must be between 5000 and 50000.
-    Lower this value if you're experiencing timeouts with large data sets.
-    Default: 50000
-
 	.PARAMETER AuditDataOnly
 	AuditDataOnly is a switch parameter that extracts only the AuditData property from each log entry.
 	When enabled, the output will contain only the parsed AuditData JSON content without the wrapper properties
 	like CreationDate, UserIds, Operations, etc (those are also found in the AuditData).
-	
+
+	.PARAMETER TargetEventsPerWindow
+	The ideal number of events we aim to retrieve per window. The Microsoft API caps a single
+	non-session call at 5000 events; this target is what we steer toward when adapting the interval. Lower
+	values are safer (more headroom below the cap, fewer cap-hit retries) but produce more API calls.
+	Higher values produce fewer calls but increase the chance of hitting the 5000 cap and having to shrink
+	and refetch. The shrink threshold is derived as TargetEventsPerWindow * 1.5 (capped by the API at 5000).
+	Default: 3000
+
 	.EXAMPLE
 	Get-UAL
 	Gets all the unified audit log entries.
-	
+
 	.EXAMPLE
 	Get-UAL -UserIds Test@invictus-ir.com
 	Gets all the unified audit log entries for the user Test@invictus-ir.com.
-	
+
 	.EXAMPLE
 	Get-UAL -UserIds "Test@invictus-ir.com,HR@invictus-ir.com"
 	Gets all the unified audit log entries for the users Test@invictus-ir.com and HR@invictus-ir.com.
-	
+
 	.EXAMPLE
-	Get-UAL -UserIds Test@invictus-ir.com -StartDate 2025-04-01 -EndDate 2025-04-05
-	Gets all the unified audit log entries between 2025-04-01 and 2025-04-05 for the user Test@invictus-ir.com.
-	
+	Get-UAL -UserIds Test@invictus-ir.com -StartDate 2026-04-01 -EndDate 2026-04-05
+	Gets all the unified audit log entries between 2026-04-01 and 2026-04-05 for the user Test@invictus-ir.com.
+
 	.EXAMPLE
 	Get-UAL -UserIds -Interval 720
 	Gets all the unified audit log entries with a time interval of 720.
@@ -103,10 +106,10 @@ function Get-UAL {
 	 .EXAMPLE
 	Get-UAL -UserIds Test@invictus-ir.com -MergeOutput
 	Gets all the unified audit log entries for the user Test@invictus-ir.com and adds a combined output JSON file at the end of acquisition
-	
+
 	.EXAMPLE
 	Get-UAL -UserIds Test@invictus-ir.com -Output JSON
-	Gets all the unified audit log entries for the user Test@invictus-ir.com in JSON format.	
+	Gets all the unified audit log entries for the user Test@invictus-ir.com in JSON format.
 
 	.EXAMPLE
 	Get-UAL -Group Azure
@@ -123,10 +126,6 @@ function Get-UAL {
 	.EXAMPLE
 	Get-UAL -Operations New-InboxRule
 	Gets the New-InboxRule logging from the unified audit log.
-
-	.EXAMPLE
-    Get-UAL -MaxItemsPerInterval 20000
-    Gets all the unified audit log entries with a maximum of 20000 items per interval, useful when experiencing timeouts.
 #>
 
 	[CmdletBinding()]
@@ -148,17 +147,17 @@ function Get-UAL {
 			[string]$ObjectIds,
 			[ValidateSet('None', 'Minimal', 'Standard', 'Debug')]
 			[string]$LogLevel = 'Standard',
-			[Parameter()] 
-			[ValidateRange(5000, 50000)]
-			[int]$MaxItemsPerInterval = 50000,
-			[switch]$AuditDataOnly
+			[switch]$AuditDataOnly,
+			[Parameter()]
+			[ValidateRange(1, 5000)]
+			[int]$TargetEventsPerWindow = 3000
 		)
 
 	Init-Logging
     Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix "UAL" -CustomOutputDir $OutputDir
 	$OutputDir = Split-Path $script:outputFile -Parent
 	Write-LogFile -Message "=== Starting Unified Audit Log Collection ===" -Color "Cyan" -Level Standard
-	
+
 	$stats = @{
 		StartTime = Get-Date
 		ProcessingTime = $null
@@ -187,10 +186,10 @@ function Get-UAL {
         Write-LogFile -Message "[DEBUG]   Span: $([Math]::Round($totalDays, 2)) days" -Level Debug
     }
 
-	$baseSearchQuery = @{
-		UserIds = $UserIds
-	}	
-
+	$baseSearchQuery = @{}
+	if ($UserIds -and $UserIds -ne "*") {
+		$baseSearchQuery.UserIds = $UserIds
+	}
 	if ($IPAddresses) {
         $baseSearchQuery.IPAddresses = $IPAddresses
     }
@@ -203,7 +202,6 @@ function Get-UAL {
 		$baseSearchQuery.Operations = $Operations
 	}
 
-	$totalResults = 0
 	$recordTypes = [System.Collections.ArrayList]::new()
 
 	$GroupRecordTypes = @{
@@ -281,9 +279,13 @@ function Get-UAL {
         }
     }
 
+	$TARGET_EVENTS    = $TargetEventsPerWindow
+	$SHRINK_THRESHOLD = [math]::Min($resultSize - 100, [int]($TARGET_EVENTS * 1.5))
+	$GROW_THRESHOLD   = [math]::Max(1, [int]($TARGET_EVENTS / 3))
+	$MIN_INTERVAL     = 0.1
+	$MAX_INTERVAL     = [math]::Max(60, ($script:EndDate - $script:StartDate).TotalMinutes)
 	$maxRetries = 3
-    $baseDelay = 3
-	$retryCount = 0 
+	$baseDelay  = 10
 
 	foreach ($record in $recordTypes) {
 		if ($record -ne "*") {
@@ -292,493 +294,233 @@ function Get-UAL {
 		} else {
 			$baseSearchQuery.Remove('RecordType')
 		}
-	
-		$retryAttempt = 0
-		$success = $false
-		while (!$success -and $retryAttempt -lt $maxRetries) {
-			try {
-				$totalResults = Search-UnifiedAuditLog -StartDate $script:StartDate -EndDate $script:EndDate @baseSearchQuery -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
 
-				if ($null -ne $totalResults -and $totalResults -gt 0) {
-					$message = if ($record -eq "*") {
-						"[INFO] Total number of events during the acquisition period: $totalResults"
-					} else {
-						"[INFO] The record '$record' contains $totalResults events during the acquisition period"
-					}
-					
-					Write-LogFile -Message $message -Level Standard -color "Green"
-					$success = $true
+		if (-not $PSBoundParameters.ContainsKey('Interval')) {
+			$probeMinutes = 60
+			$probeStart   = $script:EndDate.AddMinutes(-$probeMinutes)
+			if ($probeStart -lt $script:StartDate) { $probeStart = $script:StartDate }
+
+			$probeAttempt    = 0
+			$probeMaxRetries = 3
+			$probeDelay      = 5
+			$probeCount      = $null
+			$probeFailed     = $false
+
+			while ($probeAttempt -lt $probeMaxRetries -and $null -eq $probeCount) {
+				try {
+					$probeResults = Search-UnifiedAuditLog -StartDate $probeStart -EndDate $script:EndDate @baseSearchQuery -ResultSize $resultSize -ErrorAction Stop
+					$probeCount   = if ($probeResults) { $probeResults.Count } else { 0 }
 				}
-				else {
-					# If we got null or zero, check if it's due to timeout
-					$retryAttempt++
-            
-					# On last attempt, check the recent period
-					if ($retryAttempt -eq $maxRetries) {
-						Write-LogFile -Message "[INFO] Full period search returned zero results. This may occur in large environments due to API timeouts." -Level Standard -Color "Yellow"
-
-						$last24HoursStart = $script:EndDate.AddHours(-24)
-						$recentResults = Search-UnifiedAuditLog -StartDate $last24HoursStart -EndDate $script:EndDate @baseSearchQuery -ResultSize 1 | 
-										 Select-Object -First 1 -ExpandProperty ResultCount
-						
-						if ($null -ne $recentResults -and $recentResults -gt 0) {
-							Write-LogFile -Message "[INFO] Found $recentResults recent events in the last 24 hours." -Level Standard -Color "Green"
-							Write-LogFile -Message "[INFO] The initial count likely timed out due to the large data volume... Proceeding with retrieval using smaller time chunks..." -Level Standard -Color "Green"
-							
-							$totalDays = ($script:EndDate - $script:StartDate).TotalDays
-    						$estimatedTotalRecords = [math]::Ceiling($recentResults * $totalDays)
-							
-							$totalResults = 1  # Set to non-zero to force the script to continue
-							$success = $true
-							break
-						} else {
-							Write-LogFile -Message "[INFO] No recent events found in the last 24 hours either." -Level Standard -Color "Yellow"
-							$success = $true
-						}
-					} else {
-						Write-LogFile -Message "[WARNING] Zero results returned, retrying attempt $retryAttempt of $maxRetries..." -Color "Yellow" -Level Minimal
-						Start-Sleep -Seconds (2 * $retryAttempt)
+				catch {
+					$probeAttempt++
+					if ($probeAttempt -ge $probeMaxRetries) {
+						Write-LogFile -Message "[WARNING] Probe failed after $probeMaxRetries attempts. Using fallback interval. Last error: $($_.Exception.Message)" -Color "Yellow" -Level Standard
+						$probeFailed = $true
+					}
+					else {
+						Start-Sleep -Seconds $probeDelay
+						$probeDelay *= 2
 					}
 				}
 			}
-			catch {
-				if ($_.Exception.Message -like "*server side error*" -or 
-					$_.Exception.Message -like "*operation could not be completed*") {
-					
-					$retryAttempt++
-					if ($retryAttempt -eq $maxRetries) {
-						Write-LogFile -Message "[ERROR] Maximum retry attempts reached for initial count. Last error: $($_.Exception.Message)" -Color "Red" -Level Minimal
-						throw
-					}
-					
-					Write-LogFile -Message "[WARNING] Server-side error on initial count attempt $retryAttempt of $maxRetries. Waiting $baseDelay seconds..." -Color "Yellow" -Level Minimal
-					Start-Sleep -Seconds $baseDelay
-					$baseDelay *= 2
-					continue
-				}
-				else {
-					throw
-				}
+
+			if ($probeFailed) {
+				$Interval = 60
+			}
+			elseif ($probeCount -eq 0) {
+				$Interval = [math]::Min($MAX_INTERVAL, 1440)
+    			Write-LogFile -Message "[INFO] 0 recent events. Starting at $Interval min (will grow if windows remain empty)." -Level Standard
+			}
+			elseif ($probeCount -ge $resultSize) {
+				$Interval = [math]::Max($MIN_INTERVAL, $probeMinutes / 2)
+				Write-LogFile -Message "[WARNING] Probe returned $resultSize events (API cap hit) in the last $probeMinutes min. Starting with a reduced interval of $Interval min to avoid missing events." -Color "Yellow" -Level Standard
+			}
+			else {
+				$eventsPerMin = $probeCount / $probeMinutes
+				$Interval     = [math]::Min($MAX_INTERVAL, [math]::Max($MIN_INTERVAL, $TARGET_EVENTS / $eventsPerMin))
+				Write-LogFile -Message "[INFO] $probeCount events in last $probeMinutes min. Initial interval: $([math]::Round($Interval, 2)) min" -Color "Green" -Level Standard
 			}
 		}
-
-		if ($null -eq $totalResults -or $totalResults -eq 0) {
-			$message = if ($record -eq "*") {
-				"[INFO] No records found!"
-			} else {
-				"[INFO] No records found for RecordType: $record"
-			}
-            Write-LogFile -Message $message -Level Standard -Color "Yellow"
-            continue
-        }
-
-		if (!$PSBoundParameters.ContainsKey('Interval')) {
-			$totalMinutes = ($script:EndDate - $script:StartDate).TotalMinutes
-            $estimatedIntervals = [math]::Ceiling($totalResults / $MaxItemsPerInterval)
-
-            if ($estimatedIntervals -lt 2) {
-                $Interval = $totalMinutes
-            } else {
-                $Interval = [math]::Max(1, [math]::Floor(($totalMinutes / $estimatedIntervals) / 1.2))
-            }
-
-            Write-LogFile -Message "[INFO] Using interval of $Interval minutes based on estimated $totalResults records" -Level Standard -Color "Green"
+		else {
+			Write-LogFile -Message "[INFO] Using user-specified interval: $Interval minutes" -Level Standard
 		}
 
-		$resetInterval = $Interval
 		[DateTime]$currentStart = $script:StartDate
-		[DateTime]$currentEnd = $script:EndDate
 		$finalEndDate = $script:EndDate.ToUniversalTime()
 
-		$maxRetries = 3
-		$baseDelay = 10
-		$retryCount = 0 
-
-		while ($currentStart -lt $finalEndDate) {	
+		while ($currentStart -lt $finalEndDate) {
 			$currentEnd = $currentStart.AddMinutes($Interval)
-	
-			if ($currentEnd -gt $finalEndDate) {
-				$currentEnd = $finalEndDate
-			}
-
+			if ($currentEnd -gt $finalEndDate) { $currentEnd = $finalEndDate }
 			if ($currentEnd -le $currentStart) {
 				Write-LogFile -Message "[INFO] Reached end of date range" -Level Standard
 				break
 			}
-			
+
 			$retryAttempt = 0
 			$currentDelay = $baseDelay
-			$success = $false
-	
+			$success      = $false
+			$results      = $null
+
 			while (!$success -and $retryAttempt -lt $maxRetries) {
 				try {
-					$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd @baseSearchQuery -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
-					if ($null -eq $amountResults) {
-						$retryAttempt = 0
-						$maxNullRetries = 3
-						$success = $false
-	
-						while (!$success -and $retryAttempt -lt $maxNullRetries) {
-							Start-Sleep -Seconds (5 * ($retryAttempt + 1)) 
-							
-							try {
-								# Try with a different session ID
-								$tempSessionId = [Guid]::NewGuid().ToString()
-								$verifyResult = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd `
-									@baseSearchQuery -ResultSize 1 -SessionId $tempSessionId
-									
-								if ($null -ne $verifyResult) {
-									$amountResults = $verifyResult | Select-Object -First 1 -ExpandProperty ResultCount
-									$success = $true
-									break
-								}
-							}
-							catch {
-								Write-LogFile -Message "[WARNING] Retry attempt $($retryAttempt + 1) failed for period verification" -Level Standard
-							}
-							$retryAttempt++
-						}
-	
-	
-						if ($null -eq $amountResults) {
-							if ($currentStart -ne $currentEnd) {
-								Write-LogFile -Message "[INFO] No audit logs between $($currentStart.ToString('yyyy-MM-dd HH:mm:ss')) and $($currentEnd.ToString('yyyy-MM-dd HH:mm:ss')). Moving on!" -Level Standard
-							}
-							$CurrentStart = $CurrentEnd
-							$success = $true
-						}
-					} 
-					elseif ($amountResults -gt $MaxItemsPerInterval) {
-						while ($amountResults -gt $MaxItemsPerInterval) {		
-							$amountResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd @baseSearchQuery -ResultSize 1 | 
-							Select-Object -First 1 -ExpandProperty ResultCount
-	
-							$oldInterval = $Interval 
-	
-							if ($amountResults -gt $MaxItemsPerInterval) {
-								$stats.IntervalAdjustments++
-	
-								if ($amountResults -gt 1000000) {
-									$divisor = ($amountResults/$MaxItemsPerInterval) * 4
-								} elseif ($amountResults -gt $MaxItemsPerInterval) {
-									$divisor = ($amountResults/$MaxItemsPerInterval) * 3
-								} elseif ($amountResults -gt 200000) {
-									$divisor = ($amountResults/$MaxItemsPerInterval) * 2
-								} elseif ($amountResults -gt 100000) {
-									$divisor = ($amountResults/$MaxItemsPerInterval) * 1.5
-								} else {
-									$divisor = ($amountResults/$MaxItemsPerInterval) * 1.25
-								}
-	
-								$newInterval = [math]::Max([math]::Round(($Interval/$divisor), 2), 0.1)
-	
-								$calculatedInterval = $Interval/$divisor
-								$newInterval = if ($calculatedInterval -lt 1) {
-									[math]::Max([math]::Round($calculatedInterval, 3), 0.1)
-								} else {
-									[math]::Max([math]::Round($calculatedInterval, 0), 1)
-								}
-							
-								# Safety check to prevent getting stuck
-								if ($newInterval -ge $oldInterval) {
-									$newInterval = [math]::Max($Interval * 0.5, 1)
-								}
-	
-								$Interval = $newInterval
-								Write-LogFile -Message "[WARNING] $amountResults entries between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) exceeding the maximum of $MaxItemsPerInterval entries" -Color "Red" -Level Standard
-								Write-LogFile -Message "[INFO] Temporary lowering time interval from $oldInterval to $newInterval minutes" -Color "Yellow" -Level Standard
-								$currentEnd = $currentStart.AddMinutes($Interval)
-
-								if ($isDebugEnabled) {
-									Write-LogFile -Message "[DEBUG] Interval adjustment details:" -Level Debug
-									Write-LogFile -Message "[DEBUG]   Record count: $amountResults" -Level Debug
-									Write-LogFile -Message "[DEBUG]   Max items per interval: $MaxItemsPerInterval" -Level Debug
-									Write-LogFile -Message "[DEBUG]   Records/Max ratio: $([Math]::Round($amountResults/$MaxItemsPerInterval, 2))" -Level Debug
-									Write-LogFile -Message "[DEBUG]   Applied divisor: $divisor" -Level Debug
-									Write-LogFile -Message "[DEBUG]   Old interval: $oldInterval minutes" -Level Debug
-									Write-LogFile -Message "[DEBUG]   New interval: $newInterval minutes" -Level Debug
-									Write-LogFile -Message "[DEBUG]   Time span reduction: $([Math]::Round(100 - (($newInterval/$oldInterval) * 100), 2))%" -Level Debug
-								}		
-							}
-							elseif ($amountResults -eq 0) {
-								# Double check with a smaller result size
-								$verifyResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd @baseSearchQuery -ResultSize 1
-								if ($null -ne $verifyResults) {
-									# If we find results, adjust interval and retry
-									$Interval = [math]::Max($Interval * 0.5, 1)
-									$currentEnd = $currentStart.AddMinutes($Interval)
-									continue
-								}
-								# Break the loop if no results are found
-								Write-LogFile -Message "[INFO] No results found in this time period, moving to next interval" -Level Standard
-								$currentEnd = $currentStart.AddMinutes($Interval)
-							}
-							
-							if ($Interval -eq 0) {
-								Exit
-							}
-						}
+					$callWarnings = [System.Collections.ArrayList]::new()
+					$performance = Measure-Command {
+						[Array]$script:queryResults = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd @baseSearchQuery -ResultSize $resultSize -WarningVariable +callWarnings
 					}
-					
-					elseif ($amountResults -gt 0) { 
-						$Interval = $resetInterval
-						if ($currentEnd -gt $script:EndDate) {
-							$currentEnd = $script:EndDate
-						}
-						
-						if ($null -eq $amountResults) {
-							break
-						}
-											
-						Write-LogFile -Message "[INFO] Found $amountResults audit logs between $($currentStart.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK")) and $($currentEnd.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssK"))" -Level Standard -Color "Green"
-	
-						$retryAttempt = 0
-						$currentDelay = $baseDelay
-						$success = $false
-	
-						while (!$success -and $retryAttempt -lt $maxRetries) {
-							try {
-								do {
-									$batchSuccess = $false
-									$batchAttempts = 0
-									$maxBatchRetries = 3
-									$backoffDelay = 10
+					 $cancelWarning = $callWarnings | Where-Object { "$_" -like "*task was canceled*" -or "$_" -like "*Failed to process request*" }
+					if ($cancelWarning) {
+						throw [System.Exception]::new("task was canceled (warning from Search-UnifiedAuditLog: $($cancelWarning[0]))")
+					}
+					$results = $script:queryResults
+					$success = $true
 
-									while (!$batchSuccess -and $batchAttempts -lt $maxBatchRetries) {
-										try {
-											[Array]$allResults = @()
-											$totalProcessed = 0
-											$sessionId = [Guid]::NewGuid().ToString()
-
-											if ($isDebugEnabled) {
-                                                Write-LogFile -Message "[DEBUG]   Starting batch retrieval with session ID: $sessionId" -Level Debug
-                                                Write-LogFile -Message "[DEBUG]   Using result size: $resultSize" -Level Debug
-                                            }
-
-											$emptyRetryCount = 0;
-											while ($totalProcessed -lt $amountResults) {
-                                                
-                                                if ($isDebugEnabled) {
-													Write-LogFile -Message "[DEBUG]   Fetching Unified Audit Log" -Level Debug
-                                                    Write-LogFile -Message "[DEBUG]   Fetching results batch ($totalProcessed/$amountResults processed so far)" -Level Debug
-                                                }
-												$performance = Measure-Command {
-													if ($amountResults -gt 5000) {
-                                                        [Array]$results = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $currentEnd -SessionCommand ReturnLargeSet -SessionId $sessionId -ResultSize $resultSize @baseSearchQuery
-                                                    } else {
-                                                        [Array]$results = Search-UnifiedAuditLog -StartDate $CurrentStart -EndDate $currentEnd -ResultSize $resultSize @baseSearchQuery
-                                                    }
-												}
-
-												if ($isDebugEnabled) {
-                                                    Write-LogFile -Message "[DEBUG]   Fetch UAL took $([math]::round($performance.TotalSeconds, 2)) seconds" -Level Debug
-                                                }
-
-												if ($null -ne $results -and $results.Count -gt 0) {
-													$expectedSize = [math]::min($resultSize, ($amountResults - $totalProcessed))
-													$allResults += $results
-													$totalProcessed += $results.Count
-													Write-LogFile -Message "[INFO] Retrieved $($results.Count) records (Total: $totalProcessed / $amountResults)" -Level Standard
-													$backoffDelay = 10
-
-													# Check returned dataset size, to do an early restart if this is incorrect
-													if($results.Count -ne $expectedSize) {
-														if ($isDebugEnabled) {
-                                                            Write-LogFile -Message "[DEBUG]   WARNING: Batch size mismatch - expected $expectedSize but got $($results.Count)" -Level Debug
-                                                        }
-														break
-													}
-												} else {
-													if ($isDebugEnabled) {
-                                                        Write-LogFile -Message "[DEBUG]   WARNING: Empty dataset returned" -Level Debug
-                                                    }
-													if($performance.TotalSeconds -ge 960) {
-														Write-LogFile -Message "[WARNING] API call took $([math]::round($performance.TotalSeconds, 2)) seconds, indicating an issue with the Microsoft API. Restarting batch." -Color "Yellow" -Level Standard
-														break
-													}
-													if($emptyRetryCount -ge 3) {
-														Write-LogFile -Message "[WARNING] Received multiple empty datasets, restarting batch." -Color "Yellow" -Level Standard
-														break
-													}
-												}
-												$emptyRetryCount++;
-											}
-
-											if ($totalProcessed -ne $amountResults) {
-												Write-LogFile -Message "[WARNING] Retrieved record count ($totalProcessed) does not match the expected count ($amountResults). Verifying the count..." -Color "Yellow" -Level Standard
-
-												$verifiedCount = Search-UnifiedAuditLog -StartDate $currentStart -EndDate $currentEnd @baseSearchQuery `
-													-ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount
-						
-												if ($null -eq $verifiedCount) {
-													$verifiedCount = 0
-												}
-						
-												if ($verifiedCount -ne $amountResults) {
-													Write-LogFile -Message "[INFO] Adjusted expected count from $amountResults to $verifiedCount after revalidating the API response." -Color "Green" -Level Standard
-													$amountResults = $verifiedCount
-												}
-						
-												# Check if the verified count matches what we collected
-												if ($totalProcessed -eq $amountResults) {
-													$batchSuccess = $true
-												}
-												else {
-													Write-LogFile -Message "[WARNING] Retrieved record count ($totalProcessed) still does not match the verified count ($amountResults). Retrying batch..." -Color "Yellow" -Level Standard
-
-													$batchAttempts++
-													Start-Sleep -Seconds $backoffDelay
-													$backoffDelay = [Math]::Min(30, $backoffDelay * 2)
-													continue
-												}
-											}
-											else {
-												$batchSuccess = $true
-											}
-										}
-										catch {
-											if ($_.Exception.Message -like "*server side error*" -or 
-												$_.Exception.Message -like "*operation could not be completed*" -or 
-												$_.Exception.Message -like "*timed out*") {	
-													Write-LogFile -Message "[WARNING] Server error encountered. Restarting entire batch." -Color "Yellow" -Level Standard
-												Start-Sleep -Seconds $backoffDelay
-												$backoffDelay = [Math]::Min(30, $backoffDelay * 2)
-												continue
-											} else {
-												Write-LogFile -Message "[ERROR] Unexpected error: $($_.Exception.Message)" -Color "Red" -Level Standard
-											}
-										}
-									}
-								} while ($totalProcessed -lt $amountResults -and $batchSuccess -eq $false)
-	
-								if ($totalProcessed -ne $amountResults) {
-									Write-LogFile -Message "[WARNING] Retrieved record count ($totalProcessed) differs from expected ($amountResults). Retrying entire batch." -Level Standard -Color "Yellow"
-									continue
-								}
-								else {
-									$success = $true
-
-									if ($totalProcessed -gt 0) {
-										$sessionID = $currentStart.ToString("yyyyMMddHHmmss") + "-" + $currentEnd.ToString("yyyyMMddHHmmss")
-										$outputPath = Join-Path $OutputDir ("UAL-" + $sessionID)
-										$stats.TotalRecords += $totalProcessed
-
-										# Extract only AuditData if flag is set
-										if ($AuditDataOnly) {
-											$outputData = $allResults | Select-Object -ExpandProperty AuditData
-										} else {
-											$outputData = $allResults
-										}										
-										
-										if ($Output -eq "JSON" -or $Output -eq "SOF-ELK") {
-											$stats.FilesCreated++
-											
-											if (!$AuditDataOnly) {
-												$outputData = $outputData | ForEach-Object {
-													$_.AuditData = $_.AuditData | ConvertFrom-Json
-													$_
-												}
-											}
-											
-											if ($Output -eq "JSON") {
-												if ($AuditDataOnly) {
-													$outputData | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
-												} else {
-													$json = $outputData | ConvertTo-Json -Depth 100
-													$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
-												}
-											} 
-											elseif ($Output -eq "SOF-ELK") {
-												if ($AuditDataOnly) {
-													$outputData | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding UTF8
-												} else {
-													foreach ($item in $outputData) {
-														$item.AuditData | ConvertTo-Json -Compress -Depth 100 | 
-															Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding UTF8
-													}
-												}
-											}
-											Add-Content "$OutputDir/UAL-$sessionID.json" "`n"
-										}
-										elseif ($Output -eq "JSONL") {
-											$stats.FilesCreated++
-											if ($AuditDataOnly) {
-												$outputData | ForEach-Object {
-													$_ | Out-File -Append "$outputPath.jsonl" -Encoding $Encoding
-												}
-											} else {
-												$outputData | ForEach-Object {
-													$_ | ConvertTo-Json -Compress -Depth 100 | Out-File -Append "$outputPath.jsonl" -Encoding $Encoding
-												}
-											}
-										}
-										elseif ($Output -eq "CSV") {
-											$stats.FilesCreated++
-											if ($AuditDataOnly) {
-												$parsedData = $outputData | ForEach-Object {
-													$_ | ConvertFrom-Json
-												}
-												$parsedData | Export-CSV "$outputPath.csv" -NoTypeInformation -Append -Encoding $Encoding
-											} else {
-												$outputData | Export-CSV "$outputPath.csv" -NoTypeInformation -Append -Encoding $Encoding
-											}
-										}
-										Write-LogFile -Message "[INFO] Successfully retrieved $totalProcessed records for the current time range. Moving on!" -Level Standard -Color "Green"
-									}
-								}
-							}
-							catch {
-								if ($_.Exception.Message -like "*server side error*" -or 
-									$_.Exception.Message -like "*operation could not be completed*") {
-									
-									$retryAttempt++
-									if ($retryAttempt -eq $maxRetries) {
-										Write-LogFile -Message "[ERROR] Maximum retry attempts reached for interval check. Last error: $($_.Exception.Message)" -Color "Red" -Level Minimal
-										throw
-									}
-									
-									Write-LogFile -Message "[WARNING] Server-side error on attempt $retryAttempt of $maxRetries. Waiting $currentDelay seconds..." -Color "Yellow" -Level Minimal
-									Start-Sleep -Seconds $currentDelay
-									$currentDelay *= 2
-									continue
-								}
-								else {
-									Write-LogFile -Message "[ERROR] Unknown error type has occured" -Color "Red" -Level Minimal
-									Write-Host $_.Exception.Message
-									throw
-								}
-							}			
-						}
-						$CurrentStart = $CurrentEnd
+					if ($isDebugEnabled) {
+						Write-LogFile -Message "[DEBUG] Fetch took $([math]::round($performance.TotalSeconds, 2)) seconds" -Level Debug
 					}
 				}
 				catch {
-					if ($_.Exception.Message -like "*server side error*" -or 
-						$_.Exception.Message -like "*operation could not be completed*") {
-						
+					if ($_.Exception.Message -like "*server side error*" -or
+						$_.Exception.Message -like "*operation could not be completed*" -or
+						$_.Exception.Message -like "*timed out*" -or
+						$_.Exception.Message -like "*task was canceled*") {
+
 						$retryAttempt++
-						if ($retryAttempt -eq $maxRetries) {
-							Write-LogFile -Message "[ERROR] Maximum retry attempts reached for interval check. Last error: $($_.Exception.Message)" -Color "Red" -Level Minimal
-							throw
+						if ($retryAttempt -ge $maxRetries) {
+							Write-LogFile -Message "[ERROR] Max retries reached for window $($currentStart.ToString('yyyy-MM-dd HH:mm:ss')) -> $($currentEnd.ToString('yyyy-MM-dd HH:mm:ss')). Skipping. Last error: $($_.Exception.Message)" -Color "Red" -Level Minimal
+							$results = @()
+							$success = $true
+							break
 						}
-						
+
 						Write-LogFile -Message "[WARNING] Server-side error on attempt $retryAttempt of $maxRetries. Waiting $currentDelay seconds..." -Color "Yellow" -Level Minimal
 						Start-Sleep -Seconds $currentDelay
 						$currentDelay *= 2
 						continue
 					}
 					else {
-						Write-LogFile -Message "[ERROR] Unknown error type has occured" -Color "Red" -Level Minimal
+						Write-LogFile -Message "[ERROR] Unknown error: $($_.Exception.Message)" -Color "Red" -Level Minimal
 						throw
 					}
 				}
 			}
+
+			$count = if ($results) { $results.Count } else { 0 }
+
+			if ($count -ge $resultSize) {
+				$stats.IntervalAdjustments++
+
+				if ($Interval -le $MIN_INTERVAL) {
+       				Write-LogFile -Message "[ERROR] Window $($currentStart.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssK')) -> $($currentEnd.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssK')) has 5000+ events in the minimum interval ($MIN_INTERVAL min). Cannot shrink further; writing partial data and advancing. SOME EVENTS IN THIS RANGE ARE NOT CAPTURED." -Color "Red" -Level Minimal
+				}
+				else {
+					$oldInterval = $Interval
+					$Interval    = [math]::Max($MIN_INTERVAL, $Interval * 0.5)
+					Write-LogFile -Message "[WARNING] Window $($currentStart.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssK')) -> $($currentEnd.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssK')) returned $count events (API cap). Shrinking interval $oldInterval -> $Interval min and refetching." -Color "Red" -Level Standard
+					
+					if ($isDebugEnabled) {
+						Write-LogFile -Message "[DEBUG] Cap hit details:" -Level Debug
+						Write-LogFile -Message "[DEBUG]   Count: $count (cap: $resultSize)" -Level Debug
+						Write-LogFile -Message "[DEBUG]   Old interval: $oldInterval min" -Level Debug
+						Write-LogFile -Message "[DEBUG]   New interval: $Interval min" -Level Debug
+					}
+					continue
+				}
+			}
+
+			if ($count -gt 0) {
+				Write-LogFile -Message "[INFO] Found $count audit logs between $($currentStart.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssK')) and $($currentEnd.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssK'))" -Level Standard -Color "Green"
+
+				$sessionID  = $currentStart.ToString("yyyyMMddHHmmss") + "-" + $currentEnd.ToString("yyyyMMddHHmmss")
+				$outputPath = Join-Path $OutputDir ("UAL-" + $sessionID)
+				$stats.TotalRecords += $count
+				$stats.FilesCreated++
+
+				# Extract only AuditData if flag is set
+				if ($AuditDataOnly) {
+					$outputData = $results | Select-Object -ExpandProperty AuditData
+				} else {
+					$outputData = $results
+				}
+
+				if ($Output -eq "JSON" -or $Output -eq "SOF-ELK") {
+					if (!$AuditDataOnly) {
+						$outputData = $outputData | ForEach-Object {
+							$_.AuditData = $_.AuditData | ConvertFrom-Json
+							$_
+						}
+					}
+
+					if ($Output -eq "JSON") {
+						if ($AuditDataOnly) {
+							$outputData | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
+						} else {
+							$json = $outputData | ConvertTo-Json -Depth 100
+							$json | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding $Encoding
+						}
+					}
+					elseif ($Output -eq "SOF-ELK") {
+						if ($AuditDataOnly) {
+							$outputData | Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding UTF8
+						} else {
+							foreach ($item in $outputData) {
+								$item.AuditData | ConvertTo-Json -Compress -Depth 100 |
+									Out-File -Append "$OutputDir/UAL-$sessionID.json" -Encoding UTF8
+							}
+						}
+					}
+					Add-Content "$OutputDir/UAL-$sessionID.json" "`n"
+				}
+				elseif ($Output -eq "JSONL") {
+					if ($AuditDataOnly) {
+						$outputData | ForEach-Object {
+							$_ | Out-File -Append "$outputPath.jsonl" -Encoding $Encoding
+						}
+					} else {
+						$outputData | ForEach-Object {
+							$_ | ConvertTo-Json -Compress -Depth 100 | Out-File -Append "$outputPath.jsonl" -Encoding $Encoding
+						}
+					}
+				}
+				elseif ($Output -eq "CSV") {
+					if ($AuditDataOnly) {
+						$parsedData = $outputData | ForEach-Object {
+							$_ | ConvertFrom-Json
+						}
+						$parsedData | Export-CSV "$outputPath.csv" -NoTypeInformation -Append -Encoding $Encoding
+					} else {
+						$outputData | Export-CSV "$outputPath.csv" -NoTypeInformation -Append -Encoding $Encoding
+					}
+				}
+			}
+
+			if (-not $PSBoundParameters.ContainsKey('Interval')) {
+				if ($count -ge $SHRINK_THRESHOLD) {
+					$oldInterval = $Interval
+					$Interval    = [math]::Max($MIN_INTERVAL, $Interval * 0.8)
+					if ($oldInterval -ne $Interval) {
+						$stats.IntervalAdjustments++
+						if ($isDebugEnabled) {
+							Write-LogFile -Message "[DEBUG] Pre-shrink: $oldInterval -> $Interval min (count=$count near cap)" -Level Debug
+						}
+					}
+				}
+				elseif ($count -lt $GROW_THRESHOLD -and $Interval -lt $MAX_INTERVAL) {
+					$oldInterval = $Interval
+					$growFactor  = if ($count -lt ($GROW_THRESHOLD / 2)) { 3.0 } else { 1.5 }
+					$Interval    = [math]::Min($MAX_INTERVAL, $Interval * $growFactor)
+					if ($oldInterval -ne $Interval -and $isDebugEnabled) {
+						Write-LogFile -Message "[DEBUG] Grow: $oldInterval -> $Interval min (count=$count well under target)" -Level Debug
+					}
+				}
+			}
+
+			$currentStart = $currentEnd
 		}
 	}
 
 	if ($MergeOutput.IsPresent) {
         Write-LogFile -Message "[INFO] Merging all output files into one file" -Level Standard
-        
+
         switch ($Output) {
             "CSV" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "CSV" -MergedFileName "UAL-Combined.csv" }
             "JSON" { Merge-OutputFiles -OutputDir $OutputDir -OutputType "JSON" -MergedFileName "UAL-Combined.json" }

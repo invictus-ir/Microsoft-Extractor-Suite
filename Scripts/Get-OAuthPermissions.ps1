@@ -85,7 +85,7 @@ function Get-OAuthPermissionsGraph {
 		return $script:ObjectCache[$Id]
 	}
 
-	$report = @()
+	$report = [System.Collections.Generic.List[object]]::new()
 	Write-LogFile -Message "[INFO] Retrieving all ServicePrincipal objects..." -Level Standard
 	if ($isDebugEnabled) {
 		Write-LogFile -Message "[DEBUG] Starting ServicePrincipal retrieval via Microsoft Graph..." -Level Debug
@@ -205,10 +205,10 @@ function Get-OAuthPermissionsGraph {
 							$AssignmentRequired = "Yes"
 						}
 
-						$ServicePrincipalTypes = @()
-						if ($clientSp.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a" -or $clientSp.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47") { $ServicePrincipalTypes += "Microsoft Application" }
-						if ($clientSp.ServicePrincipalType -eq "ManagedIdentity") { $ServicePrincipalTypes += "Managed Identity" }
-						if ($clientSp.Tags -contains "WindowsAzureActiveDirectoryIntegratedApp") { $ServicePrincipalTypes += "Enterprise Application" }
+						$ServicePrincipalTypes = [System.Collections.Generic.List[object]]::new()
+						if ($clientSp.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a" -or $clientSp.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47") { $ServicePrincipalTypes.Add("Microsoft Application") }
+						if ($clientSp.ServicePrincipalType -eq "ManagedIdentity") { $ServicePrincipalTypes.Add("Managed Identity") }
+						if ($clientSp.Tags -contains "WindowsAzureActiveDirectoryIntegratedApp") { $ServicePrincipalTypes.Add("Enterprise Application") }
 						$ApplicationType = $ServicePrincipalTypes -join " & "
 						
 						$grantDetails = [ordered]@{
@@ -243,7 +243,7 @@ function Get-OAuthPermissionsGraph {
 							"ApplicationType"        = $ApplicationType 
 						}
 
-						$report += [PSCustomObject]$grantDetails
+						$report.Add([PSCustomObject]$grantDetails)
 					}
 				}
 			}
@@ -337,10 +337,10 @@ function Get-OAuthPermissionsGraph {
 					$AssignmentRequired = "Yes"
 				}
 
-				$ServicePrincipalTypes = @()
-				if ($sp.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a" -or $sp.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47") { $ServicePrincipalTypes += "Microsoft Application" }
-				if ($sp.ServicePrincipalType -eq "ManagedIdentity") { $ServicePrincipalTypes += "Managed Identity" }
-				if ($sp.Tags -contains "WindowsAzureActiveDirectoryIntegratedApp") { $ServicePrincipalTypes += "Enterprise Application" }
+				$ServicePrincipalTypes = [System.Collections.Generic.List[object]]::new()
+				if ($sp.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a" -or $sp.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47") { $ServicePrincipalTypes.Add("Microsoft Application") }
+				if ($sp.ServicePrincipalType -eq "ManagedIdentity") { $ServicePrincipalTypes.Add("Managed Identity") }
+				if ($sp.Tags -contains "WindowsAzureActiveDirectoryIntegratedApp") { $ServicePrincipalTypes.Add("Enterprise Application") }
 				$ApplicationType = $ServicePrincipalTypes -join " & "
 
 				$grantDetails = [ordered]@{
@@ -373,7 +373,7 @@ function Get-OAuthPermissionsGraph {
 					"ApplicationType"        = $ApplicationType
 				}
 
-				$report += [PSCustomObject]$grantDetails
+				$report.Add([PSCustomObject]$grantDetails)
 			}
 		}
 

@@ -13,22 +13,25 @@ Usage
 """"""""""""""""""""""""""
 Running the script in interactive mode for all platforms with a specific project name:
 ::
-    Start-EvidenceCollection -ProjectName "Investigation2025" -Interactive
+
+   Start-EvidenceCollection -ProjectName "Investigation2026" -Interactive
 
 Collecting specific platform data for a particular user with standard logging:
 ::
-    Start-EvidenceCollection -ProjectName "HR_Case" -Platform "M365" -UserIds "user@domain.com"  -LogLevel "Standard"
+
+   Start-EvidenceCollection -ProjectName "HR_Case" -Platform "M365" -UserIds "user@domain.com" -LogLevel "Standard"
 
 Collecting all Azure/Entra ID data in non-interactive mode:
 ::
-    Start-EvidenceCollection -ProjectName "SecurityAudit" -Platform "Azure"
+
+   Start-EvidenceCollection -ProjectName "SecurityAudit" -Platform "Azure"
 
 Parameters
 """"""""""""""""""""""""""
 -ProjectName (mandatory)
     - Specifies the name of the investigation/project.
     - Used to create the output directory structure.
-    - Example: "Case123", "Investigation2025"
+    - Example: "Case123", "Investigation2026"
 
 -Platform (optional)
     - Specifies which platform to collect from.

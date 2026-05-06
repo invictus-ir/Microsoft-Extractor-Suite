@@ -27,15 +27,15 @@ Gets all the unified audit log entries for the user Test@invictus-ir.com:
 
    Get-UALGraph -SearchName Test -UserIds Test@invictus-ir.com
 
-Retrieves audit log data for the specified time range March 10, 2025 to March 20, 2025 and filters the results to include only events related to the Exchange service:
+Retrieves audit log data for the specified time range March 10, 2026 to March 20, 2026 and filters the results to include only events related to the Exchange service:
 ::
 
-   Get-UALGraph -SearchName Scan1GraphAPI -startDate "2025-03-10T09:28:56Z" -endDate "2025-03-20T09:28:56Z" -Service Exchange
-  
-Retrieve audit log data for the specified time range March 1, 2025 to March 10, 2025 and filter the results to include only entries associated with the IP address 182.74.242.26:
+   Get-UALGraph -SearchName Scan1GraphAPI -startDate "2026-03-10T09:28:56Z" -endDate "2026-03-20T09:28:56Z" -Service Exchange
+
+Retrieve audit log data for the specified time range March 1, 2026 to March 10, 2026 and filter the results to include only entries associated with the IP address 182.74.242.26:
 ::
 
-   Get-UALGraph -searchName scan1 -startDate "2025-03-01" -endDate "2025-03-10" -IPAddress 182.74.242.26
+   Get-UALGraph -searchName scan1 -startDate "2026-03-01" -endDate "2026-03-10" -IPAddress 182.74.242.26
 
 Parameters
 """"""""""""""""""""""""""
@@ -50,7 +50,7 @@ Parameters
 
 -StartDate (optional)
     - StartDate is the parameter specifying the start date of the date range.
-    - Default: Today -180 days
+    - Default: Today -90 days
 
 -EndDate (optional)
     - EndDate is the parameter specifying the end date of the date range.
@@ -78,7 +78,7 @@ Parameters
     - Exact data returned depends on the service in the current `@odatatype.microsoft.graph.security.auditLogQuery` record.
     - For Exchange admin audit logging, the name of the object modified by the cmdlet. 
     - For SharePoint activity, the full URL path name of the file or folder accessed by a user. 
-    - For Microsoft Entra activity, the name of the user account that was modified.|
+    - For Microsoft Entra activity, the name of the user account that was modified.
 
 -OutputDir (optional)
     - OutputDir is the parameter specifying the output directory.
@@ -104,11 +104,11 @@ Parameters
     - When specified, splits output into multiple files based on MaxEventsPerFile.
     - Default: If not specified, outputs to a single file.
 
-Permissions
+Date Format Notes
 """"""""""""""""""""""""""
 - When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
-- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2025-01-01 08:15:00 will be converted to 2025-01-01 06:15:00 in UTC.
-- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2025-01-01T08:15:00Z). This format will retrieve data from January 1st, 2025, starting from a quarter past 8 in the morning until the specified end date.
+- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2026-01-01 08:15:00 will be converted to 2026-01-01 06:15:00 in UTC.
+- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2026-01-01T08:15:00Z). This format will retrieve data from January 1st, 2026, starting from a quarter past 8 in the morning until the specified end date.
 
 Output
 """"""""""""""""""""""""""

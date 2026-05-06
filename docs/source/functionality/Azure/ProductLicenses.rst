@@ -10,7 +10,8 @@ Usage
 """"""""""""""""""""""""""
 Running the script without any parameters retrieves all licenses in the tenant.
 ::
-    Get-Licenses
+
+   Get-Licenses
 
 Parameters
 """"""""""""""""""""""""""
@@ -44,7 +45,8 @@ Usage
 """"""""""""""""""""""""""
 Running the script without any parameters checks license compatibility.
 ::
-Get-LicenseCompatibility
+
+   Get-LicenseCompatibility
 
 Parameters
 """"""""""""""""""""""""""
@@ -144,15 +146,18 @@ Usage
 """"""""""""""""""""""""""
 Running the script without any parameters retrieves all product license information.
 ::
-Get-ProductLicenses
+
+   Get-ProductLicenses
 
 Retrieves all product license information and exports the output to a CSV file with UTF-32 encoding.
 ::
-Get-ProductLicenses -Encoding utf32
+
+   Get-ProductLicenses -Encoding utf32
 
 Retrieves all product license information and saves the output to the C:\Windows\Temp folder.
 ::
-Get-ProductLicenses -OutputDir C:\Windows\Temp
+
+   Get-ProductLicenses -OutputDir C:\Windows\Temp
 
 Parameters
 """"""""""""""""""""""""""

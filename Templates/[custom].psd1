@@ -13,7 +13,6 @@
 
         # ===== Unified Audit Log (UNCOMMENT TO ENABLE) =====
         # "Get-UAL"                          # Collect all Unified Audit Logs (NOT RECOMMENDED FOR ALL USERS)
-        # "Get-UALStatistics"                # Displays the total number of logs within the Unified Audit Logs per Record Type
         # "Get-MailboxAuditLog"              # Collect Mailbox Audit Logs
 
         # ===== Message Tracking (UNCOMMENT TO ENABLE) =====

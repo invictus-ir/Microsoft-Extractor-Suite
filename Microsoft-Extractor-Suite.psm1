@@ -39,7 +39,7 @@ Function StartDate {
         }
     }
     else {
-        $script:startDate = [datetime]::Parse($startDate).ToUniversalTime()
+        $script:startDate = [datetime]::Parse($startDate, [System.Globalization.CultureInfo]::InvariantCulture).ToUniversalTime()
         if (!$script:startDate -and -not $Quiet) { 
             Write-LogFile -Message "[WARNING] Not A valid start date and time, make sure to use YYYY-MM-DD" -Color "Red"
         } 
@@ -68,7 +68,7 @@ function EndDate {
         }
     }
     else {
-        $script:endDate = [datetime]::Parse($endDate).ToUniversalTime()
+        $script:endDate = [datetime]::Parse($endDate, [System.Globalization.CultureInfo]::InvariantCulture).ToUniversalTime()
         if (!$endDate -and -not $Quiet) { 
             Write-LogFile -Message "[WARNING] Not A valid end date and time, make sure to use YYYY-MM-DD" -Color "Red"
         } 

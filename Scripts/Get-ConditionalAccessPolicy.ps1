@@ -50,7 +50,7 @@ Function Get-ConditionalAccessPolicies {
     Init-Logging
     Init-OutputDir -Component "ConditionalAccessPolicies" -FilePostfix "ConditionalAccessPolicies" -CustomOutputDir $OutputDir
 
-    $results=@();
+    $results = [System.Collections.Generic.List[object]]::new()
     $requiredScopes = @("Policy.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
@@ -118,6 +118,7 @@ Function Get-ConditionalAccessPolicies {
 
                 # Risk Levels
                 UserRiskLevels = ($policy.Conditions.UserRiskLevels -join '; ')
+                UserActions = ($policy.Conditions.Applications.IncludeUserActions -join '; ')
                 SignInRiskLevels = ($policy.Conditions.SignInRiskLevels -join '; ')
                 ServicePrincipalRiskLevels = ($policy.Conditions.ServicePrincipalRiskLevels -join '; ')
 
@@ -146,12 +147,11 @@ Function Get-ConditionalAccessPolicies {
                 DeviceFilterRule = $policy.Conditions.Devices.DeviceFilter.Rule
 
                 # Additional Conditions
-                UserActions = ($policy.Conditions.UserRiskLevels -join '; ')
                 ClientAppsV2 = ($policy.Conditions.ClientAppTypes -join '; ')
                 DeviceStates = ($policy.Conditions.Devices.DeviceStates -join '; ')
             }
 
-            $results+= $myObject;
+            $results.Add($myObject)
         }
     }
 

@@ -170,7 +170,8 @@ Microsoft Extractor Suite supports two different authentication methods: Delegat
 +--------------------------------+------------------------------------------+
 
 .. note::
-Some Microsoft Graph API permissions (like Mail.ReadBasic.All) are only available as application permissions, not as delegated permissions. This means you cannot access those resources through a regular user login, even with a Global Admin account.
+
+   Some Microsoft Graph API permissions (like Mail.ReadBasic.All) are only available as application permissions, not as delegated permissions. This means you cannot access those resources through a regular user login, even with a Global Admin account.
 
 Our preference
 """"""""""""""""""""""""""

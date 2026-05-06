@@ -157,7 +157,7 @@ Function Get-SecurityAlerts {
             # Extract affected users, handling both null and populated UserStates
             $affectedUsers = ""
             if ($_.UserStates -and $_.UserStates.Count -gt 0) {
-                $userDetails = @()
+                $userDetails = [System.Collections.Generic.List[object]]::new()
                 foreach ($userState in $_.UserStates) {
                     if ($userState.UserPrincipalName) {
                         $userInfo = $userState.UserPrincipalName
@@ -166,9 +166,9 @@ Function Get-SecurityAlerts {
                         } else {
                             $userInfo += "/null"
                         }
-                        $userDetails += $userInfo
+                        $userDetails.Add($userInfo)
                     } elseif ($userState.Name) {
-                        $userDetails += "$($userState.Name)/null"
+                        $userDetails.Add("$($userState.Name)/null")
                     }
                 }
                 $affectedUsers = $userDetails -join "; "
@@ -176,7 +176,7 @@ Function Get-SecurityAlerts {
 
             $affectedHosts = ""
             if ($_.HostStates -and $_.HostStates.Count -gt 0) {
-                $hostDetails = @()
+                $hostDetails = [System.Collections.Generic.List[object]]::new()
                 foreach ($hostState in $_.HostStates) {
                     $hostInfo = ""
                     if ($hostState.NetBiosName) {
@@ -192,8 +192,8 @@ Function Get-SecurityAlerts {
                     } else {
                         $hostInfo += "/null"
                     }
-                    
-                    $hostDetails += $hostInfo
+
+                    $hostDetails.Add($hostInfo)
                 }
                 $affectedHosts = $hostDetails -join "; "
             }

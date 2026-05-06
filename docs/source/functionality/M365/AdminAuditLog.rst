@@ -16,10 +16,10 @@ Running the script without any parameters will gather the Admin Audit log for th
 
    Get-AdminAuditLog
 
-Get the admin audit log between 2025-04-01 and 2025-04-05:
+Get the admin audit log between 2026-04-01 and 2026-04-05:
 ::
 
-   Get-AdminAuditLog -StartDate 2025-04-01 -EndDate 2025-04-05
+   Get-AdminAuditLog -StartDate 2026-04-01 -EndDate 2026-04-05
 
 Parameters
 """"""""""""""""""""""""""
@@ -37,7 +37,7 @@ Parameters
 
 -Output (optional)
     - Output is the parameter specifying the CSV, JSON, JSONL or SOF-ELK output type.
-    - The SOF-ELK output type can be used to export logs in a format suitable for the [platform of the same name](https://github.com/philhagen/sof-elk).
+    - The SOF-ELK output type can be used to export logs in a format suitable for the `platform of the same name <https://github.com/philhagen/sof-elk>`_.
     - Default: CSV
 
 -MergeOutput (optional)

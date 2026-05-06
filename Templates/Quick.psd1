@@ -12,6 +12,7 @@
         "Get-RiskyDetections"             # Get risk detection events  
         "Get-MFA"                         # Collect MFA status for users
         "Get-MailboxRules"                # Export mailbox rules
+        # "Get-MailboxRulesGraph"          # Export mailbox rules via Graph API
         "Get-OAuthPermissionsGraph"       # Collect OAuth application permissions via Graph API
 
         # ===== Sign-In & Audit Logging (UNCOMMENT TO ENABLE) =====
@@ -20,7 +21,6 @@
 
         # ===== Unified Audit Log (UNCOMMENT TO ENABLE) =====
         # "Get-UAL"                       # Collect all Unified Audit Logs (NOT RECOMMENDED FOR ALL USERS)
-        # "Get-UALStatistics"             # Displays the total number of logs within the Unified Audit Logs per Record Type
         # "Get-MailboxAuditLog"           # Collect Mailbox Audit Logs
 
         # ===== Message Tracking (UNCOMMENT TO ENABLE) =====
@@ -44,6 +44,7 @@
         # NOTE: These tasks only work when no specific users are targeted (all users mode)
         "Get-TransportRules"              # Export transport rules
         "Get-SecurityAlerts"              # Retrieve security alerts
+        "Get-SecureScore"                 # Retrieve Microsoft Secure Score recommendations
         # "Get-ConditionalAccessPolicies" # Collect conditional access policies
         # "Get-Licenses"                  # Collect all licenses in the tenant with retention times
         # "Get-LicenseCompatibility"      # Check presence of E5, P2, P1, and E3 licenses
@@ -55,7 +56,6 @@
         # "Get-DirectoryActivityLogs"     # Collect directory activity logs
         # "Get-PIMAssignments"            # Generate report of all Entra ID PIM role assignments
         # "Get-AllRoleActivity"           # Export all directory role memberships with last login info
-        "Get-SecurityAlerts"              # Retrieve security alerts
                 
         # ===== UNIFIED AUDIT LOG (ENABLED BY DEFAULT) =====
         @{
