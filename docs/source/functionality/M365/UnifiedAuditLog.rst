@@ -17,54 +17,6 @@ This approach, while effective, results in the script being quite slow due to th
   
   Audit (Premium) - Audit records are retained for 365 days. 
 
-Show available log sources and amount of logging
-^^^^^^^^^^^
-Pretty straightforward a search is executed and the total number of logs within the set timeframe will be displayed and written to a csv file called "Amount_Of_Audit_Logs.csv" the file is prefixed with a random number to prevent duplicates.
-
-Usage
-""""""""""""""""""""""""""
-Displays the total number of logs within the unified audit log:
-::
-
-   Get-UALStatistics
-
-Displays the total number of logs within the unified audit log between 2025-04-01 and 2025-04-05 for the user test[@]invictus-ir.com:
-::
-
-   Get-UALStatistics -UserIds test[@]invictus-ir.com -StartDate 2025-04-01 -EndDate 2025-04-05
-
-Parameters
-""""""""""""""""""""""""""
--UserIds (optional)
-    - UserIds is the UserIds parameter filtering the log entries by the account of the user who performed the actions.
-
--StartDate (optional)
-    - StartDate is the parameter specifying the start date of the date range.
-    - Default: Today -180 days
-
--EndDate (optional)
-    - EndDate is the parameter specifying the end date of the date range.
-    - Default: Now
-
--OutputDir (optional)
-    - OutputDir is the parameter specifying the output directory.
-    - Default: UnifiedAuditLog
-
--LogLevel (optional)
-    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
-    - Default: Standard
-
-.. note::
-
-  **Important note** regarding the StartDate and EndDate variables. 
-
-- When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
-- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2025-01-01 08:15:00 will be converted to 2025-01-01 06:15:00 in UTC.
-- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2025-01-01T08:15:00Z). This format will retrieve data from January 1st, 2025, starting from a quarter past 8 in the morning until the specified end date.
-
-Output
-""""""""""""""""""""""""""
-The output will be saved to the file 'Amount_Of_Audit_Logs.csv' within the 'Output' directory.
 
 Extract Unified Audit Logs
 ^^^^^^^^^^^
@@ -100,7 +52,7 @@ Filter logs for specific users:
 Get logs for a specific date range:
 ::
     
-    Get-UAL -StartDate 1/4/2025 -EndDate 5/4/2025 -Group Azure
+    Get-UAL -StartDate 2026-04-01 -EndDate 2026-04-05 -Group Azure
 
 Get logs in JSON format:
 ::
@@ -158,11 +110,13 @@ Parameters
     - The Operation parameter filters the log entries by operation or activity type.
 	- Options are: New-MailboxRule, MailItemsAccessed, etc.
 
--MaxItemsPerInterval (optional)
-    - Specifies the maximum number of items to process in a single interval.
-    - Must be between 5000 and 50000
-    - Default: 50000
-    - Lower this value if you're experiencing timeouts with large data sets
+-TargetEventsPerWindow (optional)
+    - The ideal number of events the adaptive algorithm aims to retrieve per window. The Microsoft API caps a single non-session call at 5000 events; this target is what the script steers toward when sizing intervals.
+    - Lower values are safer (more headroom below the 5000 cap, fewer cap-hit retries) but produce more API calls.
+    - Higher values produce fewer calls but increase the chance of hitting the 5000 cap and having to shrink and refetch.
+    - The shrink threshold is derived as TargetEventsPerWindow * 1.5 (clamped just below the 5000 API cap).
+    - Must be between 1 and 5000
+    - Default: 3000
 
 -AuditDataOnly (optional)
     - AuditDataOnly is a switch parameter that extracts only the AuditData property from each log entry.
@@ -179,8 +133,8 @@ Parameters
   **Important note** regarding the StartDate and EndDate variables. 
 
 - When you do not specify a timestamp, the script will automatically default to midnight (00:00) of that day.
-- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2025-01-01 08:15:00 will be converted to 2025-01-01 06:15:00 in UTC.
-- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2025-01-01T08:15:00Z). This format will retrieve data from January 1st, 2025, starting from a quarter past 8 in the morning until the specified end date.
+- If you provide a timestamp, it will be converted to the corresponding UTC time. For example, if your local timezone is UTC+2, a timestamp like 2026-01-01 08:15:00 will be converted to 2026-01-01 06:15:00 in UTC.
+- To specify a date and time without conversion, please use the ISO 8601 format with UTC time (e.g., 2026-01-01T08:15:00Z). This format will retrieve data from January 1st, 2026, starting from a quarter past 8 in the morning until the specified end date.
 
 Output
 """"""""""""""""""""""""""

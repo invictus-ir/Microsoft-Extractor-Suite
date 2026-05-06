@@ -40,12 +40,12 @@ function Get-ActivityLogs {
 	Get all the activity logs for all subscriptions connected to the logged-in user account for the last 89 days.
 
 	.EXAMPLE
-    Get-ActivityLogs -EndDate 2025-04-12
-	Get all the activity logs before 2025-04-12.
+    Get-ActivityLogs -EndDate 2026-04-12
+	Get all the activity logs before 2026-04-12.
 
 	.EXAMPLE
-    Get-ActivityLogs -StartDate 2025-04-12
-	Get all the activity logs after 2025-04-12.
+    Get-ActivityLogs -StartDate 2026-04-12
+	Get all the activity logs after 2026-04-12.
 	
 	.EXAMPLE
     Get-ActivityLogs -SubscriptionID "4947f939-cf12-4329-960d-4dg68a3eb66f"
@@ -224,7 +224,7 @@ function Get-ActivityLogs {
         $filePath = "$(Split-Path $script:outputFile -Parent)\$($date)-$subId-ActivityLog.json"
 
 		$uriBase = "https://management.azure.com/subscriptions/$subId/providers/Microsoft.Insights/eventtypes/management/values?api-version=2015-04-01&`$filter=eventTimestamp ge '$script:StartDate' and eventTimestamp le '$script:endDate'"
-		$events = @()
+		$events = [System.Collections.Generic.List[object]]::new()
 
 		if ($isDebugEnabled) {
             Write-LogFile -Message "[DEBUG] Activity Log API configuration:" -Level Debug
@@ -246,7 +246,7 @@ function Get-ActivityLogs {
 			}
 
 			$response = Invoke-RestMethod @listOperations
-			$events += $response.value
+			if ($response.value) { $events.AddRange([object[]]$response.value) }
 			$uriBase = $response.nextLink
 
 			if ($isDebugEnabled) {

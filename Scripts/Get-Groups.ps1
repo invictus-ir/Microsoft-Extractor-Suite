@@ -191,7 +191,7 @@ Function Get-GroupMembers {
             Write-LogFile -Message "[DEBUG] Starting member enumeration for $($allGroups.Count) groups..." -Level Debug
         }
 
-        $results = @()
+        $results = [System.Collections.Generic.List[object]]::new()
         foreach ($group in $allGroups) {
             Write-LogFile -Message "[INFO] Processing group: $($group.DisplayName)" -Level Standard
 
@@ -217,7 +217,7 @@ Function Get-GroupMembers {
                     }
                 }
 
-                $results += $members
+                if ($members) { $results.AddRange([object[]]@($members)) }
             }
             catch {
                 Write-LogFile -Message "[ERROR] Failed to retrieve members for group: $($group.DisplayName) Error: $($_.Exception.Message)" -Color "Red" -Level Minimal

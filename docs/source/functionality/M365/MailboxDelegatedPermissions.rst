@@ -7,17 +7,17 @@ Usage
 Running the script without any parameters retrieves delegated permissions for all mailboxes and exports to a CSV file in the default directory.
 ::
 
-Get-MailboxPermissions
+   Get-MailboxPermissions
 
 Retrieves delegated permissions and saves the output to C:\Temp with UTF-32 encoding.
 ::
 
-Get-MailboxPermissions -OutputDir C:\Temp -Encoding UTF32
+   Get-MailboxPermissions -OutputDir C:\Temp -Encoding UTF32
 
 Retrieves delegated permissions and saves the report in the Reports folder with UTF-8 encoding.
 ::
 
-Get-MailboxPermissions -OutputDir "Reports" -Encoding UTF8
+   Get-MailboxPermissions -OutputDir "Reports" -Encoding UTF8
 
 Parameters
 """"""""""""""""""""""""""

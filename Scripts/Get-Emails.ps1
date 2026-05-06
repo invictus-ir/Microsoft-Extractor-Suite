@@ -78,7 +78,7 @@ Function Get-Email {
         AttachmentsProcessed = 0
         StartTime = Get-Date
         ProcessingTime = $null
-        Errors = @()
+        Errors = [System.Collections.Generic.List[object]]::new()
     }
 
     Write-LogFile -Message "=== Starting Email Export ===" -Color "Cyan" -Level Standard
@@ -87,8 +87,8 @@ Function Get-Email {
     
     $fileCounter = 1 
     $processedMessages = @{}
-    $duplicateMessages = @()
-    $notCollected = @()
+    $duplicateMessages = [System.Collections.Generic.List[object]]::new()
+    $notCollected = [System.Collections.Generic.List[object]]::new()
     $ProgressPreference = 'SilentlyContinue' 
 
     if ($inputFile) {
@@ -128,7 +128,7 @@ Function Get-Email {
 
                 if ($null -eq $message) {
                     Write-LogFile -Message "[WARNING] No message found for Internet Message ID: $($id). This might happen when the email is removed from the mailbox." -Level Minimal -Color "Yellow"
-                    $notCollected += $id
+                    $notCollected.Add($id)
                     $summary.FailedDownloads++
 
                     if ($isDebugEnabled) {
@@ -150,11 +150,11 @@ Function Get-Email {
                 }
 
                 if ($processedMessages.ContainsKey($messageId)) {
-                    $duplicateMessages += @{
+                    $duplicateMessages.Add(@{
                         'MessageId' = $messageId
                         'FirstInternetMessageId' = $processedMessages[$messageId]
                         'SecondInternetMessageId' = $id
-                    }
+                    })
                     $summary.DuplicatesFound++
                     Write-LogFile -Message "[INFO] Duplicate message detected! Message ID $messageId was previously processed with Internet Message ID $($processedMessages[$messageId])" -Color "Yellow" -Level Standard
                     
@@ -226,10 +226,10 @@ Function Get-Email {
            }
            catch {
                 $summary.FailedDownloads++
-                $summary.Errors += "Failed to process $id : $_"
+                $summary.Errors.Add("Failed to process $id : $_")
                 Write-LogFile -Message "[WARNING] Failed to collect message with ID '$id': $_"
                 Write-LogFile -Message "[ERROR] Failed to process message: $_" -Color "Red" -Level Minimal
-                $notCollected += $id
+                $notCollected.Add($id)
 
                 if ($isDebugEnabled) {
                     Write-LogFile -Message "[DEBUG] Message processing error details:" -Level Debug
@@ -322,7 +322,7 @@ Function Get-Email {
         }
         catch {
             $summary.FailedDownloads++
-            $summary.Errors += "Failed to process $internetMessageId : $_"
+            $summary.Errors.Add("Failed to process $internetMessageId : $_")
             Write-LogFile -Message "[WARNING] The 'Mail.Readwrite' is an application-level permission, requiring an application-based connection through the 'Connect-MgGraph' command for its use." -Color "Yellow" -Level Minimal
             Write-LogFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Level Minimal -Color "Red"
 

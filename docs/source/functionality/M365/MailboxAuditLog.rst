@@ -24,10 +24,10 @@ Get mailbox audit log entries for the users HR[@]invictus-ir.com and test[@]invi
 
    Get-MailboxAuditLog -UserIds "test@invictus-ir.com,HR@invictus-ir.com"
 
-Get mailbox audit log entries for the user test@invictus-ir.com between 1/4/2025 and 5/4/2025:
+Get mailbox audit log entries for the user test@invictus-ir.com between 2026-04-01 and 2026-04-05:
 ::
 
-   Get-MailboxAuditLog -UserIds test[@]invictus-ir.com -StartDate 1/4/2025 -EndDate 5/4/2025
+   Get-MailboxAuditLog -UserIds test[@]invictus-ir.com -StartDate 2026-04-01 -EndDate 2026-04-05
 
 Parameters
 """"""""""""""""""""""""""
@@ -49,7 +49,7 @@ Parameters
 
 -Output (optional)
     - Output is the parameter specifying the CSV, JSON or SOF-ELK output type.
-    - The SOF-ELK output type can be used to export logs in a format suitable for the [platform of the same name](https://github.com/philhagen/sof-elk).
+    - The SOF-ELK output type can be used to export logs in a format suitable for the `platform of the same name <https://github.com/philhagen/sof-elk>`_.
     - Default: CSV
 
 -MergeOutput (optional)

@@ -205,16 +205,16 @@ Function Get-LicenseCompatibility {
             Write-LogFile -Message "Sign-in Log retention: 7 days" -Color "Yellow" -Level Standard
         }
 
-        $recommendations = @()
-        
+        $recommendations = [System.Collections.Generic.List[object]]::new()
+
         if (-not $global:e5Present) {
-            $recommendations += "- Consider E5 license for full feature access and extended retention"
+            $recommendations.Add("- Consider E5 license for full feature access and extended retention")
         }
         if (-not $global:p2Present -and -not $global:e5Present) {
-            $recommendations += "- P2 license would enable risky users monitoring"
+            $recommendations.Add("- P2 license would enable risky users monitoring")
         }
         if (-not ($global:e3Present -or $global:e5Present -or $global:p1Present -or $global:p2Present)) {
-            $recommendations += "- Current retention period is limited. Consider upgrading for extended retention"
+            $recommendations.Add("- Current retention period is limited. Consider upgrading for extended retention")
         }
 
         if ($recommendations.Count -gt 0) {
@@ -407,6 +407,8 @@ Function Get-LicensesByUser {
         }
 
         $skus = Get-MgSubscribedSku | Select-Object SkuId, SkuPartNumber
+        $skusHash = @{}
+        foreach ($sku in $skus) { $skusHash[$sku.SkuId] = $sku.SkuPartNumber }
         if ($isDebugEnabled) {
             Write-LogFile -Message "[DEBUG] Retrieved $($skus.Count) SKUs from tenant" -Level Debug
             foreach ($sku in $skus) {
@@ -414,7 +416,7 @@ Function Get-LicensesByUser {
             }
         }
 
-        $results = @()
+        $results = [System.Collections.Generic.List[object]]::new()
         $users = Get-MgUser -All -Property DisplayName, UserPrincipalName, Id
 
         if (-not $users) {
@@ -433,24 +435,24 @@ Function Get-LicensesByUser {
 
                 if ($licenseDetails) {
                     foreach ($license in $licenseDetails) {
-                        $skuPartNumber = ($skus | Where-Object { $_.SkuId -eq $license.SkuId }).SkuPartNumber
+                        $skuPartNumber = $skusHash[$license.SkuId]
 
                         if ($isDebugEnabled) {
                             Write-LogFile -Message "[DEBUG]   Found license: $skuPartNumber for user $($user.UserPrincipalName)" -Level Debug
                         }
 
-                        $results += [PSCustomObject]@{
+                        $results.Add([PSCustomObject]@{
                             DisplayName       = $user.DisplayName
                             UserPrincipalName = $user.UserPrincipalName
                             SkuPartNumber     = $skuPartNumber
-                        }
+                        })
                     }
                 } else {
-                    $results += [PSCustomObject]@{
+                    $results.Add([PSCustomObject]@{
                         DisplayName       = $user.DisplayName
                         UserPrincipalName = $user.UserPrincipalName
                         SkuPartNumber     = "None"
-                    }
+                    })
                 }
             } catch {
                 Write-LogFile -Message "[ERROR] Failed to retrieve license details for user $($user.UserPrincipalName): $($_.Exception.Message)" -Color "Red" -Level Minimal
@@ -465,10 +467,10 @@ Function Get-LicensesByUser {
         $results | Sort-Object DisplayName | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding UTF8
 
         $userLicenseSummary = [PSCustomObject]@{
-            TotalUsers = ($users | Measure-Object).Count
-            LicensedUsers = ($results | Select-Object -Unique UserPrincipalName | Measure-Object).Count
-            UnlicensedUsers = (($results | Where-Object { $_.SkuPartNumber -eq "None" }) | Measure-Object).Count
-            TotalAssignments = ($results | Where-Object { $_.SkuPartNumber -ne "None" } | Measure-Object).Count
+            TotalUsers = @($users).Count
+            LicensedUsers = @($results | Select-Object -Unique UserPrincipalName).Count
+            UnlicensedUsers = @($results | Where-Object { $_.SkuPartNumber -eq "None" }).Count
+            TotalAssignments = @($results | Where-Object { $_.SkuPartNumber -ne "None" }).Count
         }
 
         $licenseDistribution = $results | 

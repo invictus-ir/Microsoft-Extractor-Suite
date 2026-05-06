@@ -43,6 +43,7 @@ In addition to the log sources above the tool is also able to retrieve other rel
 * Retrieve Role Activity Information
 * Generates an overview of all Privileged Identity Management (PIM) role assignments
 * Security alerts
+* Microsoft Secure Score recommendations and control status
 
 Microsoft-Extractor-Suite was created by Joey Rentenaar and Korstiaan Stam and is maintained by the [Invictus IR](https://www.invictus-ir.com/) team.
 
@@ -66,13 +67,13 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 
 ### Unified Audit Log
 - `Get-UAL` - Collect all Unified Audit Logs
-- `Get-UALStatistics` - Displays the total number of logs within the Unified Audit Logs per Record Type
 - `Get-MailboxAuditLog` - Collect Mailbox Audit Logs
 - `Get-AdminAuditLog` - Collect Admin Audit Logs
 
 ### Mailbox & Transport Rules
 - `Show-MailboxRules` - Shows mailbox rules
 - `Get-MailboxRules` - Export mailbox rules
+- `Get-MailboxRulesGraph` - Export mailbox rules via Graph API
 - `Get-TransportRules` - Export transport rules
 - `Show-TransportRules` - Shows transport rules
 
@@ -129,6 +130,7 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 
 ### Security Management
 - `Get-SecurityAlerts` - Retrieves security alerts
+- `Get-SecureScore` - Retrieves Microsoft Secure Score recommendations and current status
 
 ### Automatically collect everything you want
 - `Get-AllEvidence` - Collect all (almost) available evidence types automatically

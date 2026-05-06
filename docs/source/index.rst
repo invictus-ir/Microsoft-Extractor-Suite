@@ -21,7 +21,7 @@ Supported sources
   Mailbox Audit Log                     Mailbox audit logs are generated for each mailbox that has mailbox audit logging enabled. This tracks all user actions on any items in a mailbox.                          
   Message Trace Log                     The message tracking log contains messages as they pass through the organization.                                                                                          
   OAuth Permissions                     OAuth is a way of authorizing third-party applications to login into user accounts.                                                                                        
-  Inbox Rules                           Inbox rules process messages in the inbox based on conditions and take actions such as moving a message to a specified folder or deleting a message.                       
+  Inbox Rules                           Inbox rules process messages in the inbox based on conditions and take actions such as moving a message to a specified folder or deleting a message.                
   Transport Rules                       Transport rules take action on messages while they're in transit.                                                                                                          
   Entra ID Sign-in log                  Gets the Entra ID Sign-In log.                                                                                                                               
   Entra ID Audit Log                    Gets the Entra ID Audit log.  
@@ -51,7 +51,8 @@ Retrieve other relevant information
   Role Activity                         Retrieves all directory role memberships with last login information for users.
   PIM Assignments                       Generates a report of all Privileged Identity Management (PIM) role assignments in Entra ID.
   Security Alerts                       Retrieves security alerts, providing information about security incidents and threats.
-===================================== =========================================================================================================================================================================== 
+  Secure Score                          Retrieves Microsoft Secure Score recommendations and current status for all security controls.
+===================================== ===========================================================================================================================================================================
 
 Getting Started
 -------
@@ -127,6 +128,7 @@ Have a bug report or feature request? Open an issue on the Github repository.
    functionality/Azure/ProductLicenses
    functionality/Azure/Roles
    functionality/Azure/SecurityAlerts
+   functionality/Azure/SecureScore
 
 .. toctree::
    :maxdepth: 2

@@ -69,12 +69,12 @@ function Get-EntraApplicationsForSpecificUsers {
         Write-LogFile -Message "[INFO] Created output directory: $OutputDir" -Level Standard
     }
 
-    $validUsers = @()
+    $validUsers = [System.Collections.Generic.List[object]]::new()
     Write-LogFile -Message "[INFO] Resolving $($UserIds.Count) users..." -Level Standard
     foreach ($userId in $UserIds) {
         try {
             $user = Get-MgUser -UserId $userId -ErrorAction Stop
-            $validUsers += $user
+            $validUsers.Add($user)
             Write-LogFile -Message "[INFO] Resolved user: $($user.UserPrincipalName)" -Level Standard
         }
         catch {
@@ -87,7 +87,7 @@ function Get-EntraApplicationsForSpecificUsers {
         return
     }
 
-    $results = @()
+    $results = [System.Collections.Generic.List[object]]::new()
     $processedAppIds = @{}
     $summary = @{
         OwnedApps = 0
@@ -126,16 +126,16 @@ function Get-EntraApplicationsForSpecificUsers {
                             ApplicationId = $app.AppId
                             ObjectId = $app.Id
                             PublisherName = if ($servicePrincipal) { $servicePrincipal.PublisherName } else { "" }
-                            ApplicationType = if ($servicePrincipal) { 
-                                $types = @()
-                                if ($servicePrincipal.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a" -or $servicePrincipal.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47") { 
-                                    $types += "Microsoft Application" 
+                            ApplicationType = if ($servicePrincipal) {
+                                $types = [System.Collections.Generic.List[object]]::new()
+                                if ($servicePrincipal.AppOwnerOrganizationId -eq "f8cdef31-a31e-4b4a-93e4-5f571e91255a" -or $servicePrincipal.AppOwnerOrganizationId -eq "72f988bf-86f1-41af-91ab-2d7cd011db47") {
+                                    $types.Add("Microsoft Application")
                                 }
-                                if ($servicePrincipal.ServicePrincipalType -eq "ManagedIdentity") { 
-                                    $types += "Managed Identity" 
+                                if ($servicePrincipal.ServicePrincipalType -eq "ManagedIdentity") {
+                                    $types.Add("Managed Identity")
                                 }
-                                if ($servicePrincipal.Tags -contains "WindowsAzureActiveDirectoryIntegratedApp") { 
-                                    $types += "Enterprise Application" 
+                                if ($servicePrincipal.Tags -contains "WindowsAzureActiveDirectoryIntegratedApp") {
+                                    $types.Add("Enterprise Application")
                                 }
                                 if ($types.Count -eq 0) { "Internal Application" } else { $types -join " & " }
                             } else { "Internal Application" }
@@ -152,7 +152,7 @@ function Get-EntraApplicationsForSpecificUsers {
                             PublicClientRedirectUris = ($app.PublicClient.RedirectUris -join "; ")
                         }
                         
-                        $results += $appObject
+                        $results.Add($appObject)
                     }
                     catch {
                         Write-LogFile -Message "[WARNING] Could not process owned app: $($_.Exception.Message)" -Color "Yellow" -Level Minimal
@@ -217,7 +217,7 @@ function Get-EntraApplicationsForSpecificUsers {
                             PublicClientRedirectUris = if ($app) { ($app.PublicClient.RedirectUris -join "; ") } else { "" }
                         }
                         
-                        $results += $appObject
+                        $results.Add($appObject)
                     }
                 }
                 catch {
@@ -329,7 +329,7 @@ function Get-QuickUALOperations {
     Write-LogFile -Message "Output Directory: $OutputDir" -Level Standard
     Write-LogFile -Message "----------------------------------------" -Level Standard
 
-    $allResults = @()
+    $allResults = [System.Collections.Generic.List[object]]::new()
     $totalRecords = 0
 
     foreach ($operation in $Operations) {
@@ -376,7 +376,7 @@ function Get-QuickUALOperations {
                     $record
                 }
                 
-                $allResults += $processedResults
+                if ($processedResults) { $allResults.AddRange([object[]]$processedResults) }
                 $totalRecords += $processedResults.Count
                 $operationFileName = $operation -replace '[\\/:*?"<>|]', '_' 
                 

@@ -12,6 +12,7 @@
         "Get-RiskyDetections"            # Get risk detection events  
         "Get-MFA"                        # Collect MFA status for users
         "Get-MailboxRules"               # Export mailbox rules
+        # "Get-MailboxRulesGraph"          # Export mailbox rules via Graph API
         "Get-OAuthPermissionsGraph"      # Collect OAuth application permissions via Graph API
 
         # ===== Sign-In & Audit Logging (ENABLED FOR DEFAULT) =====
@@ -20,7 +21,6 @@
 
         # ===== Unified Audit Log (ENABLED FOR DEFAULT) =====
         # "Get-UAL"                      # Collect all Unified Audit Logs (NOT RECOMMENDED FOR ALL USERS)
-        # "Get-UALStatistics"            # Displays the total number of logs within the Unified Audit Logs per Record Type
         # "Get-MailboxAuditLog"          # Collect Mailbox Audit Logs
 
         # ===== Message Tracking (UNCOMMENT TO ENABLE) =====
@@ -43,6 +43,7 @@
         # ===== TENANT-WIDE / ALL USERS ONLY (UNCOMMENT TO ENABLE) =====
         # NOTE: These tasks only work when no specific users are targeted (all users mode)
         "Get-SecurityAlerts"              # Retrieve security alerts
+        "Get-SecureScore"                 # Retrieve Microsoft Secure Score recommendations
         "Get-TransportRules"              # Export transport rules
         "Get-ConditionalAccessPolicies"   # Collect conditional access policies
         "Get-Licenses"                    # Collect all licenses in the tenant with retention times

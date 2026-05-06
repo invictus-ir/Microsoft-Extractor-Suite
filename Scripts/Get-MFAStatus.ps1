@@ -89,11 +89,11 @@ function Get-MFA {
   
     Write-LogFile -Message "[INFO] Identifying authentication methods..." -Level Standard     
   
-    $results = @()
-    $allUsers = @()
+    $results = [System.Collections.Generic.List[object]]::new()
+    $allUsers = [System.Collections.Generic.List[object]]::new()
     $userPhoneMethodsCache = @{}
     $phoneNumberMap = @{}
-    $phoneResults = @()
+    $phoneResults = [System.Collections.Generic.List[object]]::new()
 
     if ($UserIds) {
         if ($isDebugEnabled) {
@@ -105,7 +105,7 @@ function Get-MFA {
             $userUri = "https://graph.microsoft.com/v1.0/users/$userId"
             try {
                 $user = Invoke-MgGraphRequest -Uri $userUri -Method Get -OutputType PSObject
-                $allUsers += $user
+                $allUsers.Add($user)
                 if ($isDebugEnabled) {
                     Write-LogFile -Message "[DEBUG] Successfully retrieved user: $($user.userPrincipalName)" -Level Debug
                 }
@@ -121,7 +121,7 @@ function Get-MFA {
         $nextLink = "https://graph.microsoft.com/v1.0/users"
         do {
             $response = Invoke-MgGraphRequest -Uri $nextLink -Method Get -OutputType PSObject
-            $allUsers += $response.value
+            if ($response.value) { $allUsers.AddRange([object[]]$response.value) }
             $nextLink = $response.'@odata.nextLink'
         } while ($nextLink)
     }
@@ -144,9 +144,9 @@ function Get-MFA {
                     foreach ($phoneMethod in $phoneMethods) {
                         if (-not [string]::IsNullOrEmpty($phoneMethod.PhoneNumber)) {
                             if (-not $phoneNumberMap.ContainsKey($phoneMethod.PhoneNumber)) {
-                                $phoneNumberMap[$phoneMethod.PhoneNumber] = @()
+                                $phoneNumberMap[$phoneMethod.PhoneNumber] = [System.Collections.Generic.List[object]]::new()
                             }
-                            $phoneNumberMap[$phoneMethod.PhoneNumber] += $userPrinc
+                            $phoneNumberMap[$phoneMethod.PhoneNumber].Add($userPrinc)
                         }
                     }
                 }
@@ -272,28 +272,7 @@ function Get-MFA {
                                 PhoneType = $phoneMethod.PhoneType
                                 SmsSignInState = $phoneMethod.SmsSignInState
                             }
-                            $phoneResults += $phoneObject
-                        }
-                    }
-                }
-                catch {
-                    Write-LogFile -Message "[ERROR] Error retrieving phone methods for user $userPrinc : $_" -Level Minimal -Color "Red"
-                }
-            }
-
-            if ($IncludePhoneNumbers) {
-                try {
-                    $phoneMethods = Get-MgUserAuthenticationPhoneMethod -UserId $userPrinc -ErrorAction SilentlyContinue
-                    if ($phoneMethods) {
-                        foreach ($phoneMethod in $phoneMethods) {
-                            $phoneObject = [PSCustomObject]@{
-                                UserPrincipalName = $userPrinc
-                                UserId = $user.id
-                                PhoneNumber = $phoneMethod.PhoneNumber
-                                PhoneType = $phoneMethod.PhoneType
-                                SmsSignInState = $phoneMethod.SmsSignInState
-                            }
-                            $phoneResults += $phoneObject
+                            $phoneResults.Add($phoneObject)
                         }
                     }
                 }
@@ -319,14 +298,14 @@ function Get-MFA {
             $summary.MFADisabled++
         }
   
-        $results += $myObject
+        $results.Add($myObject)
     }
 
     $summary.ProcessingTime = (Get-Date) - $summary.StartTime
     $results | Export-Csv -Path $script:outputFile  -NoTypeInformation -Encoding $Encoding
 
     Write-LogFile -Message "[INFO] Retrieving user registration details..." -Level Standard
-    $results = @()
+    $results = [System.Collections.Generic.List[object]]::new()
     $registrationResults  = "$script:outputFile"
     $nextLink = "https://graph.microsoft.com/v1.0/reports/authenticationMethods/userRegistrationDetails"
 
@@ -347,21 +326,21 @@ function Get-MFA {
                     $myObject | Add-Member -Type NoteProperty -Name $_.Name -Value $value
                 }
                 
-                $results += $myObject
+                $results.Add($myObject)
             }
 
             if ($IncludePhoneNumbers) {
                 $userPrinc = $detail.userPrincipalName
                     
                 if ($userPhoneMethodsCache.ContainsKey($userPrinc) -and $userPhoneMethodsCache[$userPrinc]) {
-                    $phoneNumbers = @()
-                    $phoneTypes = @()
-                    $smsStates = @()
-                    
+                    $phoneNumbers = [System.Collections.Generic.List[object]]::new()
+                    $phoneTypes = [System.Collections.Generic.List[object]]::new()
+                    $smsStates = [System.Collections.Generic.List[object]]::new()
+
                     foreach ($phoneMethod in $userPhoneMethodsCache[$userPrinc]) {
-                        $phoneNumbers += $phoneMethod.PhoneNumber
-                        $phoneTypes += $phoneMethod.PhoneType
-                        $smsStates += $phoneMethod.SmsSignInState
+                        $phoneNumbers.Add($phoneMethod.PhoneNumber)
+                        $phoneTypes.Add($phoneMethod.PhoneType)
+                        $smsStates.Add($phoneMethod.SmsSignInState)
                     }
                     
                     $myObject | Add-Member -Type NoteProperty -Name "MfaPhoneNumbers" -Value ($phoneNumbers -join "; ")

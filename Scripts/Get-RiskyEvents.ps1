@@ -64,7 +64,7 @@ function Get-RiskyUsers {
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
-    $results = @()
+    $results = [System.Collections.Generic.List[object]]::new()
     $count = 0
     $riskSummary = @{
         High = 0
@@ -76,9 +76,9 @@ function Get-RiskyUsers {
         Remediated = 0
         Dismissed = 0
     }
-    
+
     try {
-        $results = @()
+        $results = [System.Collections.Generic.List[object]]::new()
         $baseUri = "https://graph.microsoft.com/v1.0/identityProtection/riskyUsers"
 
         if ($UserIds) {
@@ -124,7 +124,7 @@ function Get-RiskyUsers {
                                 Write-LogFile -Message "[DEBUG]       Risk Detail: $($user.RiskDetail)" -Level Debug
                                 Write-LogFile -Message "[DEBUG]       Last Updated: $($user.RiskLastUpdatedDateTime)" -Level Debug
                             }
-                            $results += [PSCustomObject]@{
+                            $results.Add([PSCustomObject]@{
                                 Id                          = $user.Id
                                 IsDeleted                   = $user.IsDeleted
                                 IsProcessing                = $user.IsProcessing
@@ -135,8 +135,8 @@ function Get-RiskyUsers {
                                 UserDisplayName             = $user.UserDisplayName
                                 UserPrincipalName           = $user.UserPrincipalName
                                 AdditionalProperties = $user.AdditionalProperties -join ", "
-                            }
-                            
+                            })
+
                             if ($user.RiskLevel) { 
                                 switch ($user.RiskLevel.ToLower()) {
                                     "high" { $riskSummary.High++ }
@@ -203,7 +203,7 @@ function Get-RiskyUsers {
                             Write-LogFile -Message "[DEBUG]       Risk Level: $($user.RiskLevel)" -Level Debug
                             Write-LogFile -Message "[DEBUG]       Risk State: $($user.RiskState)" -Level Debug
                         }
-                        $results += [PSCustomObject]@{
+                        $results.Add([PSCustomObject]@{
                             Id                          = $user.Id
                             IsDeleted                   = $user.IsDeleted
                             IsProcessing                = $user.IsProcessing
@@ -214,7 +214,7 @@ function Get-RiskyUsers {
                             UserDisplayName             = $user.UserDisplayName
                             UserPrincipalName           = $user.UserPrincipalName
                             AdditionalProperties        = $user.AdditionalProperties -join ", "
-                        }
+                        })
 
                         if ($user.RiskLevel) { 
                             switch ($user.RiskLevel.ToLower()) {
@@ -336,7 +336,7 @@ function Get-RiskyDetections {
     $requiredScopes = @("IdentityRiskEvent.Read.All","IdentityRiskyUser.Read.All")
     $graphAuth = Get-GraphAuthType -RequiredScopes $RequiredScopes
 
-    $results = @()
+    $results = [System.Collections.Generic.List[object]]::new()
     $count = 0
     $riskSummary = @{
         High = 0
@@ -398,7 +398,7 @@ function Get-RiskyDetections {
                                 Write-LogFile -Message "[DEBUG]       IP Address: $($detection.IPAddress)" -Level Debug
                                 Write-LogFile -Message "[DEBUG]       Location: $($detection.Location.City), $($detection.Location.CountryOrRegion)" -Level Debug
                             }
-                            $results += [PSCustomObject]@{
+                            $results.Add([PSCustomObject]@{
                                 Activity = $detection.Activity
                                 ActivityDateTime = $detection.ActivityDateTime
                                 AdditionalInfo = $detection.AdditionalInfo
@@ -422,7 +422,7 @@ function Get-RiskyDetections {
                                 UserId = $detection.UserId
                                 UserPrincipalName = $detection.UserPrincipalName
                                 AdditionalProperties = $detection.AdditionalProperties -join ", "
-                            }
+                            })
 
                             if ($detection.RiskLevel) { $riskSummary[$detection.RiskLevel]++ }
                             if ($detection.RiskState -eq "atRisk") { $riskSummary.AtRisk++ }
@@ -474,7 +474,7 @@ function Get-RiskyDetections {
                             Write-LogFile -Message "[DEBUG]       Risk Level: $($detection.RiskLevel)" -Level Debug
                             Write-LogFile -Message "[DEBUG]       User: $userIdentifier" -Level Debug
                         }
-                        $results += [PSCustomObject]@{
+                        $results.Add([PSCustomObject]@{
                             Activity = $detection.Activity
                             ActivityDateTime = $detection.ActivityDateTime
                             AdditionalInfo = $detection.AdditionalInfo
@@ -498,7 +498,7 @@ function Get-RiskyDetections {
                             UserId = $detection.UserId
                             UserPrincipalName = $detection.UserPrincipalName
                             AdditionalProperties = $detection.AdditionalProperties -join ", "
-                        }
+                        })
 
                         if ($detection.RiskLevel) { $riskSummary[$detection.RiskLevel]++ }
                         if ($detection.RiskState -eq "atRisk") { $riskSummary.AtRisk++ }

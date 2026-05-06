@@ -10,26 +10,27 @@ Usage
 """"""""""""""""""""""""""
 Running the script without any parameters retrieves all licenses in the tenant.
 ::
-    Get-Licenses
+
+   Get-Licenses
 
 Parameters
 """"""""""""""""""""""""""
 -OutputDir (optional)
-- OutputDir is the parameter specifying the output directory.
-- Default: Output\Licenses
+    - OutputDir is the parameter specifying the output directory.
+    - Default: Output\Licenses
 
 -LogLevel (optional)
-- Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
-- Default: Standard
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
+    - Default: Standard
 
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'Licenses' directory within the 'Output' directory. The following information is collected:
-- License SKUs and their status
-- Number of units consumed
-- Retention periods
-- Premium features (E3, E5, P1, P2)
-- Defender capabilities
+    - License SKUs and their status
+    - Number of units consumed
+    - Retention periods
+    - Premium features (E3, E5, P1, P2)
+    - Defender capabilities
 
 Permissions
 """"""""""""""""""""""""""
@@ -44,20 +45,21 @@ Usage
 """"""""""""""""""""""""""
 Running the script without any parameters checks license compatibility.
 ::
-Get-LicenseCompatibility
+
+   Get-LicenseCompatibility
 
 Parameters
 """"""""""""""""""""""""""
 -LogLevel (optional)
-- Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
-- Default: Standard
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
+    - Default: Standard
 
 Output
 """"""""""""""""""""""""""
 The function provides:
-- Current license status (E5, E3, P1, P2)
-- Feature compatibility information
-- Recommendations based on current licensing
+    - Current license status (E5, E3, P1, P2)
+    - Feature compatibility information
+    - Recommendations based on current licensing
 
 Permissions
 """"""""""""""""""""""""""
@@ -72,24 +74,25 @@ Usage
 """"""""""""""""""""""""""
 Running the script without any parameters checks security defaults status.
 ::
-Get-EntraSecurityDefaults
+
+   Get-EntraSecurityDefaults
 
 Parameters
 """"""""""""""""""""""""""
 -OutputDir (optional)
-- OutputDir is the parameter specifying the output directory.
-- Default: Output\Licenses
+    - OutputDir is the parameter specifying the output directory.
+    - Default: Output\Licenses
 
 -LogLevel (optional)
-- Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
-- Default: Standard
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
+    - Default: Standard
 
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'Licenses' directory within the 'Output' directory. The function provides:
-- Security defaults status
-- License context
-- Recommendations based on current configuration
+    - Security defaults status
+    - License context
+    - Recommendations based on current configuration
 
 Permissions
 """"""""""""""""""""""""""
@@ -104,29 +107,31 @@ Usage
 """"""""""""""""""""""""""
 Running the script without any parameters retrieves all user license assignments.
 ::
-Get-LicensesByUser
+
+   Get-LicensesByUser
 
 Running the script with a custom output directory.
 ::
-Get-LicensesByUser -OutputDir "C:\CustomPath"
+
+   Get-LicensesByUser -OutputDir "C:\CustomPath"
 
 Parameters
 """"""""""""""""""""""""""
 -OutputDir (optional)
-- OutputDir is the parameter specifying the output directory.
-- Default: Output\Licenses
+    - OutputDir is the parameter specifying the output directory.
+    - Default: Output\Licenses
 
 -LogLevel (optional)
-- Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
-- Default: Standard
+    - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
+    - Default: Standard
 
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'Licenses' directory within the 'Output' directory. The function provides:
-- Complete list of users and their assigned licenses
-- Summary of licensed vs unlicensed users
-- License distribution across the tenant
-- Total license assignments
+    - Complete list of users and their assigned licenses
+    - Summary of licensed vs unlicensed users
+    - License distribution across the tenant
+    - Total license assignments
 
 Permissions
 """"""""""""""""""""""""""
@@ -141,15 +146,18 @@ Usage
 """"""""""""""""""""""""""
 Running the script without any parameters retrieves all product license information.
 ::
-Get-ProductLicenses
+
+   Get-ProductLicenses
 
 Retrieves all product license information and exports the output to a CSV file with UTF-32 encoding.
 ::
-Get-ProductLicenses -Encoding utf32
+
+   Get-ProductLicenses -Encoding utf32
 
 Retrieves all product license information and saves the output to the C:\Windows\Temp folder.
 ::
-Get-ProductLicenses -OutputDir C:\Windows\Temp
+
+   Get-ProductLicenses -OutputDir C:\Windows\Temp
 
 Parameters
 """"""""""""""""""""""""""

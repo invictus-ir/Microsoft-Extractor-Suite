@@ -81,6 +81,7 @@ function Get-Devices {
             "Managed Devices" = 0
             "Active (Last 30 Days)" = 0
             "Inactive (>90 Days)" = 0
+            "Never Signed In" = 0
         }
         "Operating Systems" = [ordered]@{
             "Windows" = 0
@@ -98,7 +99,7 @@ function Get-Devices {
         if ($UserIds) {
             $userIdList = $UserIds -split ','
             Write-LogFile -Message "[INFO] Filtering devices for user(s): $UserIds" -Level Standard
-            $filteredDevices = @()
+            $filteredDevices = [System.Collections.Generic.List[object]]::new()
             
             foreach ($device in $devices) {
                 try {
@@ -124,7 +125,7 @@ function Get-Devices {
                 }
                 
                 if ($matchFound) {
-                    $filteredDevices += $device
+                    $filteredDevices.Add($device)
                 }
             }
             
@@ -132,7 +133,7 @@ function Get-Devices {
             Write-LogFile -Message "[INFO] Found $($devices.Count) devices for specified users" -Level Standard
         }
 
-        $results = @()
+        $results = [System.Collections.Generic.List[object]]::new()
         $totalDevices = $devices.Count
         $summary["Device Counts"]["Total Devices"] = $totalDevices
         $current = 0
@@ -167,10 +168,11 @@ function Get-Devices {
             if ($device.IsCompliant) { $summary["Device Status"]["Compliant Devices"]++ }
             if ($device.IsManaged) { $summary["Device Status"]["Managed Devices"]++ }
 
-            if ($lastSignInDate -gt (Get-Date).AddDays(-30)) {
+            if ($null -eq $lastSignInDate) {
+                $summary["Device Status"]["Never Signed In"]++
+            } elseif ($lastSignInDate -gt (Get-Date).AddDays(-30)) {
                 $summary["Device Status"]["Active (Last 30 Days)"]++
-            }
-            if ($lastSignInDate -lt (Get-Date).AddDays(-90)) {
+            } elseif ($lastSignInDate -lt (Get-Date).AddDays(-90)) {
                 $summary["Device Status"]["Inactive (>90 Days)"]++
             }
 
@@ -214,7 +216,7 @@ function Get-Devices {
                 SecurityIdentifier = if ($device.SecurityIdentifier) { $device.SecurityIdentifier } else { "" }
             }
 
-            $results += $deviceEntry
+            $results.Add($deviceEntry)
         }
 
         if ($Output -eq "CSV") {

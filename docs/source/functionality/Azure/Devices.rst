@@ -7,18 +7,17 @@ Usage
 Running the script without any parameters retrieves information about all devices and exports to a CSV file in the default directory.
 ::
 
-Get-Devices
+   Get-Devices
 
 Retrieves information about all devices and exports to a JSON file.
 ::
-    
-Get-Devices -Output JSON
 
+   Get-Devices -Output JSON
 
 Retrieves device information and saves as a JSON file in the Reports folder with UTF-8 encoding.
 ::
 
-Get-Devices -OutputDir "Reports" -Output JSON -Encoding UTF8
+   Get-Devices -OutputDir "Reports" -Output JSON -Encoding UTF8
 
 Parameters
 """"""""""""""""""""""""""

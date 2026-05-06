@@ -99,12 +99,12 @@ Function Get-UALGraph {
     Gets all the unified audit log entries for the user Test@invictus-ir.com.
     
     .EXAMPLE
-    Get-UALGraph -searchName Test -startDate "2025-03-10T09:28:56Z" -endDate "2025-03-20T09:28:56Z" -Service Exchange
-    Retrieves audit log data for the specified time range March 10, 2025 to March 20, 2025 and filters the results to include only events related to the Exchange service.
-    
+    Get-UALGraph -searchName Test -startDate "2026-03-10T09:28:56Z" -endDate "2026-03-20T09:28:56Z" -Service Exchange
+    Retrieves audit log data for the specified time range March 10, 2026 to March 20, 2026 and filters the results to include only events related to the Exchange service.
+
     .EXAMPLE
-    Get-UALGraph -searchName Test -startDate "2025-03-01" -endDate "2025-03-10" -IPAddress 182.74.242.26
-    Retrieve audit log data for the specified time range March 1, 2025 to March 10, 2025 and filter the results to include only entries associated with the IP address 182.74.242.26.
+    Get-UALGraph -searchName Test -startDate "2026-03-01" -endDate "2026-03-10" -IPAddress 182.74.242.26
+    Retrieve audit log data for the specified time range March 1, 2026 to March 10, 2026 and filter the results to include only entries associated with the IP address 182.74.242.26.
 
     .EXAMPLE
     Get-UALGraph -searchName Test -MaxEventsPerFile 500000 -SplitFiles
@@ -132,7 +132,8 @@ Function Get-UALGraph {
         [string]$Output = "JSON",
         [switch]$SplitFiles,
         [string]$SearchId = "",
-        [switch]$UseV1
+        [switch]$UseV1,
+        [switch]$AuditDataOnly
     )
 
     Init-OutputDir -Component "UnifiedAuditLog" -FilePostfix $searchName -CustomOutputDir $OutputDir
@@ -223,30 +224,58 @@ Function Get-UALGraph {
 
         write-logFile -Message "[INFO] Waiting for the scan to start..." -Level Standard
         $lastStatus = ""
+        $pollDelay = 5
+        $maxPollRetries = 10
+
         do {
-            $response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl -ContentType 'application/json'
+            $pollRetry = 0
+            $pollSuccess = $false
+            while (-not $pollSuccess -and $pollRetry -lt $maxPollRetries) {
+                try {
+                    $response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl -ContentType 'application/json'
+                    $pollSuccess = $true
+                }
+                catch {
+                    $errMsg = $_.Exception.Message
+                    if ($errMsg -like "*BadGateway*" -or $errMsg -like "*502*" -or
+                        $errMsg -like "*ServiceUnavailable*" -or $errMsg -like "*503*" -or
+                        $errMsg -like "*GatewayTimeout*" -or $errMsg -like "*504*" -or
+                        $errMsg -like "*server side error*" -or $errMsg -like "*timed out*") {
+                        $pollRetry++
+                        $retryDelay = [math]::Min(60, $pollDelay * [math]::Pow(2, $pollRetry))
+                        Write-LogFile -Message "[WARNING] Transient error polling search status (attempt $pollRetry/$maxPollRetries): $errMsg. Retrying in $retryDelay s..." -Color "Yellow" -Level Minimal
+                        Start-Sleep -Seconds $retryDelay
+                    }
+                    else {
+                        throw
+                    }
+                }
+            }
+
+            if (-not $pollSuccess) {
+                throw "Failed to poll search status after $maxPollRetries retries. Last error: $errMsg"
+            }
+
             $status = $response.status
             if ($status -ne $lastStatus) {
+                if ($isDebugEnabled) {
+                    Write-LogFile -Message "[DEBUG] Status changed to: $status" -Level Debug
+                }
+                switch ($status) {
+                    "notStarted" { Write-LogFile -Message "[INFO] Waiting for the scan to start..." -Level Standard }
+                    "running"    { Write-LogFile -Message "[INFO] Unified Audit Log search has started... This can take a while..." -Level Standard }
+                    "succeeded"  { } # logged below
+                    default      { Write-LogFile -Message "[INFO] Search status: $status" -Level Standard }
+                }
                 $lastStatus = $status
             }
-            Start-Sleep -Seconds 5
-        } while ($status -ne "succeeded" -and $status -ne "running")
-        if ($status -eq "running") {
-            write-logFile -Message "[INFO] Unified Audit Log search has started... This can take a while..." -Level Standard
-            do {
-                $response = Invoke-MgGraphRequest -Method Get -Uri $apiUrl -ContentType 'application/json'
-                $status = $response.status
-                if ($status -ne $lastStatus) {
-                    if ($isDebugEnabled -and $status -ne $lastStatus) {
-                        Write-LogFile -Message "[DEBUG] Status changed to: $status" -Level Debug
-                    }
-                    write-logFile -Message "[INFO] Unified Audit Log search is still running. Waiting..." -Level Standard
-                    $lastStatus = $status
-                }
-                Start-Sleep -Seconds 5
-            } while ($status -ne "succeeded")
-        }
-       write-logFile -Message "[INFO] Unified Audit Log search complete." -Level Minimal
+
+            if ($status -ne "succeeded") {
+                Start-Sleep -Seconds $pollDelay
+            }
+        } while ($status -ne "succeeded")
+
+        write-logFile -Message "[INFO] Unified Audit Log search complete." -Level Minimal
     }
     catch {
         Write-logFile -Message "[ERROR] An error occurred: $($_.Exception.Message)" -Color "Red" -Level Minimal
@@ -279,7 +308,7 @@ Function Get-UALGraph {
             elseif ($Output -eq "CSV") {
                 $outputFilePath = "$outputFileBase-part$fileCounter.csv"
                 $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
-                $csvCollection = @()
+                $csvCollection = [System.Collections.Generic.List[object]]::new()
             }
             elseif ($Output -eq "JSONL") {
                 $outputFilePath = "$outputFileBase-part$fileCounter.jsonl"
@@ -301,7 +330,7 @@ Function Get-UALGraph {
             elseif ($Output -eq "CSV") {
                 $outputFilePath = "$outputFileBase.csv"
                 $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
-                $csvCollection = @()
+                $csvCollection = [System.Collections.Generic.List[object]]::new()
             }
             elseif ($Output -eq "JSONL") {
                 $outputFilePath = "$outputFileBase.jsonl"
@@ -325,7 +354,7 @@ Function Get-UALGraph {
         Write-LogFile -Message "[INFO] Starting to collect records..." -Level Standard
 
         Do {
-            $maxRetries = 3
+            $maxRetries = 10
             $retryCount = 0
             $success = $false
             $response = $null
@@ -408,35 +437,39 @@ Function Get-UALGraph {
                         }
                         "`r`n" | Out-File -FilePath $filePath -Append -Encoding $Encoding -NoNewline
 
-                        $record | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding -NoNewline
+                        if ($AuditDataOnly) {
+                            $record.auditData | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding -NoNewline
+                        } else {
+                            $record | ConvertTo-Json -Depth 100 | Out-File -FilePath $filePath -Append -Encoding $Encoding -NoNewline
+                        }
 
                         $currentFileEvents++
                         $summary.ProcessedRecords++
                     }
                 }
                 elseif ($Output -eq "CSV") {
-                    $csvCollection += $responseJson.value
+                    if ($responseJson.value) { $csvCollection.AddRange([object[]]$responseJson.value) }
                     $currentFileEvents += $batchCount
                     $summary.ProcessedRecords += $batchCount
 
                     if ($SplitFiles -and $currentFileEvents -ge $MaxEventsPerFile) {
-                        $csvCollection | Select-Object id, createdDateTime, auditLogRecordType, operation, organizationId, userType, userId, service, objectId, userPrincipalName, clientIp, administrativeUnits, @{Name = "auditData"; Expression = { $_.auditData | ConvertTo-Json -Depth 100 } } | Export-Csv -Path $filePath -Append -Encoding $Encoding -NoTypeInformation
+                        $csvCollection | Select-Object id, createdDateTime, auditLogRecordType, operation, organizationId, userType, userId, service, objectId, userPrincipalName, clientIp, @{Name = "administrativeUnits"; Expression = { $_.administrativeUnits -join '; ' }}, @{Name = "auditData"; Expression = { $_.auditData | ConvertTo-Json -Depth 100 } } | Export-Csv -Path $filePath -Append -Encoding $Encoding -NoTypeInformation
                         Write-LogFile -Message "[INFO] File complete: $outputFilePath ($currentFileEvents events)" -Level Standard
-                        
+
                         $fileCounter++
                         $summary.ExportedFiles++
                         $currentFileEvents = 0
-                        
-                        $csvCollection = @()
+
+                        $csvCollection = [System.Collections.Generic.List[object]]::new()
                         $outputFilePath = "$outputFileBase-part$fileCounter.csv"
-                        $filePath = Join-Path -Path $OutputDir -ChildPath $outputFilePath
+                        $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
                     }
                 }
                 elseif ($Output -eq "JSONL") {
                     foreach ($record in $responseJson.value) {
                         if ($SplitFiles -and $currentFileEvents -ge $MaxEventsPerFile) {
                             Write-LogFile -Message "[INFO] File complete: $outputFilePath ($currentFileEvents events)" -Level Standard
-                            
+
                             $fileCounter++
                             $summary.ExportedFiles++
                             $currentFileEvents = 0
@@ -445,10 +478,9 @@ Function Get-UALGraph {
                             $filePath = Join-Path -Path $outputDirPath -ChildPath $outputFilePath
                         }
                         if ($record.auditData) {
-                            $record.auditData | ConvertTo-Json -Compress -Depth 100 | 
+                            $record.auditData | ConvertTo-Json -Compress -Depth 100 |
                                 Out-File -Append $filePath -Encoding UTF8
                         }
-                        "`r`n" | Out-File -FilePath $filePath -Append -Encoding UTF8
                         $currentFileEvents++
                         $summary.ProcessedRecords++
                     }
@@ -496,9 +528,7 @@ Function Get-UALGraph {
                 "]" | Out-File -FilePath $filePath -Append -Encoding $Encoding
             }
             elseif ($Output -eq "CSV" -and $csvCollection.Count -gt 0) {
-                $csvCollection | Select-Object id, createdDateTime, auditLogRecordType, operation, organizationId, userType, userId, service, objectId, userPrincipalName, clientIp, administrativeUnits, @{Name = "auditData"; Expression = { $_.auditData | ConvertTo-Json -Depth 100 } } | Export-Csv -Path $filePath -Append -Encoding $Encoding -NoTypeInformation
-
-                
+                $csvCollection | Select-Object id, createdDateTime, auditLogRecordType, operation, organizationId, userType, userId, service, objectId, userPrincipalName, clientIp, @{Name = "administrativeUnits"; Expression = { $_.administrativeUnits -join '; ' }}, @{Name = "auditData"; Expression = { $_.auditData | ConvertTo-Json -Depth 100 } } | Export-Csv -Path $filePath -Append -Encoding $Encoding -NoTypeInformation
             }
             $summary.ExportedFiles++
         }

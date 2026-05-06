@@ -10,15 +10,15 @@ Running the script without any parameters will gather the Entra ID sign-in log f
 
    Get-GraphEntraSignInLogs
 
-Get the Entra ID Audit Log before 2025-04-12:
+Get the Entra ID Audit Log before 2026-04-12:
 ::
 
-   Get-GraphEntraSignInLogs -endDate 2025-04-12
+   Get-GraphEntraSignInLogs -endDate 2026-04-12
 
-Get the Entra ID Audit Log after 2025-04-12:
+Get the Entra ID Audit Log after 2026-04-12:
 ::
 
-   Get-GraphEntraSignInLogs -startDate 2025-04-12
+   Get-GraphEntraSignInLogs -startDate 2026-04-12
 
 Get the Azure Entra ID SignIn Log in a sof-elk format and merge all data into a single file:
 ::
@@ -51,7 +51,7 @@ Parameters
 
 -Output (optional)
     - Output is the parameter specifying the JSON or SOF-ELK output type.
-    - The SOF-ELK output type can be used to export logs in a format suitable for the [platform of the same name](https://github.com/philhagen/sof-elk).
+    - The SOF-ELK output type can be used to export logs in a format suitable for the `platform of the same name <https://github.com/philhagen/sof-elk>`_.
     - Default: JSON
 
 -UserIds (optional)

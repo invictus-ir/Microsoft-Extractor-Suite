@@ -200,7 +200,7 @@ function Get-MailboxAuditStatus {
         }
     }
 
-    $results = @()
+    $results = [System.Collections.Generic.List[object]]::new()
 
     foreach ($mailbox in $mailboxes) {
         $summary.ProcessedMailboxes++
@@ -244,7 +244,7 @@ function Get-MailboxAuditStatus {
             ''
         }
 
-        $results += [PSCustomObject]@{
+        $results.Add([PSCustomObject]@{
             UserPrincipalName = $mailbox.UserPrincipalName
             DisplayName = $mailbox.DisplayName
             RecipientTypeDetails = $mailbox.RecipientTypeDetails
@@ -257,14 +257,14 @@ function Get-MailboxAuditStatus {
             DelegateAuditActionsCount = if ($mailbox.AuditDelegate) { $mailbox.AuditDelegate.Count } else { 0 }
             AdminAuditActions = $adminActions
             AdminAuditActionsCount = if ($mailbox.AuditAdmin) { $mailbox.AuditAdmin.Count } else { 0 }
-            EffectiveAuditState = if ($summary.OrgWideAuditingEnabled -and -not $bypassStatus) { 
-                "Enabled (Organization Policy)" 
+            EffectiveAuditState = if ($summary.OrgWideAuditingEnabled -and -not $bypassStatus) {
+                "Enabled (Organization Policy)"
             } elseif ($bypassStatus) {
                 "Bypassed"
             } else {
                 "Disabled"
             }
-        }
+        })
     }
 
     $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding

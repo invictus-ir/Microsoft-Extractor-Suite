@@ -9,15 +9,15 @@ Running the script without any parameters will gather the Entra ID Audit Log for
 
    Get-GraphEntraAuditLogs
 
-Get the Entra ID Audit Log before 2025-04-12:
+Get the Entra ID Audit Log before 2026-04-12:
 ::
 
-   Get-GraphEntraAuditLogs -startDate 2025-04-12
+   Get-GraphEntraAuditLogs -startDate 2026-04-12
 
-Get the Entra ID Audit Log after 2025-04-12:
+Get the Entra ID Audit Log after 2026-04-12:
 ::
 
-   Get-GraphEntraAuditLogs -endDate 2025-04-12
+   Get-GraphEntraAuditLogs -endDate 2026-04-12
 
 Get sign-in logs for 'user@example.com', including both userPrincipalName and targetResources in the filter:
 ::
@@ -45,7 +45,7 @@ Parameters
 
 -Output (optional)
     - Output is the parameter specifying the JSON or SOF-ELK output type.
-    - The SOF-ELK output type can be used to export logs in a format suitable for the [platform of the same name](https://github.com/philhagen/sof-elk).
+    - The SOF-ELK output type can be used to export logs in a format suitable for the `platform of the same name <https://github.com/philhagen/sof-elk>`_.
     - Default: JSON
 
 -UserIds (optional)
@@ -58,16 +58,9 @@ Parameters
     - Specifies the level of logging. None: No logging. Minimal: Logs critical errors only. Standard: Normal operational logging. Debug: Detailed logging for debugging.
     - Default: Standard
 
--Output (optional)
-    - Output is the parameter specifying the JSON or SOF-ELK output type.
-    - The SOF-ELK output type can be used to export logs in a format suitable for the [platform of the same name](https://github.com/philhagen/sof-elk).
-    - Default: JSON
-
 Output
 """"""""""""""""""""""""""
 The output will be saved to the 'EntraID' directory within the 'Output' directory, with the file name 'AuditlogsGraph.json'. Each time an acquisition is performed, the output JSON file will be overwritten. Therefore, if you perform multiple acquisitions, the JSON file will only contain the results from the latest acquisition.
-
-.. note::
 
 Permissions
 """"""""""""""""""""""""""

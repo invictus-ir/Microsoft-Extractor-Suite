@@ -40,11 +40,11 @@ Function Get-Sessions {
     Default: Yes
 
     .EXAMPLE
-    Get-Sessions -StartDate 1/4/2025 -EndDate 5/4/2025
-    Collects all sessions for all users between 1/4/2025 and 5/4/2025.
-    
+    Get-Sessions -StartDate 2026-04-01 -EndDate 2026-04-05
+    Collects all sessions for all users between 2026-04-01 and 2026-04-05.
+
     .EXAMPLE
-    Get-Sessions -StartDate 1/4/2025 -EndDate 5/4/2025 -UserIds HR@invictus-ir.com
+    Get-Sessions -StartDate 2026-04-01 -EndDate 2026-04-05 -UserIds HR@invictus-ir.com
     Collects all sessions for the user HR@invictus-ir.com.
 #>
     [CmdletBinding()]
@@ -137,10 +137,15 @@ Function Get-Sessions {
                 Write-LogFile -Message "[DEBUG] Retrieving audit logs for user: $UserIds" -Level Debug
             }
             $mailItemRecords = (Search-UnifiedAuditLog -UserIds $UserIds -StartDate $StartDate -EndDate $EndDate -ResultSize 5000 -Operations "MailItemsAccessed")
-            $Results = @()
+            $Results = [System.Collections.Generic.List[object]]::new()
             
             foreach($rec in $mailItemRecords) {
                 $AuditData = ConvertFrom-Json $Rec.Auditdata
+
+                $opProps = @{}
+                if ($AuditData.OperationProperties) {
+                    $AuditData.OperationProperties | ForEach-Object { $opProps[$_.Name] = $_.Value }
+                }
 
                 if ($isDebugEnabled) {
                     Write-LogFile -Message "[DEBUG] Processing audit record:" -Level Debug
@@ -150,14 +155,18 @@ Function Get-Sessions {
                     Write-LogFile -Message "[DEBUG]   SessionId: $($AuditData.SessionId)" -Level Debug
                     Write-LogFile -Message "[DEBUG]   ClientIPAddress: $($AuditData.ClientIPAddress)" -Level Debug
                     Write-LogFile -Message "[DEBUG]   OperationCount: $($AuditData.OperationCount)" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   MailAccessType: $($opProps['MailAccessType'])" -Level Debug
+                    Write-LogFile -Message "[DEBUG]   IsThrottled: $($opProps['IsThrottled'])" -Level Debug
                 }
 
                 $Line = [PSCustomObject]@{
-                    TimeStamp   = $AuditData.CreationTime
-                    User        = $AuditData.UserId
-                    Action      = $AuditData.Operation
-                    SessionId   = $AuditData.SessionId
-                    ClientIP    = $AuditData.ClientIPAddress
+                    TimeStamp      = $AuditData.CreationTime
+                    User           = $AuditData.UserId
+                    Action         = $AuditData.Operation
+                    SessionId      = $AuditData.SessionId
+                    ClientIP       = $AuditData.ClientIPAddress
+                    MailAccessType = $opProps["MailAccessType"]
+                    IsThrottled    = $opProps["IsThrottled"]
                     OperationCount = $AuditData.OperationCount
                 }
 
@@ -177,10 +186,10 @@ Function Get-Sessions {
                         Write-LogFile -Message "[DEBUG]   Added OperationCount: $($AuditData.OperationCount)" -Level Debug
                     }
                 }                
-                $Results += $Line
+                $Results.Add($Line)
             }
             
-            $Results | Sort SessionId, TimeStamp | Format-Table Timestamp, User, Action, SessionId, ClientIP, OperationCount -AutoSize
+            $Results | Sort SessionId, TimeStamp | Format-Table Timestamp, User, Action, SessionId, ClientIP, MailAccessType, IsThrottled, OperationCount -AutoSize
          }
 
         if (($Output -eq "Yes") -and $results.Count -gt 0) {
@@ -190,7 +199,7 @@ Function Get-Sessions {
     }
 
     elseif($IP -And !$UserIds){
-        $Results = @()
+        $Results = [System.Collections.Generic.List[object]]::new()
         try {
             $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
         }
@@ -206,15 +215,21 @@ Function Get-Sessions {
             $MailItemRecords = (Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -ResultSize 5000 -Operations "MailItemsAccessed")
             ForEach($Rec in $MailItemRecords){
                 $AuditData = ConvertFrom-Json $Rec.Auditdata
+                $opProps = @{}
+                if ($AuditData.OperationProperties) {
+                    $AuditData.OperationProperties | ForEach-Object { $opProps[$_.Name] = $_.Value }
+                }
                 $Line = [PSCustomObject]@{
-                    TimeStamp   = $AuditData.CreationTime
-                    User        = $AuditData.UserId
-                    Action      = $AuditData.Operation
-                    SessionId   = $AuditData.SessionId
-                    ClientIP    = $AuditData.ClientIPAddress
+                    TimeStamp      = $AuditData.CreationTime
+                    User           = $AuditData.UserId
+                    Action         = $AuditData.Operation
+                    SessionId      = $AuditData.SessionId
+                    ClientIP       = $AuditData.ClientIPAddress
+                    MailAccessType = $opProps["MailAccessType"]
+                    IsThrottled    = $opProps["IsThrottled"]
                     OperationCount = $AuditData.OperationCount
                 }
-                    
+
                 if($AuditData.ClientIPAddress -eq $IP){
                     $summary.TotalEvents++
                     
@@ -225,7 +240,7 @@ Function Get-Sessions {
                     if ($AuditData.OperationCount) {
                         $summary.OperationCount += $AuditData.OperationCount
                     }
-                    $Results += $Line
+                    $Results.Add($Line)
                 }
              }
 
@@ -236,7 +251,7 @@ Function Get-Sessions {
                 Write-LogFile -Message "[DEBUG]   Total operation count: $($summary.OperationCount)" -Level Debug
             }
                 
-            $Results | Sort SessionId, TimeStamp | Format-Table Timestamp, User, Action, SessionId, ClientIP, OperationCount -AutoSize
+            $Results | Sort SessionId, TimeStamp | Format-Table Timestamp, User, Action, SessionId, ClientIP, MailAccessType, IsThrottled, OperationCount -AutoSize
         }
         
         if (($Output -eq "Yes") -and $results.Count -gt 0) {
@@ -247,7 +262,7 @@ Function Get-Sessions {
     }
         
     elseif($IP -And $UserIds){
-        $Results = @()
+        $Results = [System.Collections.Generic.List[object]]::new()
         try {
             $amountResults = (Search-UnifiedAuditLog -UserIds $UserIds -FreeText $IP -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
         }
@@ -265,26 +280,32 @@ Function Get-Sessions {
     
             foreach($Rec in $MailItemRecords){
                 $AuditData = ConvertFrom-Json $Rec.Auditdata
+                $opProps = @{}
+                if ($AuditData.OperationProperties) {
+                    $AuditData.OperationProperties | ForEach-Object { $opProps[$_.Name] = $_.Value }
+                }
                 $Line = [PSCustomObject]@{
-                    TimeStamp   = $AuditData.CreationTime
-                    User        = $AuditData.UserId
-                    Action      = $AuditData.Operation
-                    SessionId   = $AuditData.SessionId
-                    ClientIP    = $AuditData.ClientIPAddress
+                    TimeStamp      = $AuditData.CreationTime
+                    User           = $AuditData.UserId
+                    Action         = $AuditData.Operation
+                    SessionId      = $AuditData.SessionId
+                    ClientIP       = $AuditData.ClientIPAddress
+                    MailAccessType = $opProps["MailAccessType"]
+                    IsThrottled    = $opProps["IsThrottled"]
                     OperationCount = $AuditData.OperationCount
                 }
-                    
+
                 if($AuditData.ClientIPAddress -eq $IP){
                     $summary.TotalEvents++
-                    
+
                     if ($AuditData.SessionId) {
                         $summary.UniqueSessions[$AuditData.SessionId] = $true
                     }
-                    
+
                     if ($AuditData.OperationCount) {
                         $summary.OperationCount += $AuditData.OperationCount
                     }
-                    $Results += $Line
+                    $Results.Add($Line)
                 }
             }
 
@@ -295,7 +316,7 @@ Function Get-Sessions {
                 Write-LogFile -Message "[DEBUG]   Total operation count: $($summary.OperationCount)" -Level Debug
             }
                 
-            $Results | Sort SessionId, TimeStamp | Format-Table Timestamp, User, Action, SessionId, ClientIP, OperationCount -AutoSize
+            $Results | Sort SessionId, TimeStamp | Format-Table Timestamp, User, Action, SessionId, ClientIP, MailAccessType, IsThrottled, OperationCount -AutoSize
         }
        if (($Output -eq "Yes") -and $results.Count -gt 0) {
             $Results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
@@ -304,7 +325,7 @@ Function Get-Sessions {
     }
 
     else{
-        $Results = @()
+        $Results = [System.Collections.Generic.List[object]]::new()
         try {
             $amountResults = (Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -Operations "MailItemsAccessed" -ResultSize 1 | Select-Object -First 1 -ExpandProperty ResultCount)
         }
@@ -321,15 +342,21 @@ Function Get-Sessions {
             
             foreach($Rec in $MailItemRecords) {
                 $AuditData = ConvertFrom-Json $Rec.Auditdata
+                $opProps = @{}
+                if ($AuditData.OperationProperties) {
+                    $AuditData.OperationProperties | ForEach-Object { $opProps[$_.Name] = $_.Value }
+                }
                 $Line = [PSCustomObject]@{
-                    TimeStamp   = $AuditData.CreationTime
-                    User        = $AuditData.UserId
-                    Action      = $AuditData.Operation
-                    SessionId   = $AuditData.SessionId
-                    ClientIP    = $AuditData.ClientIPAddress
+                    TimeStamp      = $AuditData.CreationTime
+                    User           = $AuditData.UserId
+                    Action         = $AuditData.Operation
+                    SessionId      = $AuditData.SessionId
+                    ClientIP       = $AuditData.ClientIPAddress
+                    MailAccessType = $opProps["MailAccessType"]
+                    IsThrottled    = $opProps["IsThrottled"]
                     OperationCount = $AuditData.OperationCount
                 }
-                    
+
                 $summary.TotalEvents++
                 if ($AuditData.SessionId) {
                     $summary.UniqueSessions[$AuditData.SessionId] = $true
@@ -339,7 +366,7 @@ Function Get-Sessions {
                     $summary.OperationCount += $AuditData.OperationCount
                 }
                    
-                $Results += $Line
+                $Results.Add($Line)
             }
 
             if ($isDebugEnabled) {
@@ -349,7 +376,7 @@ Function Get-Sessions {
                 Write-LogFile -Message "[DEBUG]   Total operation count: $($summary.OperationCount)" -Level Debug
             }
 
-            $Results | Sort SessionId, TimeStamp | Format-Table Timestamp, User, Action, SessionId, ClientIP, OperationCount -AutoSize
+            $Results | Sort SessionId, TimeStamp | Format-Table Timestamp, User, Action, SessionId, ClientIP, MailAccessType, IsThrottled, OperationCount -AutoSize
         }
         if (($Output -eq "Yes") -and $results.Count -gt 0) {
             $Results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
@@ -420,15 +447,15 @@ function Get-MessageIDs {
     To specifiy whether the messages and their attachments should be saved.
 
     .EXAMPLE
-    Get-MessageIDs -StartDate 1/4/2025 -EndDate 5/4/2025
-    Collects all sessions for all users between 1/4/2025 and 5/4/2025.
-    
+    Get-MessageIDs -StartDate 2026-04-01 -EndDate 2026-04-05
+    Collects all sessions for all users between 2026-04-01 and 2026-04-05.
+
     .EXAMPLE
-    Get-MessageIDs -StartDate 1/4/2025 -EndDate 5/4/2025 -IP 1.1.1.1
+    Get-MessageIDs -StartDate 2026-04-01 -EndDate 2026-04-05 -IP 1.1.1.1
     Collects all sessions for the IP address 1.1.1.1.
 
     .EXAMPLE
-    Get-MessageIDs -StartDate 1/4/2025 -EndDate 5/4/2025 -IP 1.1.1.1 -Download
+    Get-MessageIDs -StartDate 2026-04-01 -EndDate 2026-04-05 -IP 1.1.1.1 -Download
     Collects all sessions for the IP address 1.1.1.1 and downloads the e-mails and attachments.
 #>
     [CmdletBinding()]
@@ -492,7 +519,7 @@ function Get-MessageIDs {
         }
 
         else {
-            $results=@()
+            $results = [System.Collections.Generic.List[object]]::new()
             $MailItemRecords = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -ResultSize 5000 -Operations "MailItemsAccessed"
 
             forEach ($Rec in $MailItemRecords){
@@ -504,8 +531,31 @@ function Get-MessageIDs {
                 $ClientIP = $AuditData.ClientIPAddress
                 $userId = $AuditData.UserId
                 $sizeInBytes = $AuditData.SizeInBytes
-                                
-                if ($AuditData.OperationCount -gt 1){
+
+                $opProps = @{}
+                if ($AuditData.OperationProperties) {
+                    $AuditData.OperationProperties | ForEach-Object { $opProps[$_.Name] = $_.Value }
+                }
+                $mailAccessType = $opProps["MailAccessType"]
+
+                # Sync access: Outlook desktop synced an entire folder — no individual message IDs available.
+                # All items in the folder are considered potentially compromised.
+                if ($mailAccessType -eq "Sync") {
+                    foreach ($folder in $AuditData.Folders) {
+                        $resultObject = [PSCustomObject]@{
+                            Timestamp         = $TimeStamp
+                            User              = $userId
+                            IPaddress         = $ClientIP
+                            SessionID         = $SessionId
+                            MailAccessType    = "Sync"
+                            FolderPath        = $folder.Path
+                            InternetMessageId = "N/A (Sync - entire folder)"
+                            SizeInBytes       = $null
+                        }
+                        $results.Add($resultObject)
+                    }
+                }
+                elseif ($AuditData.OperationCount -gt 1){
                     $summary.OperationCount += $AuditData.OperationCount
                     foreach ($message in $InternetMessageId){
                         $iMessageID = $message.InternetMessageId
@@ -516,11 +566,13 @@ function Get-MessageIDs {
                             User                = $userId
                             IPaddress           = $ClientIP
                             SessionID           = $SessionId
+                            MailAccessType      = "Bind"
+                            FolderPath          = $null
                             InternetMessageId   = $iMessageID
                             SizeInBytes         = $sizeInBytes
                         }
-                        
-                        $results += $resultObject
+
+                        $results.Add($resultObject)
                         if ($Download.IsPresent){
                             if (![string]::IsNullOrWhiteSpace($iMessageID)) {
                                 DownloadMails($iMessageID,$userId)
@@ -528,21 +580,22 @@ function Get-MessageIDs {
                         }
                     }
                 }
-                            
+
                 else {
-                    $SessionID = ""
                     $iMessageID = $AuditData.Folders.FolderItems.InternetMessageId
-                    
+
                     $resultObject = [PSCustomObject]@{
                         Timestamp           = $TimeStamp
                         User                = $userId
                         IPaddress           = $ClientIP
                         SessionID           = $SessionId
+                        MailAccessType      = "Bind"
+                        FolderPath          = $null
                         InternetMessageId   = $iMessageID
                         SizeInBytes         = $sizeInBytes
                     }
-                    
-                    $results += $resultObject
+
+                    $results.Add($resultObject)
                     if ($Download.IsPresent){
                         if (![string]::IsNullOrWhiteSpace($iMessageID)) {
                             DownloadMails($iMessageID,$userId)
@@ -551,11 +604,11 @@ function Get-MessageIDs {
                 }
             }
         }
-        $results | Sort TimeStamp | Format-Table Timestamp, User, IPaddress, SessionID, InternetMessageId, SizeInBytes -AutoSize
-        
+        $results | Sort TimeStamp | Format-Table Timestamp, User, IPaddress, SessionID, MailAccessType, FolderPath, InternetMessageId, SizeInBytes -AutoSize
+
         if (($Output -eq "Yes") -and $results.Count -gt 0) {
             $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
-        } 
+        }
     }
 
     elseif ($IP -And $Sessions){
@@ -574,7 +627,7 @@ function Get-MessageIDs {
         }
 
         else {
-            $results=@()
+            $results = [System.Collections.Generic.List[object]]::new()
             $MailItemRecords = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -ResultSize 5000 -Operations "MailItemsAccessed"
         
             forEach ($Rec in $MailItemRecords){
@@ -586,63 +639,71 @@ function Get-MessageIDs {
                 $ClientIP = $AuditData.ClientIPAddress
                 $userId = $AuditData.UserId
                 $sizeInBytes = $AuditData.SizeInBytes
-        
+
+                $opProps = @{}
+                if ($AuditData.OperationProperties) {
+                    $AuditData.OperationProperties | ForEach-Object { $opProps[$_.Name] = $_.Value }
+                }
+                $mailAccessType = $opProps["MailAccessType"]
+
                 if($SessionId){
                     if($Sessions.Contains($SessionId)){
                         if($ClientIP -eq $IP){
-
-                            if ($AuditData.OperationCount -gt 1){
-                                foreach ($message in $InternetMessageId){
-                                    $iMessageID = $message.InternetMessageId
-                                    $sizeInBytes = $message.SizeInBytes
-            
-                                    $resultObject = [PSCustomObject]@{
+                            if ($mailAccessType -eq "Sync") {
+                                foreach ($folder in $AuditData.Folders) {
+                                    $results.Add([PSCustomObject]@{
                                         Timestamp           = $TimeStamp
                                         User                = $userId
                                         IPaddress           = $ClientIP
                                         SessionID           = $SessionId
+                                        MailAccessType      = "Sync"
+                                        FolderPath          = $folder.Path
+                                        InternetMessageId   = "N/A (Sync - entire folder)"
+                                        SizeInBytes         = $null
+                                    })
+                                }
+                            }
+                            elseif ($AuditData.OperationCount -gt 1){
+                                foreach ($message in $InternetMessageId){
+                                    $iMessageID = $message.InternetMessageId
+                                    $sizeInBytes = $message.SizeInBytes
+                                    $results.Add([PSCustomObject]@{
+                                        Timestamp           = $TimeStamp
+                                        User                = $userId
+                                        IPaddress           = $ClientIP
+                                        SessionID           = $SessionId
+                                        MailAccessType      = "Bind"
+                                        FolderPath          = $null
                                         InternetMessageId   = $iMessageID
                                         SizeInBytes         = $sizeInBytes
-                                    }
-                                    
-                                    $results += $resultObject
-
+                                    })
                                     if ($Download.IsPresent){
-                                        if (![string]::IsNullOrWhiteSpace($iMessageID)) {
-                                            DownloadMails($iMessageID,$userId)
-                                        }
+                                        if (![string]::IsNullOrWhiteSpace($iMessageID)) { DownloadMails($iMessageID,$userId) }
                                     }
                                 }
                             }
-                                        
                             else {
-                                $SessionID = ""
                                 $iMessageID = $AuditData.Folders.FolderItems.InternetMessageId
-                                
-                                $resultObject = [PSCustomObject]@{
+                                $results.Add([PSCustomObject]@{
                                     Timestamp           = $TimeStamp
                                     User                = $userId
                                     IPaddress           = $ClientIP
                                     SessionID           = $SessionId
+                                    MailAccessType      = "Bind"
+                                    FolderPath          = $null
                                     InternetMessageId   = $iMessageID
                                     SizeInBytes         = $sizeInBytes
-                                }
-                                
-                                $results += $resultObject
-
+                                })
                                 if ($Download.IsPresent){
-                                    if (![string]::IsNullOrWhiteSpace($iMessageID)) {
-                                        DownloadMails($iMessageID,$userId)
-                                    }
+                                    if (![string]::IsNullOrWhiteSpace($iMessageID)) { DownloadMails($iMessageID,$userId) }
                                 }
-                            }                               
+                            }
                         }
-                        
                     }
                 }
             }
         }
-        $results | Sort TimeStamp | Format-Table Timestamp, User, IPaddress, SessionID, InternetMessageId, SizeInBytes -AutoSize
+        $results | Sort TimeStamp | Format-Table Timestamp, User, IPaddress, SessionID, MailAccessType, FolderPath, InternetMessageId, SizeInBytes -AutoSize
 
         if (($Output -eq "Yes") -and $results.Count -gt 0) {
             $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
@@ -665,7 +726,7 @@ function Get-MessageIDs {
         }
 
         else {
-            $results=@()
+            $results = [System.Collections.Generic.List[object]]::new()
             $MailItemRecords = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -ResultSize 5000 -FreeText $Sessions -Operations "MailItemsAccessed"
         
             forEach ($Rec in $MailItemRecords){
@@ -678,58 +739,68 @@ function Get-MessageIDs {
                 $userId = $AuditData.UserId
                 $sizeInBytes = $AuditData.SizeInBytes
 
+                $opProps = @{}
+                if ($AuditData.OperationProperties) {
+                    $AuditData.OperationProperties | ForEach-Object { $opProps[$_.Name] = $_.Value }
+                }
+                $mailAccessType = $opProps["MailAccessType"]
+
                 if($SessionId){
                     if($Sessions.Contains($SessionId)){
-                        if ($AuditData.OperationCount -gt 1){
-                            foreach ($message in $InternetMessageId){
-                                $iMessageID = $message.InternetMessageId
-                                $sizeInBytes = $message.SizeInBytes
-            
-                                $resultObject = [PSCustomObject]@{
+                        if ($mailAccessType -eq "Sync") {
+                            foreach ($folder in $AuditData.Folders) {
+                                $results.Add([PSCustomObject]@{
                                     Timestamp           = $TimeStamp
                                     User                = $userId
                                     IPaddress           = $ClientIP
                                     SessionID           = $SessionId
+                                    MailAccessType      = "Sync"
+                                    FolderPath          = $folder.Path
+                                    InternetMessageId   = "N/A (Sync - entire folder)"
+                                    SizeInBytes         = $null
+                                })
+                            }
+                        }
+                        elseif ($AuditData.OperationCount -gt 1){
+                            foreach ($message in $InternetMessageId){
+                                $iMessageID = $message.InternetMessageId
+                                $sizeInBytes = $message.SizeInBytes
+                                $results.Add([PSCustomObject]@{
+                                    Timestamp           = $TimeStamp
+                                    User                = $userId
+                                    IPaddress           = $ClientIP
+                                    SessionID           = $SessionId
+                                    MailAccessType      = "Bind"
+                                    FolderPath          = $null
                                     InternetMessageId   = $iMessageID
                                     SizeInBytes         = $sizeInBytes
-                                }
-                                
-                                $results += $resultObject
-
+                                })
                                 if ($Download.IsPresent){
-                                    if (![string]::IsNullOrWhiteSpace($iMessageID)) {
-                                        DownloadMails($iMessageID,$userId)
-                                    }
+                                    if (![string]::IsNullOrWhiteSpace($iMessageID)) { DownloadMails($iMessageID,$userId) }
                                 }
                             }
                         }
-                                    
                         else {
-                            $SessionID = ""
                             $iMessageID = $AuditData.Folders.FolderItems.InternetMessageId
-                            
-                            $resultObject = [PSCustomObject]@{
+                            $results.Add([PSCustomObject]@{
                                 Timestamp           = $TimeStamp
                                 User                = $userId
                                 IPaddress           = $ClientIP
                                 SessionID           = $SessionId
+                                MailAccessType      = "Bind"
+                                FolderPath          = $null
                                 InternetMessageId   = $iMessageID
                                 SizeInBytes         = $sizeInBytes
-                            }
-                            
-                            $results += $resultObject
-
+                            })
                             if ($Download.IsPresent){
-                                if (![string]::IsNullOrWhiteSpace($iMessageID)) {
-                                    DownloadMails($iMessageID,$userId)
-                                }
+                                if (![string]::IsNullOrWhiteSpace($iMessageID)) { DownloadMails($iMessageID,$userId) }
                             }
-                        }                               
-                    }    
+                        }
+                    }
                 }
             }
         }
-        $results | Sort TimeStamp | Format-Table Timestamp, User, IPaddress, SessionID, InternetMessageId, SizeInBytes  
+        $results | Sort TimeStamp | Format-Table Timestamp, User, IPaddress, SessionID, MailAccessType, FolderPath, InternetMessageId, SizeInBytes
 
         if (($Output -eq "Yes") -and $results.Count -gt 0) {
             $results | Export-Csv -Path $script:outputFile -NoTypeInformation -Encoding $Encoding
@@ -752,7 +823,7 @@ function Get-MessageIDs {
         }
 
         else {
-            $results=@()
+            $results = [System.Collections.Generic.List[object]]::new()
             $MailItemRecords = Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -FreeText $IP -ResultSize 5000 -Operations "MailItemsAccessed"
 
             forEach ($Rec in $MailItemRecords){
@@ -781,7 +852,7 @@ function Get-MessageIDs {
                                 SizeInBytes         = $sizeInBytes
                             }
                             
-                            $results += $resultObject
+                            $results.Add($resultObject)
 
                             if ($Download.IsPresent){
                                 if (![string]::IsNullOrWhiteSpace($iMessageID)) {
@@ -804,7 +875,7 @@ function Get-MessageIDs {
                             SizeInBytes         = $sizeInBytes
                         }
                         
-                        $results += $resultObject
+                        $results.Add($resultObject)
 
                         if ($Download.IsPresent){
                             if (![string]::IsNullOrWhiteSpace($iMessageID)) {
