@@ -195,7 +195,7 @@ function Get-GraphAuthType {
                 }
                 
                 Write-LogFile -Message "[INFO] Attempting to re-authenticate with the appropriate scope(s): $joinedScopes" -Color "Green"
-                Connect-MgGraph -NoWelcome -Scopes $joinedScopes > $null
+                Connect-MgGraph -NoWelcome -ContextScope Process -Scopes $joinedScopes > $null
             }
         }
         "AppOnly" {
@@ -211,7 +211,7 @@ function Get-GraphAuthType {
             }
             else {
                 Write-LogFile -Message "[INFO] No active Connect-MgGraph session found. Attempting to connect with the appropriate scope(s): $joinedScopes" -Color "Green"
-                Connect-MgGraph -NoWelcome -Scopes $joinedScopes
+                Connect-MgGraph -NoWelcome -ContextScope Process -Scopes $joinedScopes
             }
         }
     }
