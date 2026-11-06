@@ -249,13 +249,13 @@ function Start-MESTriage {
                     $userIdsString = if ($UserIdsArray.Count -gt 0) { $UserIdsArray -join ',' } else { $null }
                     $ualOutput = $Output
 
-                    if ($Output -eq "JSONL" -and "Get-UAL" -in $JSONLSupportedFunctions) { 
-                        $ualOutput = "JSONL" 
-                    } elseif ($Output -eq "SOF-ELK" -and "Get-UAL" -in $SOFELKSupportedFunctions) { 
-                        $ualOutput = "SOF-ELK" 
+                    if ($Output -eq "JSONL" -and "Get-UAL" -in $JSONLSupportedFunctions) {
+                        $ualOutput = "JSONL"
+                    } elseif ($Output -eq "SOF-ELK" -and "Get-UAL" -in $SOFELKSupportedFunctions) {
+                        $ualOutput = "SOF-ELK"
                     }
                     Get-QuickUALOperations -Operations $task.Operations -UserIds $userIdsString -OutputDir $OutputDir -LogLevel $LogLevel -Output $ualOutput -StartDate $StartDate -EndDate $EndDate
-                    
+
                     $triageSummary.SuccessfulTasks++
                     Write-TaskProgress -TaskName "UAL Operations" -Status 'Complete'
                 }
@@ -264,7 +264,49 @@ function Start-MESTriage {
                     Write-TaskProgress -TaskName "UAL Operations" -Status 'Failed' -ErrorMessage $_.Exception.Message
                     Write-LogFile -Message "[ERROR] UAL Operations failed: $($_.Exception.Message)" -Color "Red" -Level Minimal
                 }
-            }  
+            }
+        }
+        elseif ($task -is [hashtable] -and $task.Task -eq "UALOperationsFull") {
+            if ($task.Operations.Count -eq 0) {
+                $triageSummary.SkippedTasks++
+                continue
+            }
+            else {
+                Write-TaskProgress -TaskName "UAL Operations (Full)" -Status 'InProgress'
+                try {
+                    $ualOutput = $Output
+                    if ($Output -eq "JSONL" -and "Get-UAL" -in $JSONLSupportedFunctions) {
+                        $ualOutput = "JSONL"
+                    } elseif ($Output -eq "SOF-ELK" -and "Get-UAL" -in $SOFELKSupportedFunctions) {
+                        $ualOutput = "SOF-ELK"
+                    }
+
+                    $ualParams = @{
+                        Operations = $task.Operations
+                        OutputDir  = $OutputDir
+                        LogLevel   = $LogLevel
+                        Output     = $ualOutput
+                        Encoding   = $Encoding
+                        StartDate  = $StartDate
+                        EndDate    = $EndDate
+                        MergeOutput = $true
+                    }
+
+                    if ($UserIdsArray.Count -gt 0) {
+                        $ualParams.UserIds = $UserIdsArray -join ','
+                    }
+
+                    Get-UAL @ualParams
+
+                    $triageSummary.SuccessfulTasks++
+                    Write-TaskProgress -TaskName "UAL Operations (Full)" -Status 'Complete'
+                }
+                catch {
+                    $triageSummary.FailedTasks++
+                    Write-TaskProgress -TaskName "UAL Operations (Full)" -Status 'Failed' -ErrorMessage $_.Exception.Message
+                    Write-LogFile -Message "[ERROR] UAL Operations (Full) failed: $($_.Exception.Message)" -Color "Red" -Level Minimal
+                }
+            }
         }
     }
     
