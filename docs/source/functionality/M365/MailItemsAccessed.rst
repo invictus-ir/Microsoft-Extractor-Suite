@@ -1,6 +1,6 @@
 MailItemsAccessed
 =======
-This section comprises a variety of functions designed to gather information session ID(s) and/or Internet Message ID(s) assosiated with a threat actor. This information can be used to find and download all messages and their attachments.
+This section comprises a variety of functions designed to gather information session ID(s) and/or Internet Message ID(s) associated with a threat actor. This information can be used to find and download all messages and their attachments.
 
 Find SessionID(s) in the Unified Audit Log.
 ^^^^^^^^^^^
@@ -87,7 +87,7 @@ Parameters
     - The IP address parameter is used to filter the logs by specifying the desired IP address.
 
 -Download (optional)
-    - To specifiy whether the messages and their attachments should be saved.
+    - To specify whether the messages and their attachments should be saved.
     - Default: No
 
 -Sessions (optional)

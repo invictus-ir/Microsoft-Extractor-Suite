@@ -79,11 +79,11 @@ You must sign-in to Microsoft 365 or Azure depending on your use case before run
 
 ### Mail and Message Tracking
 - `Get-MessageTraceLog` - Collect message tracking logs
-- `Get-Email` - Download specific or bullk emails
+- `Get-Email` - Download specific or bulk emails
 - `Show-Email` - Show email content
 - `Get-Attachment` - Download email attachments
-- `Get-Sessions` - Collect session information related to MailItemsaccessed events
-- `Get-MessageIDs` - Extract message IDs from MailItemsaccessed events
+- `Get-Sessions` - Collect session information related to MailItemsAccessed events
+- `Get-MessageIDs` - Extract message IDs from MailItemsAccessed events
 
 ### Sign-In & Audit Logging
 - `Get-GraphEntraSignInLogs` - Collect sign-in logs
