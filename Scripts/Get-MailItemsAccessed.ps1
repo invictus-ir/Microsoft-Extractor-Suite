@@ -444,7 +444,7 @@ function Get-MessageIDs {
     Default: Standard
 
     .PARAMETER Download
-    To specifiy whether the messages and their attachments should be saved.
+    To specify whether the messages and their attachments should be saved.
 
     .EXAMPLE
     Get-MessageIDs -StartDate 2026-04-01 -EndDate 2026-04-05
