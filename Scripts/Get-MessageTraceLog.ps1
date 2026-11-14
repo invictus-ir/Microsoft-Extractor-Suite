@@ -221,11 +221,26 @@ function Retrieve-MessageTrace {
             $resultCount = $results.Count
 
             if($results){
-                $results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding $Encoding -Append
-                Write-LogFile -Message "[INFO] Found $resultCount records between $($results[-1].Received) and $($results[0].Received)"  -Level Standard
+                $nextEndDate = $results[-1].Received
+                $nextRecipientAddress = $results[-1].RecipientAddress
 
-                $searchParams.EndDate = $results[-1].Received.ToString("O")
-                $searchParams.StartingRecipientAddress = $results[-1].RecipientAddress
+                Write-LogFile -Message "[INFO] Found $resultCount records between $($results[-1].Received) and $($results[0].Received)" -Level Standard
+
+                # Convert Received to ISO 8601 UTC before export (issue #206).
+                $results | ForEach-Object {
+                    if ($null -ne $_.Received -and $_.Received -ne '') {
+                        $receivedAt = Get-Date $_.Received
+                        if ($receivedAt.Kind -eq [DateTimeKind]::Unspecified) {
+                            $receivedAt = [datetime]::SpecifyKind($receivedAt, [DateTimeKind]::Utc)
+                        }
+                        $_.Received = $receivedAt.ToUniversalTime().ToString("O")
+                    }
+                }
+
+                $results | Export-Csv $outputFile -ErrorAction SilentlyContinue -NoTypeInformation -Encoding $Encoding -Append
+
+                $searchParams.EndDate = $nextEndDate
+                $searchParams.StartingRecipientAddress = $nextRecipientAddress
             }
         }
 
