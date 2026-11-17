@@ -103,6 +103,7 @@ Have a bug report or feature request? Open an issue on the Github repository.
    functionality/M365/UnifiedAuditLogGraph
    functionality/M365/AdminAuditLog
    functionality/M365/MailboxAuditLog
+   functionality/M365/MailboxAuditLogLegacy
    functionality/M365/MessageTraceLog
    functionality/M365/InboxRules
    functionality/M365/TransportRules

@@ -1,5 +1,5 @@
 Mailbox Audit Log (Legacy Method)
-=======
+=================================
 This legacy implementation of mailbox audit log collection uses the direct **Search-MailboxAuditlog** cmdlet. While Microsoft has announced that this cmdlet will be permanently deprecated on December 31, 2025, we've included this function (again) because there are scenarios where it still provides value - particularly in cases where UAL (Unified Audit Logging) has been disabled but mailbox audit logging seems to remain functional.
 
 Mailbox audit logs are generated for each mailbox that has mailbox audit logging enabled. This tracks all user actions on any items in a mailbox.
@@ -7,7 +7,7 @@ Use **Get-MailboxAuditLogLegacy** to collect the mailbox audit log for a specifi
 
 Usage
 """"""""""""""""""""""""""
-Running the script without any parameters will gather the maibox audit logs for the last 90 days for all users:
+Running the script without any parameters will gather the mailbox audit logs for the last 90 days for all users:
 ::
 
    Get-MailboxAuditLogLegacy
