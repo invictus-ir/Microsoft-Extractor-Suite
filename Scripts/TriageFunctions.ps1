@@ -29,11 +29,11 @@ function Get-EntraApplicationsForSpecificUsers {
     Only shows applications owned by or assigned to these users.
 
     .EXAMPLE
-    Get-EntraApplications -UserIds @("admin@domain.com")
+    Get-EntraApplicationsForSpecificUsers -UserIds @("admin@domain.com")
     Retrieves applications owned by or assigned to specific users.
 
     .EXAMPLE
-    Get-EntraApplications -UserIds @("user1@domain.com","user2@domain.com") -OutputDir "C:\Security\Apps"
+    Get-EntraApplicationsForSpecificUsers -UserIds @("user1@domain.com","user2@domain.com") -OutputDir "C:\Security\Apps"
     Retrieves applications for multiple users with custom output directory.
     #>
 
@@ -273,6 +273,10 @@ function Get-QuickUALOperations {
     
     .PARAMETER OutputDir
     Output directory for results
+    
+    .PARAMETER Output
+    Output is the parameter specifying the CSV, JSON or SOF-ELK output type. The SOF-ELK output can be imported into the platform of the same name.
+    Default: CSV
     
     .PARAMETER MaxResults
     Maximum number of results to retrieve per operation (default: 5000)
