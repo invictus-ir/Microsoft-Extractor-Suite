@@ -74,3 +74,5 @@ Output\MessageTrace\YYYYMMDDHHMM-AllUsers-MTL.csv
 
 For specific user or domain queries, the output will be saved as:
 Output\MessageTrace\[email/domain]-MTL.csv
+
+The ``Received`` column is written in ISO 8601 UTC (for example ``2026-08-12T07:22:20.1234567Z``).
