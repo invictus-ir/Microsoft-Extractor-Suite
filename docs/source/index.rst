@@ -8,7 +8,7 @@ Microsoft Extractor Suite documentation!
 
 .. note::
 
-   🆘 Incident Response support reach out to cert@invictus-ir.com or go to https://www.invictus-ir.com/24-7-emergency-response
+   🆘 Incident Response support reach out to cert@invictus-ir.com or go to https://www.invictus-ir.com/services/incident-response
 
 Supported sources
 -------
